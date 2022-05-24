@@ -1,13 +1,11 @@
 package org.ybonfire.netty.common.util;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+
+import io.netty.channel.Channel;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * 远程调用工具类
@@ -55,14 +53,14 @@ public final class RemotingUtil {
         return "";
     }
 
-    /**
-     * @description: 关闭连接
-     * @param:
-     * @return:
-     * @date: 2022/05/24 14:33:35
-     */
-    public static void closeChannel(final Channel channel) {
-        final String address = parseChannelAddress(channel);
-        channel.close().addListener(future -> System.out.println("关闭连接. Address: [" + address + "]. result:" + future.isSuccess()));
+    public static String parseSocketAddressAddress(SocketAddress socketAddress) {
+        if (socketAddress != null) {
+            final String addr = socketAddress.toString();
+
+            if (addr.length() > 0) {
+                return addr.substring(1);
+            }
+        }
+        return "";
     }
 }

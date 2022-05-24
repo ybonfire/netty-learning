@@ -1,4 +1,4 @@
-package org.ybonfire.netty.common.thread;
+package org.ybonfire.netty.common.thread.task;
 
 import lombok.extern.slf4j.Slf4j;
 

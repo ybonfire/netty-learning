@@ -1,17 +1,12 @@
 package org.ybonfire.netty.client;
 
-import java.util.List;
+import java.net.SocketAddress;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import org.ybonfire.netty.client.callback.IRequestCallback;
 import org.ybonfire.netty.client.config.NettyClientConfig;
 import org.ybonfire.netty.client.dispatcher.IRemotingResponseDispatcher;
@@ -21,23 +16,34 @@ import org.ybonfire.netty.client.handler.impl.DefaultNettyRemotingResponseHandle
 import org.ybonfire.netty.client.manager.InflightRequestManager;
 import org.ybonfire.netty.client.manager.NettyChannelManager;
 import org.ybonfire.netty.client.model.RemoteRequestFuture;
+import org.ybonfire.netty.client.thread.ClientChannelEventHandleThreadService;
 import org.ybonfire.netty.common.client.IRemotingClient;
 import org.ybonfire.netty.common.codec.Decoder;
 import org.ybonfire.netty.common.codec.Encoder;
 import org.ybonfire.netty.common.command.RemotingCommand;
+import org.ybonfire.netty.common.model.NettyChannelEvent;
+import org.ybonfire.netty.common.model.NettyChannelEventTypeEnum;
 import org.ybonfire.netty.common.model.Pair;
 import org.ybonfire.netty.common.protocol.RemotingCommandConstant;
 import org.ybonfire.netty.common.protocol.RequestTypeEnum;
 import org.ybonfire.netty.common.protocol.ResponseCodeConstant;
 import org.ybonfire.netty.common.util.AssertUtils;
+import org.ybonfire.netty.common.util.RemotingUtil;
 import org.ybonfire.netty.common.util.ThreadPoolUtil;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 
 /**
@@ -54,6 +60,8 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
     private final EventLoopGroup clientEventLoopGroup;
     private final DefaultEventExecutorGroup defaultEventExecutorGroup;
     private final NettyChannelManager channelManager = new NettyChannelManager(bootstrap);
+    private final ClientChannelEventHandleThreadService channelEventHandleThreadService =
+        new ClientChannelEventHandleThreadService(channelManager);
     private final IRemotingResponseDispatcher<ChannelHandlerContext, INettyRemotingResponseHandler> dispatcher =
         new NettyRemotingResponseDispatcher();
     private final InflightRequestManager inflightRequestManager = new InflightRequestManager();
@@ -99,6 +107,9 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
             // register handler
             this.registerHandler(ResponseCodeConstant.SUCCESS, responseHandler, this.testExecutorService);
 
+            // start ChannelEventHandleThreadService
+            this.channelEventHandleThreadService.start();
+
             // start client
             this.bootstrap.group(this.clientEventLoopGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_SNDBUF, this.config.getClientSocketSendBufferSize())
@@ -106,7 +117,8 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(defaultEventExecutorGroup, encoder, new Decoder(),  new NettyClientHandler());
+                        ch.pipeline().addLast(defaultEventExecutorGroup, encoder, new Decoder(),
+                            new NettyConnectEventHandler(), new NettyClientHandler());
                     }
                 });
         }
@@ -121,6 +133,12 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
     @Override
     public void shutdown() {
         if (started.compareAndSet(true, false)) {
+            // disconnect
+            this.channelManager.closeAllChannel();
+
+            // stop ChannelEventHandler
+            this.channelEventHandleThreadService.stop();
+
             // clientEventLoopGroup
             if (this.clientEventLoopGroup != null) {
                 this.clientEventLoopGroup.shutdownGracefully();
@@ -130,10 +148,6 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
             if (this.defaultEventExecutorGroup != null) {
                 this.defaultEventExecutorGroup.shutdownGracefully();
             }
-
-            // disconnect
-            final List<Pair<String, Channel>> pairs = this.channelManager.getAllChannels();
-            pairs.parallelStream().map(Pair::getKey).forEach(channelManager::closeChannel);
         }
     }
 
@@ -354,6 +368,17 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
     }
 
     /**
+     * @description: 构造NettyChannelEvent
+     * @param:
+     * @return:
+     * @date: 2022/05/24 23:06:17
+     */
+    private NettyChannelEvent buildNettyChannelEvent(final NettyChannelEventTypeEnum type, final String address,
+        final Channel channel) {
+        return new NettyChannelEvent(type, address, channel);
+    }
+
+    /**
      * @description: 客户端事件处理器
      * @author: Bo.Yuan5
      * @date: 2022/5/23
@@ -375,6 +400,76 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
                 // TODO
                 System.err.println("异常的远程事件类型");
             }
+        }
+    }
+
+    /**
+     * @description: Netty连接事件处理器
+     * @author: Bo.Yuan5
+     * @date: 2022/5/24
+     */
+    private class NettyConnectEventHandler extends ChannelDuplexHandler {
+
+        /**
+         * @description: 建立连接
+         * @param:
+         * @return:
+         * @date: 2022/05/24 23:01:03
+         */
+        @Override
+        public void connect(final ChannelHandlerContext ctx, final SocketAddress remoteAddress,
+            final SocketAddress localAddress, final ChannelPromise promise) throws Exception {
+            // 建立连接
+            super.connect(ctx, remoteAddress, localAddress, promise);
+
+            final String local = localAddress == null ? "UNKNOWN" : localAddress.toString();
+            final String remote = remoteAddress == null ? "UNKNOWN" : remoteAddress.toString();
+            System.out.println("NETTY CLIENT PIPELINE: CONNECT " + local + "->" + remote);
+
+            // 发布连接事件
+            final NettyChannelEvent event =
+                buildNettyChannelEvent(NettyChannelEventTypeEnum.OPEN, remote, ctx.channel());
+            channelEventHandleThreadService.putEvent(event);
+        }
+
+        /**
+         * @description: 断开连接
+         * @param:
+         * @return:
+         * @date: 2022/05/24 23:01:20
+         */
+        @Override
+        public void disconnect(final ChannelHandlerContext ctx, final ChannelPromise promise) throws Exception {
+            // 断开连接
+            super.disconnect(ctx, promise);
+
+            final String remote = RemotingUtil.parseChannelAddress(ctx.channel());
+            System.out.println("NETTY CLIENT PIPELINE: DISCONNECT " + remote);
+
+            // 发布关闭事件
+            final NettyChannelEvent event =
+                buildNettyChannelEvent(NettyChannelEventTypeEnum.CLOSE, remote, ctx.channel());
+            channelEventHandleThreadService.putEvent(event);
+        }
+
+        /**
+         * @description: 关闭连接
+         * @param:
+         * @return:
+         * @date: 2022/05/24 23:01:35
+         */
+        @Override
+        public void close(final ChannelHandlerContext ctx, final ChannelPromise promise) throws Exception {
+            // 断开连接
+            super.disconnect(ctx, promise);
+
+            final String remote = RemotingUtil.parseChannelAddress(ctx.channel());
+            System.out.println("NETTY CLIENT PIPELINE: DISCONNECT " + remote);
+
+            // 发布关闭事件
+            final NettyChannelEvent event =
+                buildNettyChannelEvent(NettyChannelEventTypeEnum.CLOSE, remote, ctx.channel());
+            channelEventHandleThreadService.putEvent(event);
         }
     }
 }

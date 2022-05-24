@@ -1,21 +1,19 @@
 package org.ybonfire.netty.client.manager;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import org.ybonfire.netty.common.exception.ExceptionTypeEnum;
-import org.ybonfire.netty.common.model.Pair;
-import org.ybonfire.netty.common.util.ExceptionUtil;
-import org.ybonfire.netty.common.util.RemotingUtil;
-
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
+
+import org.ybonfire.netty.common.exception.ExceptionTypeEnum;
+import org.ybonfire.netty.common.util.ExceptionUtil;
+import org.ybonfire.netty.common.util.RemotingUtil;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
 /**
  * Netty连接管理器
@@ -33,14 +31,18 @@ public class NettyChannelManager {
     }
 
     /**
-     * @description: 获取所有连接
+     * @description: 添加连接
      * @param:
      * @return:
-     * @date: 2022/05/24 14:30:06
+     * @date: 2022/05/24 17:45:00
      */
-    public List<Pair<String, Channel>> getAllChannels() {
-        return this.channelTable.entrySet().stream().map(entry -> new Pair<>(entry.getKey(), entry.getValue()))
-            .collect(Collectors.toList());
+    public void putChannel(final String address, final Channel channel) {
+        if (channel.isActive()) {
+            final Channel pre = channelTable.putIfAbsent(address, channel);
+            if (pre != null && pre.isActive()) {
+                this.doCloseChannel(pre);
+            }
+        }
     }
 
     /**
@@ -74,15 +76,47 @@ public class NettyChannelManager {
     }
 
     /**
+     * @description: 关闭所有连接
+     * @param:
+     * @return:
+     * @date: 2022/05/24 17:41:27
+     */
+    public void closeAllChannel() {
+        lock.lock();
+        try {
+            this.channelTable.values().parallelStream().forEach(this::doCloseChannel);
+            this.channelTable.clear();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
      * @description: 关闭连接
      * @param:
      * @return:
      * @date: 2022/05/24 14:33:35
      */
     public void closeChannel(final String address) {
-        final Optional<Channel> channelOptional = Optional.ofNullable(this.channelTable.get(address));
-        channelOptional.map(channel -> channel.close().addListener(
-            future -> System.out.println("关闭连接. Address: [" + address + "]. result:" + future.isSuccess())));
+        lock.lock();
+        try {
+            final Optional<Channel> channelOptional = Optional.ofNullable(this.channelTable.get(address));
+            channelOptional.ifPresent(this::doCloseChannel);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * @description: 关闭连接
+     * @param:
+     * @return:
+     * @date: 2022/05/24 17:49:55
+     */
+    private void doCloseChannel(final Channel channel) {
+        final String address = RemotingUtil.parseChannelAddress(channel);
+        channel.close().addListener(
+            future -> System.out.println("关闭连接. Address: [" + address + "]. result:" + future.isSuccess()));
     }
 
     /**

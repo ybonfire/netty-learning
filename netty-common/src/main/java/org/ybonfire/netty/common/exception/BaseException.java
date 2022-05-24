@@ -7,7 +7,7 @@ package org.ybonfire.netty.common.exception;
  * @date 2022-05-19 10:16
  */
 public class BaseException extends RuntimeException {
-    private ExceptionTypeEnum type;
+    private final ExceptionTypeEnum type;
 
     public BaseException(final ExceptionTypeEnum type) {
         this(type, null);

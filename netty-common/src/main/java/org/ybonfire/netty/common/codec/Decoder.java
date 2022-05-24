@@ -1,14 +1,13 @@
 package org.ybonfire.netty.common.codec;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.ybonfire.netty.common.command.RemotingCommand;
+import org.ybonfire.netty.common.util.CodecUtil;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import org.ybonfire.netty.common.util.CodecUtil;
 
 /**
  * 反序列化器

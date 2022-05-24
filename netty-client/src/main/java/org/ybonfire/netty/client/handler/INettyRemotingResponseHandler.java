@@ -10,4 +10,5 @@ import io.netty.channel.ChannelHandlerContext;
  * @author Bo.Yuan5
  * @date 2022-05-18 10:29
  */
+@FunctionalInterface
 public interface INettyRemotingResponseHandler extends IRemotingRequestResponseHandler<ChannelHandlerContext> {}
