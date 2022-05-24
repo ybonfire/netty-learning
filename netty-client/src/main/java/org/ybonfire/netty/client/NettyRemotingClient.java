@@ -1,27 +1,44 @@
 package org.ybonfire.netty.client;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import org.ybonfire.netty.client.callback.IRequestCallback;
-import org.ybonfire.netty.client.config.NettyClientConfig;
-import org.ybonfire.netty.client.manager.NettyChannelManager;
-import org.ybonfire.netty.client.model.RemoteRequestFuture;
-import org.ybonfire.netty.common.client.IRemotingClient;
-import org.ybonfire.netty.common.command.RemotingCommand;
-import org.ybonfire.netty.common.model.RequestTypeEnum;
-import org.ybonfire.netty.common.protocol.ResponseCodeConstant;
-import org.ybonfire.netty.common.util.AssertUtils;
-import org.ybonfire.netty.common.util.CodecUtil;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import org.ybonfire.netty.client.callback.IRequestCallback;
+import org.ybonfire.netty.client.config.NettyClientConfig;
+import org.ybonfire.netty.client.dispatcher.IRemotingResponseDispatcher;
+import org.ybonfire.netty.client.dispatcher.impl.NettyRemotingResponseDispatcher;
+import org.ybonfire.netty.client.handler.INettyRemotingResponseHandler;
+import org.ybonfire.netty.client.handler.impl.DefaultNettyRemotingResponseHandler;
+import org.ybonfire.netty.client.manager.InflightRequestManager;
+import org.ybonfire.netty.client.manager.NettyChannelManager;
+import org.ybonfire.netty.client.model.RemoteRequestFuture;
+import org.ybonfire.netty.common.client.IRemotingClient;
+import org.ybonfire.netty.common.codec.Decoder;
+import org.ybonfire.netty.common.codec.Encoder;
+import org.ybonfire.netty.common.command.RemotingCommand;
+import org.ybonfire.netty.common.model.Pair;
+import org.ybonfire.netty.common.protocol.RemotingCommandConstant;
+import org.ybonfire.netty.common.protocol.RequestTypeEnum;
+import org.ybonfire.netty.common.protocol.ResponseCodeConstant;
+import org.ybonfire.netty.common.util.AssertUtils;
+import org.ybonfire.netty.common.util.ThreadPoolUtil;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
 
 /**
  * Netty远程调用客户端
@@ -29,49 +46,95 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Bo.Yuan5
  * @date 2022-05-18 15:28
  */
-public class NettyRemotingClient implements IRemotingClient {
+public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContext, INettyRemotingResponseHandler> {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final Bootstrap bootstrap = new Bootstrap();
+    private final Encoder encoder = new Encoder();
     private final NettyClientConfig config;
     private final EventLoopGroup clientEventLoopGroup;
+    private final DefaultEventExecutorGroup defaultEventExecutorGroup;
     private final NettyChannelManager channelManager = new NettyChannelManager(bootstrap);
-    private final Map<String, RemoteRequestFuture> inFlightRequests = new ConcurrentHashMap<>();
+    private final IRemotingResponseDispatcher<ChannelHandlerContext, INettyRemotingResponseHandler> dispatcher =
+        new NettyRemotingResponseDispatcher();
+    private final InflightRequestManager inflightRequestManager = new InflightRequestManager();
+    private final INettyRemotingResponseHandler responseHandler =
+        new DefaultNettyRemotingResponseHandler(this.inflightRequestManager);
+    private final ExecutorService testExecutorService = ThreadPoolUtil.getTestExecutorService();
 
     public NettyRemotingClient(final NettyClientConfig config) {
         this.config = config;
 
         // eventLoopGroup
-        final int eventLoopGroupThreadNums = this.config.getClientWorkerThreads();
+        final int eventLoopGroupThreadNums = this.config.getClientEventLoopThread();
         this.clientEventLoopGroup = buildEventLoop(eventLoopGroupThreadNums, new ThreadFactory() {
-            private AtomicInteger threadIndex = new AtomicInteger(0);
+            private final AtomicInteger threadIndex = new AtomicInteger(0);
 
             @Override
             public Thread newThread(Runnable r) {
                 return new Thread(r, String.format("ClientEventLoopGroup_%d", this.threadIndex.incrementAndGet()));
             }
         });
+
+        // executorGroup
+        final int executorThreadNums = this.config.getWorkerThreadNums();
+        this.defaultEventExecutorGroup = buildDefaultEventExecutorGroup(executorThreadNums, new ThreadFactory() {
+            private final AtomicInteger threadIndex = new AtomicInteger(0);
+
+            @Override
+            public Thread newThread(Runnable r) {
+                return new Thread(r, String.format("EventExecutor_%d", this.threadIndex.incrementAndGet()));
+            }
+        });
     }
 
     /**
-     * @description:
+     * @description: 启动客户端
      * @param:
      * @return:
      * @date: 2022/05/18 15:32:53
      */
     @Override
     public void start() {
+        if (started.compareAndSet(false, true)) {
+            // register handler
+            this.registerHandler(ResponseCodeConstant.SUCCESS, responseHandler, this.testExecutorService);
 
+            // start client
+            this.bootstrap.group(this.clientEventLoopGroup).channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_SNDBUF, this.config.getClientSocketSendBufferSize())
+                .option(ChannelOption.SO_RCVBUF, this.config.getClientSocketReceiveBufferSize())
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline().addLast(defaultEventExecutorGroup, encoder, new Decoder(),  new NettyClientHandler());
+                    }
+                });
+        }
     }
 
     /**
-     * @description:
+     * @description: 关闭客户端
      * @param:
      * @return:
      * @date: 2022/05/18 15:32:56
      */
     @Override
     public void shutdown() {
+        if (started.compareAndSet(true, false)) {
+            // clientEventLoopGroup
+            if (this.clientEventLoopGroup != null) {
+                this.clientEventLoopGroup.shutdownGracefully();
+            }
 
+            // executorGroup
+            if (this.defaultEventExecutorGroup != null) {
+                this.defaultEventExecutorGroup.shutdownGracefully();
+            }
+
+            // disconnect
+            final List<Pair<String, Channel>> pairs = this.channelManager.getAllChannels();
+            pairs.parallelStream().map(Pair::getKey).forEach(channelManager::closeChannel);
+        }
     }
 
     /**
@@ -124,14 +187,26 @@ public class NettyRemotingClient implements IRemotingClient {
     }
 
     /**
+     * @description: 注册响应处理器
+     * @param:
+     * @return:
+     * @date: 2022/05/24 00:22:15
+     */
+    @Override
+    public void registerHandler(final int responseCode, final INettyRemotingResponseHandler handler,
+        final ExecutorService executor) {
+        this.dispatcher.registerRemotingRequestHandler(responseCode, handler, executor);
+    }
+
+    /**
      * @description: 构造RemoteRequestFuture
      * @param:
      * @return:
      * @date: 2022/05/19 13:26:46
      */
     private RemoteRequestFuture buildRemoteRequestFuture(final String address, final Channel channel,
-        final RemotingCommand request) {
-        return new RemoteRequestFuture(address, channel, request);
+        final RemotingCommand request, final long timeoutMillis) {
+        return new RemoteRequestFuture(address, channel, request, timeoutMillis);
     }
 
     /**
@@ -162,13 +237,13 @@ public class NettyRemotingClient implements IRemotingClient {
 
         /** 建立连接 **/
         final Channel channel = this.channelManager.getOrCreateNettyChannel(address, timeoutMillis);
-        final RemoteRequestFuture future = buildRemoteRequestFuture(address, channel, request);
+        final long remainingTimeoutMillis = timeoutMillis - (System.currentTimeMillis() - startTimestamp);
 
         /** 缓存在途请求 **/
-        this.inFlightRequests.put(request.getRequestId(), future);
+        final RemoteRequestFuture future = buildRemoteRequestFuture(address, channel, request, remainingTimeoutMillis);
+        this.inflightRequestManager.add(future);
 
         /** 发送请求 **/
-        final long remainingTimeoutMillis = timeoutMillis - System.currentTimeMillis() - startTimestamp;
         switch (type) {
             case SYNC:
                 final RemotingCommand response = doRequestSync(future, remainingTimeoutMillis);
@@ -193,32 +268,36 @@ public class NettyRemotingClient implements IRemotingClient {
      */
     private RemotingCommand doRequestSync(final RemoteRequestFuture future, final long timeoutMillis)
         throws InterruptedException {
-        /** 发送请求 **/
-        future.getChannel().writeAndFlush(future.getRequest()).addListener(f -> {
-            if (f.isSuccess()) {
-                future.setRequestSuccess(true);
-            } else {
-                future.setRequestSuccess(false);
-                future.setCause(f.cause());
+        try {
+            /** 发送请求 **/
+            future.getChannel().writeAndFlush(future.getRequest()).addListener(f -> {
+                if (f.isSuccess()) {
+                    future.setRequestSuccess(true);
+                } else {
+                    future.setRequestSuccess(false);
+                    future.setCause(f.cause());
 
-                // 请求发送失败，移除在途的请求
-                this.inFlightRequests.remove(future.getRequest().getRequestId());
-            }
-        });
+                    // 请求发送失败，移除在途的请求
+                    this.inflightRequestManager.remove(future.getRequest().getCommandId());
+                }
+            });
 
-        /** 等待响应 **/
-        final RemotingCommand response = future.get(timeoutMillis);
-        if (response == null) {
-            if (future.isRequestSuccess()) { // 请求成功，但未响应
-                return RemotingCommand.createResponseCommand(ResponseCodeConstant.SERVER_NOT_RESPONSE,
-                    CodecUtil.toBytes("服务未响应"), future.getRequest().getRequestId());
-            } else { // 请求失败
-                return RemotingCommand.createResponseCommand(ResponseCodeConstant.REQUEST_TIMEOUT,
-                    CodecUtil.toBytes("请求超时"), future.getRequest().getRequestId());
+            /** 等待响应 **/
+            final RemotingCommand response = future.get(timeoutMillis);
+            if (response == null) {
+                if (future.isRequestSuccess()) { // 请求成功，但未响应
+                    return RemotingCommand.createResponseCommand(ResponseCodeConstant.SERVER_NOT_RESPONSE, "服务未响应",
+                        future.getRequest().getCommandId());
+                } else { // 请求失败
+                    return RemotingCommand.createResponseCommand(ResponseCodeConstant.REQUEST_TIMEOUT, "请求超时",
+                        future.getRequest().getCommandId());
+                }
             }
+
+            return response;
+        } finally {
+            this.inflightRequestManager.remove(future.getRequest().getCommandId());
         }
-
-        return response;
     }
 
     /**
@@ -240,5 +319,62 @@ public class NettyRemotingClient implements IRemotingClient {
      */
     private void doRequestOneWay(final RemoteRequestFuture future, final long timeoutMillis) {
 
+    }
+
+    /**
+     * @description: 处理响应
+     * @param:
+     * @return:
+     * @date: 2022/05/23 23:58:06
+     */
+    private void handleResponseCommand(final ChannelHandlerContext context, final RemotingCommand response) {
+        final Optional<Pair<INettyRemotingResponseHandler, ExecutorService>> pairOptional =
+            this.dispatcher.dispatch(response);
+        if (pairOptional.isPresent()) {
+            final Pair<INettyRemotingResponseHandler, ExecutorService> pair = pairOptional.get();
+            final INettyRemotingResponseHandler handler = pair.getKey();
+            final ExecutorService executorService = pair.getValue();
+
+            executorService.submit(() -> handler.handle(response, context));
+        } else {
+            String error = "response type " + response.getCode() + " not supported";
+            System.err.println(error);
+        }
+    }
+
+    /**
+     * @description: 构造DefaultEventExecutorGroup
+     * @param:
+     * @return:
+     * @date: 2022/05/18 14:48:57
+     */
+    private DefaultEventExecutorGroup buildDefaultEventExecutorGroup(final int threadNums,
+        final ThreadFactory threadFactory) {
+        return new DefaultEventExecutorGroup(threadNums, threadFactory);
+    }
+
+    /**
+     * @description: 客户端事件处理器
+     * @author: Bo.Yuan5
+     * @date: 2022/5/23
+     */
+    @ChannelHandler.Sharable
+    private class NettyClientHandler extends SimpleChannelInboundHandler<RemotingCommand> {
+
+        /**
+         * @description: 处理响应
+         * @param:
+         * @return:
+         * @date: 2022/05/23 23:56:29
+         */
+        @Override
+        protected void channelRead0(final ChannelHandlerContext ctx, final RemotingCommand msg) throws Exception {
+            if (msg.getCommandType() == RemotingCommandConstant.REMOTING_COMMAND_RESPONSE) { // Response
+                NettyRemotingClient.this.handleResponseCommand(ctx, msg);
+            } else { // Request
+                // TODO
+                System.err.println("异常的远程事件类型");
+            }
+        }
     }
 }

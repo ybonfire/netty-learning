@@ -1,11 +1,11 @@
 package org.ybonfire.netty.server.dispatcher;
 
-import org.ybonfire.netty.common.command.RemotingCommand;
-import org.ybonfire.netty.common.model.Pair;
-import org.ybonfire.netty.common.server.handler.IRemotingRequestHandler;
-
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+
+import org.ybonfire.netty.common.command.RemotingCommand;
+import org.ybonfire.netty.common.handler.IRemotingRequestResponseHandler;
+import org.ybonfire.netty.common.model.Pair;
 
 /**
  * 远程调用请求分发接口
@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
  * @author Bo.Yuan5
  * @date 2022-05-19 09:39
  */
-public interface IRemotingRequestDispatcher<Context, Handler extends IRemotingRequestHandler<Context>> {
+public interface IRemotingRequestDispatcher<Context, Handler extends IRemotingRequestResponseHandler<Context>> {
 
     /**
      * @description: 请求分发

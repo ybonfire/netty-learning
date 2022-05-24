@@ -1,11 +1,10 @@
 package org.ybonfire.netty.common.util;
 
+import org.ybonfire.netty.common.exception.BaseException;
+import org.ybonfire.netty.common.exception.ExceptionTypeEnum;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.ybonfire.netty.common.exception.BaseException;
-import org.ybonfire.netty.common.exception.ConnectTimeoutException;
-import org.ybonfire.netty.common.exception.ExceptionTypeEnum;
-import org.ybonfire.netty.common.exception.RequestTimeoutException;
 
 /**
  * 异常工具类
@@ -23,14 +22,7 @@ public final class ExceptionUtil {
      * @date: 2022/05/19 10:24:23
      */
     public static BaseException exception(final ExceptionTypeEnum type) {
-        switch (type) {
-            case CONNECT_TIMEOUT:
-                return new ConnectTimeoutException();
-            case REQUEST_TIMEOUT:
-                return new RequestTimeoutException();
-            default:
-                return new BaseException(ExceptionTypeEnum.UNKNOWN);
-        }
+        return new BaseException(type);
     }
 
     /**
@@ -40,13 +32,6 @@ public final class ExceptionUtil {
      * @date: 2022/05/19 10:24:23
      */
     public static BaseException exception(final ExceptionTypeEnum type, final Throwable cause) {
-        switch (type) {
-            case CONNECT_TIMEOUT:
-                return new ConnectTimeoutException(cause);
-            case REQUEST_TIMEOUT:
-                return new RequestTimeoutException(cause);
-            default:
-                return new BaseException(ExceptionTypeEnum.UNKNOWN, cause);
-        }
+        return new BaseException(type, cause);
     }
 }

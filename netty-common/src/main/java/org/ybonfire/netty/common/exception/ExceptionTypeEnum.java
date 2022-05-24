@@ -14,9 +14,13 @@ public enum ExceptionTypeEnum {
      */
     CONNECT_TIMEOUT(1, "连接超时"),
     /**
+     * 连接失败
+     */
+    CONNECT_FAILED(2, "连接失败"),
+    /**
      * 请求超时
      */
-    REQUEST_TIMEOUT(2, "请求超时"),
+    REQUEST_TIMEOUT(3, "请求超时"),
     /**
      * 未知异常
      */

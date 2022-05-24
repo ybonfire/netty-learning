@@ -1,7 +1,10 @@
 package org.ybonfire.netty.common.client;
 
 import org.ybonfire.netty.common.command.RemotingCommand;
+import org.ybonfire.netty.common.handler.IRemotingRequestResponseHandler;
 import org.ybonfire.netty.common.remoting.IRemotingService;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * 客户端接口
@@ -9,12 +12,13 @@ import org.ybonfire.netty.common.remoting.IRemotingService;
  * @author Bo.Yuan5
  * @date 2022-05-18 10:14
  */
-public interface IRemotingClient extends IRemotingService {
+public interface IRemotingClient<Context, Handler extends IRemotingRequestResponseHandler<Context>>
+    extends IRemotingService {
 
     /**
      * @description: 同步调用
      * @param:
-     * @return: 
+     * @return:
      * @date: 2022/05/18 18:20:45
      */
     RemotingCommand request(final String address, final RemotingCommand request, final long timeoutMillis)
@@ -37,4 +41,12 @@ public interface IRemotingClient extends IRemotingService {
      */
     void requestOneWay(final String address, final RemotingCommand request, final long timeoutMillis)
         throws InterruptedException;
+
+    /**
+     * @description: 注册响应处理器
+     * @param:
+     * @return:
+     * @date: 2022/05/18 10:26:30
+     */
+    void registerHandler(final int responseCode, final Handler handler, final ExecutorService executor);
 }
