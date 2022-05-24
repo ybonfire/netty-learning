@@ -8,6 +8,7 @@ import org.ybonfire.netty.common.command.RemotingCommand;
  * @author Bo.Yuan5
  * @date 2022-05-23 17:46
  */
+@FunctionalInterface
 public interface IRemotingRequestResponseHandler<Context> {
 
     /**

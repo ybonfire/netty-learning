@@ -1,4 +1,4 @@
-package org.ybonfire.netty.common.thread;
+package org.ybonfire.netty.common.thread.task;
 
 /**
  * 线程任务执行失败回调接口
