@@ -1,4 +1,4 @@
-package org.ybonfire.netty.common.model;
+package org.ybonfire.netty.common.protocol;
 
 /**
  * 请求类型枚举

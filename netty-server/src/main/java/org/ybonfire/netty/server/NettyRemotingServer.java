@@ -1,41 +1,43 @@
 package org.ybonfire.netty.server;
 
 import java.net.InetSocketAddress;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelHandler;
 import org.ybonfire.netty.common.codec.Decoder;
 import org.ybonfire.netty.common.codec.Encoder;
 import org.ybonfire.netty.common.command.RemotingCommand;
 import org.ybonfire.netty.common.model.Pair;
+import org.ybonfire.netty.common.protocol.RemotingCommandConstant;
+import org.ybonfire.netty.common.protocol.RequestCodeConstant;
 import org.ybonfire.netty.common.protocol.ResponseCodeConstant;
 import org.ybonfire.netty.common.server.IRemotingServer;
-import org.ybonfire.netty.common.util.CodecUtil;
+import org.ybonfire.netty.common.util.ThreadPoolUtil;
 import org.ybonfire.netty.server.callback.IResponseCallback;
 import org.ybonfire.netty.server.callback.impl.DefaultResponseCallback;
 import org.ybonfire.netty.server.config.NettyServerConfig;
 import org.ybonfire.netty.server.dispatcher.IRemotingRequestDispatcher;
 import org.ybonfire.netty.server.dispatcher.impl.NettyRemotingRequestDispatcher;
 import org.ybonfire.netty.server.handler.INettyRemotingRequestHandler;
+import org.ybonfire.netty.server.handler.impl.DefaultNettyRemotingRequestHandler;
+import org.ybonfire.netty.server.thread.RequestHandleThreadTask;
+import org.ybonfire.netty.server.thread.RequestHandleThreadTaskBuilder;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import org.ybonfire.netty.server.thread.RequestHandleThreadTask;
-import org.ybonfire.netty.server.thread.RequestHandleThreadTaskBuilder;
 
 /**
  * Netty远程调用服务器
@@ -47,7 +49,6 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final ServerBootstrap serverBootstrap = new ServerBootstrap();
     private final Encoder encoder = new Encoder();
-    private final Decoder decoder = new Decoder();
     private final NettyServerConfig config;
     private final EventLoopGroup parentGroup;
     private final EventLoopGroup childGroup;
@@ -56,6 +57,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
         new NettyRemotingRequestDispatcher();
     private final NettyServerHandler nettyServerHandler = new NettyServerHandler();
     private final IResponseCallback callback = new DefaultResponseCallback();
+    private final ExecutorService testExecutorService = ThreadPoolUtil.getTestExecutorService();
 
     public NettyRemotingServer(final NettyServerConfig config) {
         this.config = config;
@@ -63,7 +65,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
         // parentGroup
         final int parentGroupThreadNums = this.config.getAcceptorThreadNums();
         this.parentGroup = buildEventLoop(parentGroupThreadNums, new ThreadFactory() {
-            private AtomicInteger threadIndex = new AtomicInteger(0);
+            private final AtomicInteger threadIndex = new AtomicInteger(0);
 
             @Override
             public Thread newThread(Runnable r) {
@@ -74,7 +76,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
         // childGroup
         final int childGroupThreadNums = this.config.getAcceptorThreadNums();
         this.childGroup = buildEventLoop(childGroupThreadNums, new ThreadFactory() {
-            private AtomicInteger threadIndex = new AtomicInteger(0);
+            private final AtomicInteger threadIndex = new AtomicInteger(0);
 
             @Override
             public Thread newThread(Runnable r) {
@@ -85,7 +87,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
         // executorGroup
         final int executorThreadNums = this.config.getWorkerThreadNums();
         this.defaultEventExecutorGroup = buildDefaultEventExecutorGroup(executorThreadNums, new ThreadFactory() {
-            private AtomicInteger threadIndex = new AtomicInteger(0);
+            private final AtomicInteger threadIndex = new AtomicInteger(0);
 
             @Override
             public Thread newThread(Runnable r) {
@@ -95,7 +97,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
     }
 
     /**
-     * @description: 启动服务
+     * @description: 启动服务端
      * @param:
      * @return:
      * @date: 2022/05/18 11:51:05
@@ -103,6 +105,11 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
     @Override
     public void start() {
         if (started.compareAndSet(false, true)) {
+            // register handler
+            this.registerHandler(RequestCodeConstant.TEST_REQUEST_CODE, new DefaultNettyRemotingRequestHandler(),
+                this.testExecutorService);
+
+            // start server
             this.serverBootstrap.group(this.parentGroup, this.childGroup).channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, 1024).option(ChannelOption.SO_REUSEADDR, true)
                 .option(ChannelOption.SO_KEEPALIVE, false).childOption(ChannelOption.TCP_NODELAY, true)
@@ -112,14 +119,14 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(defaultEventExecutorGroup, encoder, decoder, nettyServerHandler);
+                        ch.pipeline().addLast(defaultEventExecutorGroup, encoder, new Decoder(), nettyServerHandler);
                     }
                 });
 
             try {
-                ChannelFuture sync = this.serverBootstrap.bind().sync();
-                InetSocketAddress addr = (InetSocketAddress)sync.channel().localAddress();
-                System.out.println();
+                ChannelFuture future = this.serverBootstrap.bind().sync();
+                System.out.println(future.channel().localAddress());
+                future.channel().closeFuture().sync();
             } catch (InterruptedException e1) {
                 throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
             }
@@ -127,7 +134,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
     }
 
     /**
-     * @description: 关闭服务
+     * @description: 关闭服务端
      * @param:
      * @return:
      * @date: 2022/05/18 11:51:26
@@ -145,8 +152,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
                 this.childGroup.shutdownGracefully();
             }
 
-            // defaultEventExecutorGroup
-
+            // executorGroup
             if (this.defaultEventExecutorGroup != null) {
                 this.defaultEventExecutorGroup.shutdownGracefully();
             }
@@ -160,20 +166,20 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
      * @date: 2022/05/18 10:47:12
      */
     @Override
-    public void registerRequestHandler(final int requestCode, final INettyRemotingRequestHandler handler,
+    public void registerHandler(final int requestCode, final INettyRemotingRequestHandler handler,
         final ExecutorService executor) {
         dispatcher.registerRemotingRequestHandler(requestCode, handler, executor);
     }
 
     /**
-     * @description: 处理网络请求
+     * @description: 处理请求
      * @param:
      * @return:
      * @date: 2022/05/18 16:27:19
      */
-    private void handleRequestCommand(final ChannelHandlerContext context, final RemotingCommand cmd) {
+    private void handleRequestCommand(final ChannelHandlerContext context, final RemotingCommand request) {
         final Optional<Pair<INettyRemotingRequestHandler, ExecutorService>> pairOptional =
-            this.dispatcher.dispatch(cmd);
+            this.dispatcher.dispatch(request);
         if (pairOptional.isPresent()) {
             final Pair<INettyRemotingRequestHandler, ExecutorService> pair = pairOptional.get();
             final INettyRemotingRequestHandler handler = pair.getKey();
@@ -181,13 +187,13 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
 
             // 构造请求处理异步任务
             final RequestHandleThreadTask task =
-                RequestHandleThreadTaskBuilder.build(handler, cmd, context, this.callback);
+                RequestHandleThreadTaskBuilder.build(handler, request, context, this.callback);
             executorService.submit(task);
         } else {
-            String error = "request type " + cmd.getCode() + " not supported";
-            final RemotingCommand response = RemotingCommand.createResponseCommand(
-                ResponseCodeConstant.REQUEST_CODE_NOT_SUPPORTED, CodecUtil.toBytes(error), cmd.getRequestId());
-            response.setRequestId(cmd.getRequestId());
+            String error = "request type " + request.getCode() + " not supported";
+            final RemotingCommand response = RemotingCommand
+                .createResponseCommand(ResponseCodeConstant.REQUEST_CODE_NOT_SUPPORTED, error, request.getCommandId());
+            response.setCommandId(request.getCommandId());
             this.callback.callback(context, response);
         }
     }
@@ -214,10 +220,11 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
     }
 
     /**
-     * @description: 请求路由器
+     * @description: 服务端事件处理器
      * @author: Bo.Yuan5
      * @date: 2022/5/18
      */
+    @ChannelHandler.Sharable
     private class NettyServerHandler extends SimpleChannelInboundHandler<RemotingCommand> {
 
         /**
@@ -228,7 +235,12 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
          */
         @Override
         protected void channelRead0(final ChannelHandlerContext ctx, final RemotingCommand msg) throws Exception {
-            NettyRemotingServer.this.handleRequestCommand(ctx, msg);
+            if (msg.getCommandType() == RemotingCommandConstant.REMOTING_COMMAND_REQUEST) { // Request
+                NettyRemotingServer.this.handleRequestCommand(ctx, msg);
+            } else { // Response
+                // TODO
+                System.err.println("异常的远程事件类型");
+            }
         }
     }
 }

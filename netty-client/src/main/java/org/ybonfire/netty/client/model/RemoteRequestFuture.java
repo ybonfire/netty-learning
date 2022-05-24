@@ -20,15 +20,19 @@ import java.util.concurrent.atomic.AtomicReference;
 public class RemoteRequestFuture {
     private final String address;
     private final Channel channel;
+    private final long startTimestamp = System.currentTimeMillis();
+    private final long timeoutMillis;
     private final RemotingCommand request;
     private final CompletableFuture<RemotingCommand> responseFuture = new CompletableFuture<>();
     private volatile boolean isRequestSuccess = false;
     private volatile Throwable cause;
 
-    public RemoteRequestFuture(final String address, final Channel channel, final RemotingCommand request) {
+    public RemoteRequestFuture(final String address, final Channel channel,
+        final RemotingCommand request, final long timeoutMillis) {
         this.address = address;
         this.channel = channel;
         this.request = request;
+        this.timeoutMillis = timeoutMillis;
     }
 
     public RemotingCommand get(final long timeoutMillis) throws InterruptedException {
@@ -37,7 +41,7 @@ public class RemoteRequestFuture {
         } catch (ExecutionException e) {
             throw ExceptionUtil.exception(ExceptionTypeEnum.UNKNOWN, e);
         } catch (TimeoutException e) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.CONNECT_TIMEOUT, e);
+            throw ExceptionUtil.exception(ExceptionTypeEnum.REQUEST_TIMEOUT, e);
         }
     }
 

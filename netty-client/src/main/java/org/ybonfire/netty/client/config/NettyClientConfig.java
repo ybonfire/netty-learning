@@ -11,11 +11,23 @@ import lombok.Getter;
 @Getter
 public class NettyClientConfig {
     /**
+     * netty eventLoop线程数
+     */
+    private final int clientEventLoopThread = 1;
+    /**
      * netty worker线程数
      */
-    private final int clientWorkerThreads = 4;
+    private final int workerThreadNums = 4;
     /**
      * 连接超时阈值
      */
     private int connectTimeoutMillis = 3000;
+    /**
+     * socket Send Buffer size;
+     */
+    private final int clientSocketSendBufferSize = 65535;
+    /**
+     * socket receive buffer size
+     */
+    private final int clientSocketReceiveBufferSize = 65535;
 }

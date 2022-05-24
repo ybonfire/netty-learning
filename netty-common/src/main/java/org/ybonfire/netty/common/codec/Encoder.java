@@ -1,5 +1,6 @@
 package org.ybonfire.netty.common.codec;
 
+import io.netty.channel.ChannelHandler;
 import org.ybonfire.netty.common.command.RemotingCommand;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ import org.ybonfire.netty.common.util.CodecUtil;
  * @author Bo.Yuan5
  * @date 2022-05-18 12:35
  */
+@ChannelHandler.Sharable
 public class Encoder extends MessageToByteEncoder<RemotingCommand> {
 
     /**

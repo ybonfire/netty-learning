@@ -26,8 +26,15 @@ public class Decoder extends ByteToMessageDecoder {
      */
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        final ByteBuffer byteBuffer = in.nioBuffer();
-        final byte[] bytes = new byte[byteBuffer.limit()];
-        out.add(CodecUtil.fromBytes(bytes, RemotingCommand.class));
+        final byte[] result;
+        if (in.hasArray()) {
+            result = in.array();
+        } else {
+            result = new byte[in.readableBytes()];
+            in.getBytes(in.readerIndex(), result);
+        }
+
+        in.skipBytes(in.readableBytes());
+        out.add(CodecUtil.fromBytes(result, RemotingCommand.class));
     }
 }
