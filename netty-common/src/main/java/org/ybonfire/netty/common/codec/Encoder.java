@@ -1,14 +1,12 @@
 package org.ybonfire.netty.common.codec;
 
-import io.netty.channel.ChannelHandler;
 import org.ybonfire.netty.common.command.RemotingCommand;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ybonfire.netty.common.util.CodecUtil;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import org.ybonfire.netty.common.util.CodecUtil;
 
 /**
  * 序列化器

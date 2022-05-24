@@ -1,9 +1,7 @@
 package org.ybonfire.netty.common.model;
 
-import jdk.nashorn.internal.objects.annotations.Getter;
-
 /**
- * 这里添加类的注释【强制】
+ * Pair类型
  *
  * @author Bo.Yuan5
  * @date 2022-05-18 10:38

@@ -1,7 +1,5 @@
 package org.ybonfire.netty.common.exception;
 
-import org.omg.CORBA.UNKNOWN;
-
 /**
  * 异常码常量类
  *

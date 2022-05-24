@@ -1,13 +1,11 @@
 package org.ybonfire.netty.common.util;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+
+import io.netty.channel.Channel;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * 远程调用工具类

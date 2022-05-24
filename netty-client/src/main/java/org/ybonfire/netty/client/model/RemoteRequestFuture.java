@@ -1,15 +1,15 @@
 package org.ybonfire.netty.client.model;
 
-import io.netty.channel.Channel;
-import org.ybonfire.netty.common.command.RemotingCommand;
-import org.ybonfire.netty.common.exception.ExceptionTypeEnum;
-import org.ybonfire.netty.common.util.ExceptionUtil;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
+
+import org.ybonfire.netty.common.command.RemotingCommand;
+import org.ybonfire.netty.common.exception.ExceptionTypeEnum;
+import org.ybonfire.netty.common.util.ExceptionUtil;
+
+import io.netty.channel.Channel;
 
 /**
  * 远程调用数据
