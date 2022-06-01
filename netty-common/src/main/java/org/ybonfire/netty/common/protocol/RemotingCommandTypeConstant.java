@@ -6,7 +6,7 @@ package org.ybonfire.netty.common.protocol;
  * @author Bo.Yuan5
  * @date 2022-05-23 17:48
  */
-public class RemotingCommandConstant {
+public class RemotingCommandTypeConstant {
     /**
      * 请求
      */

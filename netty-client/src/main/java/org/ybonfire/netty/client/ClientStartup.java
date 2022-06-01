@@ -2,7 +2,8 @@ package org.ybonfire.netty.client;
 
 import org.ybonfire.netty.client.config.NettyClientConfig;
 import org.ybonfire.netty.common.command.RemotingCommand;
-import org.ybonfire.netty.common.protocol.RequestCodeConstant;
+import org.ybonfire.netty.common.model.User;
+import org.ybonfire.netty.common.protocol.RequestCommandCodeConstant;
 
 import java.util.UUID;
 
@@ -20,8 +21,10 @@ public class ClientStartup {
 
         client.start();
         for (int i = 0; i < 10; ++i) {
-            final RemotingCommand request = RemotingCommand.createRequestCommand(RequestCodeConstant.TEST_REQUEST_CODE,
-                "hello world", UUID.randomUUID().toString());
+            final User user = new User();
+            user.setName("yuanbo");
+            final RemotingCommand request = RemotingCommand.createRequestCommand(RequestCommandCodeConstant.TEST_REQUEST_CODE,
+                UUID.randomUUID().toString(), user);
             client.request("0:0:0:0:0:0:0:0:10490", request, 30 * 1000L);
             Thread.sleep(1000L);
         }

@@ -12,8 +12,8 @@ import org.ybonfire.netty.common.codec.Decoder;
 import org.ybonfire.netty.common.codec.Encoder;
 import org.ybonfire.netty.common.command.RemotingCommand;
 import org.ybonfire.netty.common.model.Pair;
-import org.ybonfire.netty.common.protocol.RemotingCommandConstant;
-import org.ybonfire.netty.common.protocol.RequestCodeConstant;
+import org.ybonfire.netty.common.protocol.RemotingCommandTypeConstant;
+import org.ybonfire.netty.common.protocol.RequestCommandCodeConstant;
 import org.ybonfire.netty.common.protocol.ResponseCodeConstant;
 import org.ybonfire.netty.common.server.IRemotingServer;
 import org.ybonfire.netty.common.util.ThreadPoolUtil;
@@ -106,7 +106,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
     public void start() {
         if (started.compareAndSet(false, true)) {
             // register handler
-            this.registerHandler(RequestCodeConstant.TEST_REQUEST_CODE, new DefaultNettyRemotingRequestHandler(),
+            this.registerHandler(RequestCommandCodeConstant.TEST_REQUEST_CODE, new DefaultNettyRemotingRequestHandler(),
                 this.testExecutorService);
 
             // start server
@@ -191,8 +191,8 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
             executorService.submit(task);
         } else {
             String error = "request type " + request.getCode() + " not supported";
-            final RemotingCommand response = RemotingCommand
-                .createResponseCommand(ResponseCodeConstant.REQUEST_CODE_NOT_SUPPORTED, error, request.getCommandId());
+            final RemotingCommand response = RemotingCommand.createResponseCommand(
+                ResponseCodeConstant.REQUEST_CODE_NOT_SUPPORTED, request.getCommandId(), error);
             response.setCommandId(request.getCommandId());
             this.callback.callback(context, response);
         }
@@ -235,7 +235,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
          */
         @Override
         protected void channelRead0(final ChannelHandlerContext ctx, final RemotingCommand msg) throws Exception {
-            if (msg.getCommandType() == RemotingCommandConstant.REMOTING_COMMAND_REQUEST) { // Request
+            if (msg.getCommandType() == RemotingCommandTypeConstant.REMOTING_COMMAND_REQUEST) { // Request
                 NettyRemotingServer.this.handleRequestCommand(ctx, msg);
             } else { // Response
                 // TODO

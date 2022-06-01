@@ -24,7 +24,7 @@ import org.ybonfire.netty.common.command.RemotingCommand;
 import org.ybonfire.netty.common.model.NettyChannelEvent;
 import org.ybonfire.netty.common.model.NettyChannelEventTypeEnum;
 import org.ybonfire.netty.common.model.Pair;
-import org.ybonfire.netty.common.protocol.RemotingCommandConstant;
+import org.ybonfire.netty.common.protocol.RemotingCommandTypeConstant;
 import org.ybonfire.netty.common.protocol.RequestTypeEnum;
 import org.ybonfire.netty.common.protocol.ResponseCodeConstant;
 import org.ybonfire.netty.common.util.AssertUtils;
@@ -300,11 +300,11 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
             final RemotingCommand response = future.get(timeoutMillis);
             if (response == null) {
                 if (future.isRequestSuccess()) { // 请求成功，但未响应
-                    return RemotingCommand.createResponseCommand(ResponseCodeConstant.SERVER_NOT_RESPONSE, "服务未响应",
-                        future.getRequest().getCommandId());
+                    return RemotingCommand.createResponseCommand(ResponseCodeConstant.SERVER_NOT_RESPONSE,
+                        future.getRequest().getCommandId(), "服务未响应");
                 } else { // 请求失败
-                    return RemotingCommand.createResponseCommand(ResponseCodeConstant.REQUEST_TIMEOUT, "请求超时",
-                        future.getRequest().getCommandId());
+                    return RemotingCommand.createResponseCommand(ResponseCodeConstant.REQUEST_TIMEOUT,
+                        future.getRequest().getCommandId(), "请求超时");
                 }
             }
 
@@ -394,7 +394,7 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
          */
         @Override
         protected void channelRead0(final ChannelHandlerContext ctx, final RemotingCommand msg) throws Exception {
-            if (msg.getCommandType() == RemotingCommandConstant.REMOTING_COMMAND_RESPONSE) { // Response
+            if (msg.getCommandType() == RemotingCommandTypeConstant.REMOTING_COMMAND_RESPONSE) { // Response
                 NettyRemotingClient.this.handleResponseCommand(ctx, msg);
             } else { // Request
                 // TODO
