@@ -21,6 +21,6 @@ public class DefaultNettyRemotingRequestHandler implements INettyRemotingRequest
     @Override
     public RemotingCommand handle(final RemotingCommand request, final ChannelHandlerContext context) {
         System.out.println(request.getBody());
-        return RemotingCommand.createResponseCommand(request.getCode(), "success", request.getCommandId());
+        return RemotingCommand.createResponseCommand(request.getCode(), request.getCommandId(), "success");
     }
 }

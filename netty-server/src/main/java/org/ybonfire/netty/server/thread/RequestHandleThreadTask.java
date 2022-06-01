@@ -47,7 +47,7 @@ public final class RequestHandleThreadTask extends AbstractThreadTask {
             final String error = "请求处理失败";
             log.error(error, ex);
             final RemotingCommand response = RemotingCommand
-                .createResponseCommand(ResponseCodeConstant.INTERNAL_SYSTEM_ERROR, error, this.request.getCommandId());
+                .createResponseCommand(ResponseCodeConstant.INTERNAL_SYSTEM_ERROR, this.request.getCommandId(), error);
             callback.callback(this.context, response);
         }
     }

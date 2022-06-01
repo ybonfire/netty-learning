@@ -1,7 +1,10 @@
 package org.ybonfire.netty.common.codec;
 
+import java.nio.ByteBuffer;
+
+import org.ybonfire.netty.common.codec.serializer.ISerializer;
+import org.ybonfire.netty.common.codec.serializer.impl.DefaultSerializerImpl;
 import org.ybonfire.netty.common.command.RemotingCommand;
-import org.ybonfire.netty.common.util.CodecUtil;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
@@ -16,6 +19,15 @@ import io.netty.handler.codec.MessageToByteEncoder;
  */
 @ChannelHandler.Sharable
 public class Encoder extends MessageToByteEncoder<RemotingCommand> {
+    private final ISerializer serializer;
+
+    public Encoder() {
+        this.serializer = new DefaultSerializerImpl();
+    }
+
+    public Encoder(final ISerializer serializer) {
+        this.serializer = serializer;
+    }
 
     /**
      * @description: 序列化
@@ -26,7 +38,7 @@ public class Encoder extends MessageToByteEncoder<RemotingCommand> {
     @Override
     protected void encode(final ChannelHandlerContext ctx, final RemotingCommand msg, final ByteBuf out)
         throws Exception {
-        final byte[] result = CodecUtil.toBytes(msg);
+        final ByteBuffer result = serializer.encode(msg);
         if (result != null) {
             out.writeBytes(result);
         }

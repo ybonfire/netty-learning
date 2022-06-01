@@ -20,6 +20,14 @@ public enum ExceptionTypeEnum {
      */
     REQUEST_TIMEOUT(3, "请求超时"),
     /**
+     * 序列化失败
+     */
+    SERIALIZE_FAILED(4, "序列化失败"),
+    /**
+     * 非法参数
+     */
+    ILLEGAL_ARGUMENT(5, "非法参数"),
+    /**
      * 未知异常
      */
     UNKNOWN(-1, "未知异常");
