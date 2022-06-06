@@ -55,7 +55,6 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
 public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContext, INettyRemotingResponseHandler> {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final Bootstrap bootstrap = new Bootstrap();
-    private final Encoder encoder = new Encoder();
     private final NettyClientConfig config;
     private final EventLoopGroup clientEventLoopGroup;
     private final DefaultEventExecutorGroup defaultEventExecutorGroup;
@@ -117,7 +116,7 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(defaultEventExecutorGroup, encoder, new Decoder(),
+                        ch.pipeline().addLast(defaultEventExecutorGroup, new Encoder(), new Decoder(),
                             new NettyConnectEventHandler(), new NettyClientHandler());
                     }
                 });

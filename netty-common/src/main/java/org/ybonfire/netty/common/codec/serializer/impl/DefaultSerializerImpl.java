@@ -96,9 +96,9 @@ public class DefaultSerializerImpl implements ISerializer {
             final Object body =
                 commandEnum == null ? null : MAPPER.readValue(commandBodyBytes, commandEnum.getRequestClazz());
 
-            if (code == RemotingCommandTypeConstant.REMOTING_COMMAND_REQUEST) {
+            if (commandType == RemotingCommandTypeConstant.REMOTING_COMMAND_REQUEST) {
                 return RemotingCommand.createRequestCommand(code, commandId, body);
-            } else if (code == RemotingCommandTypeConstant.REMOTING_COMMAND_RESPONSE) {
+            } else if (commandType == RemotingCommandTypeConstant.REMOTING_COMMAND_RESPONSE) {
                 return RemotingCommand.createResponseCommand(code, commandId, body);
             } else {
                 throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
