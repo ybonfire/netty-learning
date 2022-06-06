@@ -2,6 +2,7 @@ package org.ybonfire.netty.common.codec;
 
 import java.util.List;
 
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import org.ybonfire.netty.common.codec.serializer.ISerializer;
 import org.ybonfire.netty.common.codec.serializer.impl.DefaultSerializerImpl;
 import org.ybonfire.netty.common.command.RemotingCommand;
@@ -18,16 +19,18 @@ import io.netty.handler.codec.ByteToMessageDecoder;
  * @author Bo.Yuan5
  * @date 2022-05-18 12:35
  */
-public class Decoder extends ByteToMessageDecoder {
+public class Decoder extends LengthFieldBasedFrameDecoder {
     private static final int INT_BYTE_LENGTH = 4;
     private static final IInternalLogger logger = new SimpleInternalLogger();
     private final ISerializer serializer;
 
     public Decoder() {
+        super(65536, 0, INT_BYTE_LENGTH, 0, 0);
         this.serializer = new DefaultSerializerImpl();
     }
 
     public Decoder(final ISerializer serializer) {
+        super(65536, 0, INT_BYTE_LENGTH, 0, 0);
         this.serializer = serializer;
     }
 
@@ -38,22 +41,32 @@ public class Decoder extends ByteToMessageDecoder {
      * @date: 2022/05/18 12:48:34
      */
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (in.readableBytes() < INT_BYTE_LENGTH) {
-            logger.warn("数据异常, 丢弃");
-            return;
-        }
+    protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+        ByteBuf frame = null;
+        try {
+            frame = (ByteBuf)super.decode(ctx, in);
+            if (frame == null) {
+                return null;
+            }
 
-        final int dataLength = in.readInt();
-        if (in.readableBytes() < dataLength) {
-            in.resetReaderIndex();
-            logger.warn("数据异常, 丢弃");
-            return;
-        }
+            if (in.readableBytes() < INT_BYTE_LENGTH) {
+                logger.warn("数据异常, 丢弃");
+                return null;
+            }
 
-        final RemotingCommand result = serializer.decode(in.nioBuffer());
-        if (result != null) {
-            out.add(result);
+            final int dataLength = in.readInt();
+            if (in.readableBytes() < dataLength) {
+                in.resetReaderIndex();
+                logger.warn("数据异常, 丢弃");
+                return null;
+            }
+
+            final RemotingCommand result = serializer.decode(in.nioBuffer());
+            return result;
+        } finally {
+            if (frame != null) {
+                frame.release();
+            }
         }
     }
 }

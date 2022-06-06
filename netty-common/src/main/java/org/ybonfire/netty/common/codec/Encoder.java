@@ -7,7 +7,6 @@ import org.ybonfire.netty.common.codec.serializer.impl.DefaultSerializerImpl;
 import org.ybonfire.netty.common.command.RemotingCommand;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
@@ -17,7 +16,6 @@ import io.netty.handler.codec.MessageToByteEncoder;
  * @author Bo.Yuan5
  * @date 2022-05-18 12:35
  */
-@ChannelHandler.Sharable
 public class Encoder extends MessageToByteEncoder<RemotingCommand> {
     private final ISerializer serializer;
 

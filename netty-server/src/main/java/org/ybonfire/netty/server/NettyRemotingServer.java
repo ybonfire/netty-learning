@@ -48,7 +48,6 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
 public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContext, INettyRemotingRequestHandler> {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final ServerBootstrap serverBootstrap = new ServerBootstrap();
-    private final Encoder encoder = new Encoder();
     private final NettyServerConfig config;
     private final EventLoopGroup parentGroup;
     private final EventLoopGroup childGroup;
@@ -112,14 +111,16 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
             // start server
             this.serverBootstrap.group(this.parentGroup, this.childGroup).channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, 1024).option(ChannelOption.SO_REUSEADDR, true)
-                .option(ChannelOption.SO_KEEPALIVE, false).childOption(ChannelOption.TCP_NODELAY, true)
+                .option(ChannelOption.SO_KEEPALIVE, true).childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_SNDBUF, this.config.getServerSocketSendBufferSize())
                 .childOption(ChannelOption.SO_RCVBUF, this.config.getServerSocketReceiveBufferSize())
                 .localAddress(new InetSocketAddress(this.config.getPort()))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(defaultEventExecutorGroup, encoder, new Decoder(), nettyServerHandler);
+                        System.out.println(ch.remoteAddress());
+                        ch.pipeline().addLast(defaultEventExecutorGroup, new Encoder(), new Decoder(),
+                            nettyServerHandler);
                     }
                 });
 
@@ -191,8 +192,8 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
             executorService.submit(task);
         } else {
             String error = "request type " + request.getCode() + " not supported";
-            final RemotingCommand response = RemotingCommand.createResponseCommand(
-                ResponseCodeConstant.REQUEST_CODE_NOT_SUPPORTED, request.getCommandId(), error);
+            final RemotingCommand response = RemotingCommand
+                .createResponseCommand(ResponseCodeConstant.REQUEST_CODE_NOT_SUPPORTED, request.getCommandId(), error);
             response.setCommandId(request.getCommandId());
             this.callback.callback(context, response);
         }

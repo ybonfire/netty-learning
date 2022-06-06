@@ -27,14 +27,20 @@ public class RemoteRequestFuture {
     private volatile boolean isRequestSuccess = false;
     private volatile Throwable cause;
 
-    public RemoteRequestFuture(final String address, final Channel channel,
-        final RemotingCommand request, final long timeoutMillis) {
+    public RemoteRequestFuture(final String address, final Channel channel, final RemotingCommand request,
+        final long timeoutMillis) {
         this.address = address;
         this.channel = channel;
         this.request = request;
         this.timeoutMillis = timeoutMillis;
     }
 
+    /**
+     * @description: 等待远程调用请求执行结果
+     * @param:
+     * @return:
+     * @date: 2022/06/02 09:56:41
+     */
     public RemotingCommand get(final long timeoutMillis) throws InterruptedException {
         try {
             return this.responseFuture.get(timeoutMillis, TimeUnit.MILLISECONDS);
@@ -45,6 +51,12 @@ public class RemoteRequestFuture {
         }
     }
 
+    /**
+     * @description: 完成并唤醒远程调用请求等待
+     * @param:
+     * @return:
+     * @date: 2022/06/02 09:56:54
+     */
     public void complete(final RemotingCommand response) {
         responseFuture.complete(response);
     }
@@ -79,5 +91,13 @@ public class RemoteRequestFuture {
 
     public void setCause(final Throwable cause) {
         this.cause = cause;
+    }
+
+    public long getStartTimestamp() {
+        return startTimestamp;
+    }
+
+    public long getTimeoutMillis() {
+        return timeoutMillis;
     }
 }
