@@ -1,2 +1,2 @@
-# netty-learning
-netty-learning
+# netty-remoting
+netty-remoting
