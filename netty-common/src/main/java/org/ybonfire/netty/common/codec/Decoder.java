@@ -49,19 +49,19 @@ public class Decoder extends LengthFieldBasedFrameDecoder {
                 return null;
             }
 
-            if (in.readableBytes() < INT_BYTE_LENGTH) {
+            if (frame.readableBytes() < INT_BYTE_LENGTH) {
                 logger.warn("数据异常, 丢弃");
                 return null;
             }
 
-            final int dataLength = in.readInt();
-            if (in.readableBytes() < dataLength) {
+            final int dataLength = frame.readInt();
+            if (frame.readableBytes() < dataLength) {
                 in.resetReaderIndex();
                 logger.warn("数据异常, 丢弃");
                 return null;
             }
 
-            final RemotingCommand result = serializer.decode(in.nioBuffer());
+            final RemotingCommand result = serializer.decode(frame.nioBuffer());
             return result;
         } finally {
             if (frame != null) {

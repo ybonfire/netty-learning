@@ -20,12 +20,13 @@ public class ClientStartup {
         Runtime.getRuntime().addShutdownHook(new Thread(client::shutdown));
 
         client.start();
-        for (int i = 0; i < 10; ++i) {
-            final byte[] bytes = new byte[]{0,1,0,1};
-            final RemotingCommand request = RemotingCommand.createRequestCommand(RequestCommandCodeConstant.TEST_REQUEST_CODE,
-                UUID.randomUUID().toString(), bytes);
-            client.request("0:0:0:0:0:0:0:0:10490", request, 30 * 1000L);
-            Thread.sleep(1000L);
-        }
+        final RemotingCommand request = RemotingCommand.createRequestCommand(
+            RequestCommandCodeConstant.TEST_REQUEST_CODE, UUID.randomUUID().toString(), buildUser());
+        client.request("0:0:0:0:0:0:0:0:10490", request, 3 * 1000L);
+        Thread.sleep(1000L);
+    }
+
+    private static User buildUser() {
+        return new User("ybonfire");
     }
 }

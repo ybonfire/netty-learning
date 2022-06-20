@@ -59,6 +59,7 @@ public class DefaultSerializerImpl implements ISerializer {
             result.putInt(commandBodyBytesLength); // commandBodyBytesLength
             result.put(commandBodyBytes); // commandBody
 
+            result.flip();
             return result;
         } catch (JsonProcessingException e) {
             LOGGER.error("序列化失败", e);
@@ -93,12 +94,14 @@ public class DefaultSerializerImpl implements ISerializer {
             final byte[] commandBodyBytes = new byte[commandBodyLength];
             src.get(commandBodyBytes);
             final RequestCommandEnum commandEnum = RequestCommandEnum.of(code);
-            final Object body =
-                commandEnum == null ? null : MAPPER.readValue(commandBodyBytes, commandEnum.getRequestClazz());
 
             if (commandType == RemotingCommandTypeConstant.REMOTING_COMMAND_REQUEST) {
+                final Object body =
+                    commandEnum == null ? null : MAPPER.readValue(commandBodyBytes, commandEnum.getRequestClazz());
                 return RemotingCommand.createRequestCommand(code, commandId, body);
             } else if (commandType == RemotingCommandTypeConstant.REMOTING_COMMAND_RESPONSE) {
+                final Object body =
+                    commandEnum == null ? null : MAPPER.readValue(commandBodyBytes, String.class);
                 return RemotingCommand.createResponseCommand(code, commandId, body);
             } else {
                 throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);

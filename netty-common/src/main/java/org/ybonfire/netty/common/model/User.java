@@ -1,5 +1,9 @@
 package org.ybonfire.netty.common.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 
 /**
@@ -8,6 +12,9 @@ import java.io.Serializable;
  * @author Bo.Yuan5
  * @date 2022-05-26 19:07
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 public class User implements Serializable {
     private String name;
 
