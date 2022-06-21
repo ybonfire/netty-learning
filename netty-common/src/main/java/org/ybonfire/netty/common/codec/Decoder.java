@@ -1,8 +1,5 @@
 package org.ybonfire.netty.common.codec;
 
-import java.util.List;
-
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import org.ybonfire.netty.common.codec.serializer.ISerializer;
 import org.ybonfire.netty.common.codec.serializer.impl.DefaultSerializerImpl;
 import org.ybonfire.netty.common.command.RemotingCommand;
@@ -11,7 +8,7 @@ import org.ybonfire.netty.common.logger.impl.SimpleInternalLogger;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 /**
  * 反序列化器
@@ -61,8 +58,7 @@ public class Decoder extends LengthFieldBasedFrameDecoder {
                 return null;
             }
 
-            final RemotingCommand result = serializer.decode(frame.nioBuffer());
-            return result;
+            return serializer.decode(frame.nioBuffer());
         } finally {
             if (frame != null) {
                 frame.release();

@@ -1,6 +1,8 @@
 package org.ybonfire.netty.server.thread;
 
 import io.netty.channel.ChannelHandlerContext;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.ybonfire.netty.common.command.RemotingCommand;
 import org.ybonfire.netty.server.callback.IResponseCallback;
 import org.ybonfire.netty.server.handler.INettyRemotingRequestHandler;
@@ -11,7 +13,8 @@ import org.ybonfire.netty.server.handler.INettyRemotingRequestHandler;
  * @author Bo.Yuan5
  * @date 2022-05-18 17:27
  */
-public class RequestHandleThreadTaskBuilder {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class RequestHandleThreadTaskBuilder {
 
     /**
      * @description: 构造服务端请求处理异步任务

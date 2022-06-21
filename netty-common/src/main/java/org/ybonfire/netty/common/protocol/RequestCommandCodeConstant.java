@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RequestCommandCodeConstant {
-    public static int TEST_REQUEST_CODE = 0;
+    public static final int TEST_REQUEST_CODE = 0;
 }

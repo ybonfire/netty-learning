@@ -1,5 +1,6 @@
 package org.ybonfire.netty.common.client;
 
+import org.ybonfire.netty.common.callback.IRequestCallback;
 import org.ybonfire.netty.common.command.RemotingCommand;
 import org.ybonfire.netty.common.handler.IRemotingRequestResponseHandler;
 import org.ybonfire.netty.common.remoting.IRemotingService;
@@ -30,8 +31,8 @@ public interface IRemotingClient<Context, Handler extends IRemotingRequestRespon
      * @return:
      * @date: 2022/05/18 18:20:53
      */
-    void requestAsync(final String address, final RemotingCommand request, final long timeoutMillis)
-        throws InterruptedException;
+    void requestAsync(final String address, final RemotingCommand request, final IRequestCallback callback,
+        final long timeoutMillis) throws InterruptedException;
 
     /**
      * @description: 单向调用

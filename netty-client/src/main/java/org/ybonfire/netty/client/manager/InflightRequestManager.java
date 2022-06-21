@@ -66,7 +66,6 @@ public class InflightRequestManager {
             this.inflightRequestTable.entrySet().iterator();
         while (iterator.hasNext()) {
             final Map.Entry<String, RemoteRequestFuture> entry = iterator.next();
-            final String commandId = entry.getKey();
             final RemoteRequestFuture future = entry.getValue();
 
             // 判断在途请求是否超时
