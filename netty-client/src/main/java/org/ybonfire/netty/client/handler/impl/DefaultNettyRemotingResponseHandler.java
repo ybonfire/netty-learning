@@ -56,7 +56,7 @@ public class DefaultNettyRemotingResponseHandler implements INettyRemotingRespon
         future.complete(response);
 
         /** 执行请求回调 **/
-        if (isNotExpireResponse(future)) {
+        if (!future.isExpired()) {
             Optional.ofNullable(future.getCallback()).ifPresent(callback -> invokeCallback(callback, future));
         }
     }
@@ -84,15 +84,5 @@ public class DefaultNettyRemotingResponseHandler implements INettyRemotingRespon
                 }
             }
         });
-    }
-
-    /**
-     * @description: 判断是否是未超时响应
-     * @param:
-     * @return:
-     * @date: 2022/06/02 10:09:09
-     */
-    private boolean isNotExpireResponse(final RemoteRequestFuture future) {
-        return System.currentTimeMillis() <= future.getStartTimestamp() + future.getTimeoutMillis();
     }
 }

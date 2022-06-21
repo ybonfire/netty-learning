@@ -107,4 +107,8 @@ public class RemoteRequestFuture {
     public IRequestCallback getCallback() {
         return callback;
     }
+
+    public boolean isExpired() {
+        return System.currentTimeMillis() > startTimestamp + timeoutMillis;
+    }
 }

@@ -151,16 +151,6 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
     }
 
     /**
-     * @description: 构造EventLoopGroup
-     * @param:
-     * @return:
-     * @date: 2022/05/18 12:21:07
-     */
-    private EventLoopGroup buildEventLoop(final int theadNums, final ThreadFactory threadFactory) {
-        return new NioEventLoopGroup(theadNums, threadFactory);
-    }
-
-    /**
      * @description: 同步调用
      * @param:
      * @return:
@@ -209,6 +199,16 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
     public void registerHandler(final int responseCode, final INettyRemotingResponseHandler handler,
         final ExecutorService executor) {
         this.dispatcher.registerRemotingRequestHandler(responseCode, handler, executor);
+    }
+
+    /**
+     * @description: 构造EventLoopGroup
+     * @param:
+     * @return:
+     * @date: 2022/05/18 12:21:07
+     */
+    private EventLoopGroup buildEventLoop(final int theadNums, final ThreadFactory threadFactory) {
+        return new NioEventLoopGroup(theadNums, threadFactory);
     }
 
     /**

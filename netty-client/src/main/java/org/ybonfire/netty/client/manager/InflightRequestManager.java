@@ -1,7 +1,5 @@
 package org.ybonfire.netty.client.manager;
 
-import org.ybonfire.netty.client.model.RemoteRequestFuture;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -9,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.ybonfire.netty.client.model.RemoteRequestFuture;
 
 /**
  * 在途请求管理器
@@ -67,9 +67,7 @@ public class InflightRequestManager {
         while (iterator.hasNext()) {
             final Map.Entry<String, RemoteRequestFuture> entry = iterator.next();
             final RemoteRequestFuture future = entry.getValue();
-
-            // 判断在途请求是否超时
-            if (future.getStartTimestamp() + future.getTimeoutMillis() > System.currentTimeMillis()) {
+            if (future.isExpired()) {
                 iterator.remove();
             }
         }
