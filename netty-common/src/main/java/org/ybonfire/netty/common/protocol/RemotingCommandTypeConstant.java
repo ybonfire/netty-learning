@@ -1,12 +1,16 @@
 package org.ybonfire.netty.common.protocol;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * 远程命令类型枚举
  *
  * @author Bo.Yuan5
  * @date 2022-05-23 17:48
  */
-public class RemotingCommandTypeConstant {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class RemotingCommandTypeConstant {
     /**
      * 请求
      */

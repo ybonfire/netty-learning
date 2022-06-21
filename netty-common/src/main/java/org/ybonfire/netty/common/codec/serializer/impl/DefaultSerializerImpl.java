@@ -3,6 +3,7 @@ package org.ybonfire.netty.common.codec.serializer.impl;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.ybonfire.netty.common.codec.serializer.ISerializer;
 import org.ybonfire.netty.common.command.RemotingCommand;
@@ -26,7 +27,7 @@ public class DefaultSerializerImpl implements ISerializer {
     private static final int INT_BYTE_LENGTH = 4;
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
+    private static final Charset CHARSET_UTF8 = StandardCharsets.UTF_8;
 
     /**
      * @description: 序列化
@@ -100,8 +101,7 @@ public class DefaultSerializerImpl implements ISerializer {
                     commandEnum == null ? null : MAPPER.readValue(commandBodyBytes, commandEnum.getRequestClazz());
                 return RemotingCommand.createRequestCommand(code, commandId, body);
             } else if (commandType == RemotingCommandTypeConstant.REMOTING_COMMAND_RESPONSE) {
-                final Object body =
-                    commandEnum == null ? null : MAPPER.readValue(commandBodyBytes, String.class);
+                final Object body = commandEnum == null ? null : MAPPER.readValue(commandBodyBytes, String.class);
                 return RemotingCommand.createResponseCommand(code, commandId, body);
             } else {
                 throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);

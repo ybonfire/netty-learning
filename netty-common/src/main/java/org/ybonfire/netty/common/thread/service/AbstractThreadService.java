@@ -138,6 +138,7 @@ public abstract class AbstractThreadService implements Runnable {
             try {
                 latch.await(intervalMillis, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 // ignore
             }
         }
@@ -155,6 +156,7 @@ public abstract class AbstractThreadService implements Runnable {
         try {
             latch.await();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             // ignore
         }
     }

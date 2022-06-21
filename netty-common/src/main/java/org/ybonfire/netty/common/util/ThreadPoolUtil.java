@@ -20,11 +20,23 @@ public final class ThreadPoolUtil {
     private static final int TEST_THREAD_NUMS_MAX = 4;
     private static final int TEST_QUEUE_CAPACITY = Integer.MAX_VALUE;
 
+    private static final int REQUEST_CALLBACK_THREAD_NUMS_MIN = 4;
+    private static final int REQUEST_CALLBACK_THREAD_NUMS_MAX = 4;
+    private static final int REQUEST_CALLBACK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+
     private static final ExecutorService TEST_EXECUTOR_SERVICE =
         buildThreadPool(TEST_THREAD_NUMS_MIN, TEST_THREAD_NUMS_MAX, TEST_QUEUE_CAPACITY, "test_");
 
+    private static final ExecutorService REQUEST_CALLBACK_EXECUTOR_SERVICE =
+        buildThreadPool(REQUEST_CALLBACK_THREAD_NUMS_MIN, REQUEST_CALLBACK_THREAD_NUMS_MAX,
+            REQUEST_CALLBACK_QUEUE_CAPACITY, "request_callback_");
+
     public static ExecutorService getTestExecutorService() {
         return TEST_EXECUTOR_SERVICE;
+    }
+
+    public static ExecutorService getRequestCallbackExecutorService() {
+        return REQUEST_CALLBACK_EXECUTOR_SERVICE;
     }
 
     /**

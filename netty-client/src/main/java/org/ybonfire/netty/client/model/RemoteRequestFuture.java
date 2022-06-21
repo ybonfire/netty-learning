@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.ybonfire.netty.common.callback.IRequestCallback;
 import org.ybonfire.netty.common.command.RemotingCommand;
 import org.ybonfire.netty.common.exception.ExceptionTypeEnum;
 import org.ybonfire.netty.common.util.ExceptionUtil;
@@ -21,17 +22,19 @@ public class RemoteRequestFuture {
     private final String address;
     private final Channel channel;
     private final long startTimestamp = System.currentTimeMillis();
-    private final long timeoutMillis;
     private final RemotingCommand request;
+    private final IRequestCallback callback;
+    private final long timeoutMillis;
     private final CompletableFuture<RemotingCommand> responseFuture = new CompletableFuture<>();
     private volatile boolean isRequestSuccess = false;
     private volatile Throwable cause;
 
     public RemoteRequestFuture(final String address, final Channel channel, final RemotingCommand request,
-        final long timeoutMillis) {
+        IRequestCallback callback, final long timeoutMillis) {
         this.address = address;
         this.channel = channel;
         this.request = request;
+        this.callback = callback;
         this.timeoutMillis = timeoutMillis;
     }
 
@@ -99,5 +102,9 @@ public class RemoteRequestFuture {
 
     public long getTimeoutMillis() {
         return timeoutMillis;
+    }
+
+    public IRequestCallback getCallback() {
+        return callback;
     }
 }
