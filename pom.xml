@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>netty-remoting</artifactId>
+    <artifactId>pipeline-remoting</artifactId>
     <version>${project.version}</version>
     <packaging>pom</packaging>
 
@@ -23,7 +23,7 @@
         <dependencies>
             <dependency>
                 <groupId>org.example</groupId>
-                <artifactId>netty-common</artifactId>
+                <artifactId>pipeline-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -50,8 +50,8 @@
     </dependencyManagement>
 
     <modules>
-        <module>netty-server</module>
-        <module>netty-client</module>
-        <module>netty-common</module>
+        <module>pipeline-server</module>
+        <module>pipeline-client</module>
+        <module>pipeline-common</module>
     </modules>
 </project>
