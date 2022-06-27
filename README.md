@@ -1,2 +1,2 @@
-# netty-remoting
-netty-remoting
+# pipeline-remoting
+pipeline-remoting
