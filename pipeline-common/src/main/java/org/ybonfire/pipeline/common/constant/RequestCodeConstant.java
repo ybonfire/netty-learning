@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.common.protocol;
+package org.ybonfire.pipeline.common.constant;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

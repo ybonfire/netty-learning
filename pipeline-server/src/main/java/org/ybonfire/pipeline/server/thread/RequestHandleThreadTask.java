@@ -3,7 +3,7 @@ package org.ybonfire.pipeline.server.thread;
 import java.util.UUID;
 
 import org.ybonfire.pipeline.common.command.RemotingCommand;
-import org.ybonfire.pipeline.common.protocol.ResponseCodeConstant;
+import org.ybonfire.pipeline.common.constant.ResponseCodeConstant;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
 import org.ybonfire.pipeline.server.handler.INettyRemotingRequestHandler;

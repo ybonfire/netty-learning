@@ -6,7 +6,7 @@ import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.protocol.ProduceResultResponse;
-import org.ybonfire.pipeline.common.protocol.RequestCodeConstant;
+import org.ybonfire.pipeline.common.constant.RequestCodeConstant;
 import org.ybonfire.pipeline.common.protocol.TopicInfoResponse;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.producer.client.IRemotingClient;

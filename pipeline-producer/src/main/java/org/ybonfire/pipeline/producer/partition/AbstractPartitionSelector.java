@@ -8,7 +8,7 @@ import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.producer.route.RouteManager;
 
 /**
- * 这里添加类的注释【强制】
+ * Partition选择器
  *
  * @author Bo.Yuan5
  * @date 2022-06-29 10:01

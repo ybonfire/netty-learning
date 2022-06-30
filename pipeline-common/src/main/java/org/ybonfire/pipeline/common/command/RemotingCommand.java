@@ -3,7 +3,7 @@ package org.ybonfire.pipeline.common.command;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.ybonfire.pipeline.common.protocol.RemotingCommandTypeConstant;
+import org.ybonfire.pipeline.common.constant.RemotingCommandTypeConstant;
 
 import java.io.Serializable;
 

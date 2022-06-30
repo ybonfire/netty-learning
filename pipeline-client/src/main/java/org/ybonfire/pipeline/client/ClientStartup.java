@@ -8,7 +8,7 @@ import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.command.RemotingCommand;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.User;
-import org.ybonfire.pipeline.common.protocol.RequestCodeConstant;
+import org.ybonfire.pipeline.common.constant.RequestCodeConstant;
 
 /**
  * 服务端启动类

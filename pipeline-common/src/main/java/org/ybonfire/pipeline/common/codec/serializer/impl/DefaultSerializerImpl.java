@@ -10,7 +10,7 @@ import org.ybonfire.pipeline.common.command.RemotingCommand;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
-import org.ybonfire.pipeline.common.protocol.RemotingCommandTypeConstant;
+import org.ybonfire.pipeline.common.constant.RemotingCommandTypeConstant;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
