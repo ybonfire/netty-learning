@@ -9,7 +9,7 @@ import lombok.Getter;
  * @date 2022-05-18 15:33
  */
 @Getter
-public class NettyClientConfig {
+public final class NettyClientConfig {
     /**
      * netty eventLoop线程数
      */

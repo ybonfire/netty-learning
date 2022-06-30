@@ -28,6 +28,18 @@ public enum ExceptionTypeEnum {
      */
     ILLEGAL_ARGUMENT(5, "非法参数"),
     /**
+     * 未知路由
+     */
+    UNKNOWN_ROUTE(6, "未知路由"),
+    /**
+     * 未知PartitionLeader
+     */
+    UNKNOWN_PARTITION_LEADER(7, "未知PartitionLeader"),
+    /**
+     * 远程调用异常
+     */
+    REMOTING_INVOKE_FAILED(8, "远程调用异常"),
+    /**
      * 未知异常
      */
     UNKNOWN(-1, "未知异常");

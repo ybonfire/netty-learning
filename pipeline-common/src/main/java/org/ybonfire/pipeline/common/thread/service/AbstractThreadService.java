@@ -17,7 +17,7 @@ public abstract class AbstractThreadService implements Runnable {
     private final RefreshableCountDownLatch latch = new RefreshableCountDownLatch(1);
     protected IThreadServiceExecuteFailedCallback callback;
     protected Thread thread;
-    protected volatile long intervalMillis = 5 * 1000L;
+    protected volatile long intervalMillis = 500L;
     /**
      * 标记休眠
      */
@@ -28,13 +28,13 @@ public abstract class AbstractThreadService implements Runnable {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private volatile boolean stopped = true;
 
-    public AbstractThreadService() {}
+    protected AbstractThreadService() {}
 
-    public AbstractThreadService(final long intervalMillis) {
+    protected AbstractThreadService(final long intervalMillis) {
         this.intervalMillis = intervalMillis;
     }
 
-    public AbstractThreadService(final IThreadServiceExecuteFailedCallback callback, final long intervalMillis) {
+    protected AbstractThreadService(final IThreadServiceExecuteFailedCallback callback, final long intervalMillis) {
         this.callback = callback;
         this.intervalMillis = intervalMillis;
     }

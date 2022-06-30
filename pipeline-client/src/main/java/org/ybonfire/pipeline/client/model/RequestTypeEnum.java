@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.common.protocol;
+package org.ybonfire.pipeline.client.model;
 
 /**
  * 请求类型枚举
