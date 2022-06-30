@@ -12,7 +12,7 @@ import org.ybonfire.pipeline.common.codec.Encoder;
 import org.ybonfire.pipeline.common.command.RemotingCommand;
 import org.ybonfire.pipeline.common.model.Pair;
 import org.ybonfire.pipeline.common.protocol.RemotingCommandTypeConstant;
-import org.ybonfire.pipeline.common.protocol.RequestCommandCodeConstant;
+import org.ybonfire.pipeline.common.protocol.RequestCodeConstant;
 import org.ybonfire.pipeline.common.protocol.ResponseCodeConstant;
 import org.ybonfire.pipeline.common.server.IRemotingServer;
 import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
@@ -105,7 +105,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
     public void start() {
         if (started.compareAndSet(false, true)) {
             // register handler
-            this.registerHandler(RequestCommandCodeConstant.TEST_REQUEST_CODE, new DefaultNettyRemotingRequestHandler(),
+            this.registerHandler(RequestCodeConstant.TEST_REQUEST_CODE, new DefaultNettyRemotingRequestHandler(),
                 this.testExecutorService);
 
             // start server

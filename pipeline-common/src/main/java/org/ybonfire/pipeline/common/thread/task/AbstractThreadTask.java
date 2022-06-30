@@ -15,12 +15,12 @@ public abstract class AbstractThreadTask implements Runnable {
     private final String taskId;
     private final IThreadTaskExecuteFailedCallback threadTaskExecuteFailedCallback;
 
-    public AbstractThreadTask() {
+    protected AbstractThreadTask() {
         this.taskId = UUID.randomUUID().toString();
         this.threadTaskExecuteFailedCallback = (threadTask, e) -> log.error("ThreadTask Execute failed.", e);
     }
 
-    public AbstractThreadTask(final String taskId,
+    protected AbstractThreadTask(final String taskId,
         final IThreadTaskExecuteFailedCallback threadTaskExecuteFailedCallback) {
         this.taskId = taskId;
         this.threadTaskExecuteFailedCallback = threadTaskExecuteFailedCallback;
