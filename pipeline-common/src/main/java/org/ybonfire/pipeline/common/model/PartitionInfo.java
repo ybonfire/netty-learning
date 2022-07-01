@@ -19,7 +19,7 @@ public class PartitionInfo {
     private final List<Node> nodes;
 
     /**
-     * @description: 尝试获取PartitionLeaer的Node信息
+     * @description: 尝试获取PartitionLeader的Node信息
      * @param:
      * @return:
      * @date: 2022/06/27 22:02:53

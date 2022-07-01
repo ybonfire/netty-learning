@@ -54,7 +54,7 @@ public class NameServers {
      * @return:
      * @date: 2022/06/27 21:36:35
      */
-    public Optional<TopicInfo> selectTopicInfo(final String topic) {
+    public Optional<TopicInfo> selectTopicInfo(final String topic, final long timeoutMillis) {
         if (nameServerAddressList.isEmpty()) {
             throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
         }
@@ -63,7 +63,7 @@ public class NameServers {
         try {
             for (int i = 0; i < nameServerAddressList.size(); ++i) {
                 final String address = nameServerAddressList.get(i);
-                return client.selectTopicInfo(topic, address, 10 * 1000L);
+                return client.selectTopicInfo(topic, address, timeoutMillis);
             }
         } catch (BaseException ex) {
             e = ex;

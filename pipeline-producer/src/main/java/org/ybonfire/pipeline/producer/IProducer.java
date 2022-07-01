@@ -1,0 +1,37 @@
+package org.ybonfire.pipeline.producer;
+
+import org.ybonfire.pipeline.common.model.Message;
+import org.ybonfire.pipeline.producer.model.ProduceResult;
+
+/**
+ * 生产者接口
+ *
+ * @author Bo.Yuan5
+ * @date 2022-07-01 13:26
+ */
+public interface IProducer {
+
+    /**
+     * @description: 启动生产者
+     * @param:
+     * @return:
+     * @date: 2022/07/01 13:26:59
+     */
+    void start();
+
+    /**
+     * @description: 关闭生产者
+     * @param:
+     * @return:
+     * @date: 2022/07/01 13:27:04
+     */
+    void shutdown();
+
+    /**
+     * @description: 同步消息投递
+     * @param:
+     * @return:
+     * @date: 2022/07/01 13:27:17
+     */
+    ProduceResult produce(final Message message, final long timeoutMillis);
+}

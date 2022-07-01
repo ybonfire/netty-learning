@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 线程服务抽象类
  *
- * @author yuanbo@megvii.com
+ * @author Bo.Yuan5
  * @date 2021-08-25 11:17
  */
 @Slf4j
@@ -71,6 +71,32 @@ public abstract class AbstractThreadService implements Runnable {
     }
 
     /**
+     * @description: 唤醒线程
+     * @param:
+     * @return:
+     * @date: 2021/8/25
+     */
+    public void wakeup() {
+        if (started.get()) {
+            if (paused.compareAndSet(true, false)) {
+                latch.countDown();
+            }
+        }
+    }
+
+    /**
+     * @description: 休眠线程
+     * @param:
+     * @return:
+     * @date: 2021/8/25
+     */
+    public void pause() {
+        if (started.get()) {
+            paused.compareAndSet(false, true);
+        }
+    }
+
+    /**
      * @description: 主流程
      * @param:
      * @return:
@@ -97,32 +123,6 @@ public abstract class AbstractThreadService implements Runnable {
 
             // 暂停
             waitForRunning(this.intervalMillis);
-        }
-    }
-
-    /**
-     * @description: 唤醒线程
-     * @param:
-     * @return:
-     * @date: 2021/8/25
-     */
-    public void wakeup() {
-        if (started.get()) {
-            if (paused.compareAndSet(true, false)) {
-                latch.countDown();
-            }
-        }
-    }
-
-    /**
-     * @description: 休眠线程
-     * @param:
-     * @return:
-     * @date: 2021/8/25
-     */
-    public void pause() {
-        if (started.get()) {
-            paused.compareAndSet(false, true);
         }
     }
 
