@@ -5,41 +5,54 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>netty-learning</artifactId>
+    <artifactId>pipeline-remoting</artifactId>
+    <version>${revision}</version>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
-    <modules>
-        <module>netty-server</module>
-        <module>netty-client</module>
-        <module>netty-common</module>
-    </modules>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <netty.version>4.0.42.Final</netty.version>
+        <revision>1.0-SNAPSHOT</revision>
+        <netty.version>4.1.42.Final</netty.version>
         <jackson.version>2.13.3</jackson.version>
         <lombok.version>1.18.24</lombok.version>
         <slf4j.version>1.7.36</slf4j.version>
+        <maven_flatten_version>1.2.5</maven_flatten_version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- pipeline common -->
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>pipeline-common</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- pipeline client -->
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>pipeline-client</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- netty -->
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>${netty.version}</version>
             </dependency>
+            <!-- jackson -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
+            <!-- slf4j -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>1.7.36</version>
             </dependency>
+            <!-- lombok -->
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
@@ -47,4 +60,41 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${maven_flatten_version}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <modules>
+        <module>pipeline-server</module>
+        <module>pipeline-client</module>
+        <module>pipeline-common</module>
+        <module>pipeline-producer</module>
+    </modules>
 </project>

@@ -1,2 +1,2 @@
-# netty-learning
-netty-learning
+# pipeline-remoting
+pipeline-remoting
