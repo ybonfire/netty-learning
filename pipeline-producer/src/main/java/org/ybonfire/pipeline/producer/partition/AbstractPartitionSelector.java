@@ -27,8 +27,8 @@ public abstract class AbstractPartitionSelector implements IPartitionSelector {
      * @date: 2022/06/29 16:04:16
      */
     @Override
-    public Optional<PartitionInfo> select(final Message message) {
-        final Optional<TopicInfo> topicInfoOptional = tryToFindTopicInfo(message.getTopic());
+    public Optional<PartitionInfo> select(final Message message, final long timeoutMillis) {
+        final Optional<TopicInfo> topicInfoOptional = tryToFindTopicInfo(message.getTopic(), timeoutMillis);
         return topicInfoOptional.map(topicInfo -> doSelect(message, topicInfo));
     }
 
@@ -38,8 +38,8 @@ public abstract class AbstractPartitionSelector implements IPartitionSelector {
      * @return:
      * @date: 2022/06/29 16:00:57
      */
-    private Optional<TopicInfo> tryToFindTopicInfo(final String topic) {
-        return routeManager.selectTopicInfo(topic);
+    private Optional<TopicInfo> tryToFindTopicInfo(final String topic, final long timeoutMillis) {
+        return routeManager.selectTopicInfo(topic, timeoutMillis);
     }
 
     /**

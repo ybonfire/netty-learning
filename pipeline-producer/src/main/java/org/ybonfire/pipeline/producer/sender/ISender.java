@@ -11,6 +11,22 @@ import org.ybonfire.pipeline.producer.model.MessageWrapper;
 public interface ISender {
 
     /**
+     * @description: 启动发送器
+     * @param:
+     * @return:
+     * @date: 2022/07/01 13:28:54
+     */
+    void start();
+
+    /**
+     * @description: 关闭发送器
+     * @param:
+     * @return:
+     * @date: 2022/07/01 13:29:06
+     */
+    void stop();
+
+    /**
      * @description: 发送消息
      * @param:
      * @return:

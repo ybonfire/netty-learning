@@ -40,6 +40,10 @@ public enum ExceptionTypeEnum {
      */
     REMOTING_INVOKE_FAILED(8, "远程调用异常"),
     /**
+     * 超时异常
+     */
+    TIMEOUT_EXCEPTION(9, "超时异常"),
+    /**
      * 未知异常
      */
     UNKNOWN(-1, "未知异常");

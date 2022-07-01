@@ -11,6 +11,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.producer.metadata.NameServers;
 
@@ -21,6 +23,7 @@ import org.ybonfire.pipeline.producer.metadata.NameServers;
  * @date 2022-06-27 18:47
  */
 public final class RouteManager {
+    private final IInternalLogger logger = new SimpleInternalLogger();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<String, TopicInfo> topicInfoTable = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -37,11 +40,11 @@ public final class RouteManager {
      * @return:
      * @date: 2022/06/27 21:36:35
      */
-    public Optional<TopicInfo> selectTopicInfo(final String topic) {
+    public Optional<TopicInfo> selectTopicInfo(final String topic, final long timeoutMillis) {
         lock.readLock().lock();
         try {
             final Optional<TopicInfo> topicInfoOptional = selectFromCache(topic);
-            return topicInfoOptional.isPresent() ? topicInfoOptional : selectFromRemote(topic);
+            return topicInfoOptional.isPresent() ? topicInfoOptional : selectFromRemote(topic, timeoutMillis);
         } finally {
             lock.readLock().unlock();
         }
@@ -54,15 +57,18 @@ public final class RouteManager {
      * @date: 2022/06/29 09:54:32
      */
     private void updateRouteInfo() {
-        // TODO 远程调用Nameserver异常处理
-        final List<TopicInfo> result = nameServers.selectAllTopicInfo();
-        lock.writeLock().lock();
         try {
-            topicInfoTable.clear();
-            topicInfoTable
-                .putAll(result.stream().collect(Collectors.toMap(TopicInfo::getTopic, topicInfo -> topicInfo)));
-        } finally {
-            lock.writeLock().unlock();
+            final List<TopicInfo> result = nameServers.selectAllTopicInfo();
+            lock.writeLock().lock();
+            try {
+                topicInfoTable.clear();
+                topicInfoTable
+                    .putAll(result.stream().collect(Collectors.toMap(TopicInfo::getTopic, topicInfo -> topicInfo)));
+            } finally {
+                lock.writeLock().unlock();
+            }
+        } catch (Exception ex) {
+            logger.warn("远程调用NameServer查询路由信息异常");
         }
     }
 
@@ -82,8 +88,12 @@ public final class RouteManager {
      * @return:
      * @date: 2022/06/29 09:53:37
      */
-    private Optional<TopicInfo> selectFromRemote(final String topic) {
-        // TODO 远程调用Nameserver异常处理
-        return nameServers.selectTopicInfo(topic);
+    private Optional<TopicInfo> selectFromRemote(final String topic, final long timeoutMillis) {
+        try {
+            return nameServers.selectTopicInfo(topic, timeoutMillis);
+        } catch (Exception ex) {
+            logger.warn("远程调用NameServer查询路由信息异常");
+            return Optional.empty();
+        }
     }
 }

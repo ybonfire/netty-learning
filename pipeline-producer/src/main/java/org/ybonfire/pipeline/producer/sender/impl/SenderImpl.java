@@ -50,7 +50,9 @@ public class SenderImpl extends AbstractThreadService implements ISender {
             final long startTime = System.currentTimeMillis();
             this.taskQueue.put(task);
             final long timeoutMillis = message.getTimeoutMillis() - (System.currentTimeMillis() - startTime);
-            task.getLatch().await(timeoutMillis, TimeUnit.MILLISECONDS);
+            if (timeoutMillis > 0L) {
+                task.getLatch().await(timeoutMillis, TimeUnit.MILLISECONDS);
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             // ignore
@@ -99,6 +101,16 @@ public class SenderImpl extends AbstractThreadService implements ISender {
         message.getCallbackOptional().ifPresent(callback -> callback.onComplete(result));
 
         return result;
+    }
+
+    /**
+     * @description: 消息发送超时流程
+     * @param:
+     * @return:
+     * @date: 2022/07/01 13:39:37
+     */
+    private void onSendTimedOut() {
+        throw ExceptionUtil.exception(ExceptionTypeEnum.TIMEOUT_EXCEPTION);
     }
 
     /**

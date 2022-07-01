@@ -19,5 +19,5 @@ public interface IPartitionSelector {
      * @return:
      * @date: 2022/06/27 18:27:27
      */
-    Optional<PartitionInfo> select(final Message message);
+    Optional<PartitionInfo> select(final Message message, final long timeoutMillis);
 }
