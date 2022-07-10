@@ -1,6 +1,7 @@
 package org.ybonfire.pipeline.common.model;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
@@ -9,6 +10,7 @@ import lombok.Getter;
  * @author Bo.Yuan5
  * @date 2022-06-27 18:41
  */
+@EqualsAndHashCode
 @Builder
 @Getter
 public class Node {

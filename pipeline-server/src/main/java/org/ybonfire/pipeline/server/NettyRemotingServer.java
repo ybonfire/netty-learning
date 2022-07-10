@@ -45,7 +45,8 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
  * @author Bo.Yuan5
  * @date 2022-05-18 10:34
  */
-public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContext, INettyRemotingRequestHandler> {
+public abstract class NettyRemotingServer
+    implements IRemotingServer<ChannelHandlerContext, INettyRemotingRequestHandler> {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final ServerBootstrap serverBootstrap = new ServerBootstrap();
     private final NettyServerConfig config;
@@ -56,7 +57,6 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
         new NettyRemotingRequestDispatcher();
     private final NettyServerHandler nettyServerHandler = new NettyServerHandler();
     private final IResponseCallback callback = new DefaultResponseCallback();
-    private final ExecutorService testExecutorService = ThreadPoolUtil.getTestExecutorService();
 
     public NettyRemotingServer(final NettyServerConfig config) {
         this.config = config;
@@ -105,8 +105,7 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
     public void start() {
         if (started.compareAndSet(false, true)) {
             // register handler
-            this.registerHandler(RequestCodeConstant.TEST_REQUEST_CODE, new DefaultNettyRemotingRequestHandler(),
-                this.testExecutorService);
+            registerRequestHandlers();
 
             // start server
             this.serverBootstrap.group(this.parentGroup, this.childGroup).channel(NioServerSocketChannel.class)
@@ -171,6 +170,14 @@ public class NettyRemotingServer implements IRemotingServer<ChannelHandlerContex
         final ExecutorService executor) {
         dispatcher.registerRemotingRequestHandler(requestCode, handler, executor);
     }
+
+    /**
+     * @description: 注册远程调用请求处理器
+     * @param:
+     * @return:
+     * @date: 2022/07/01 17:41:06
+     */
+    protected abstract void registerRequestHandlers();
 
     /**
      * @description: 处理请求

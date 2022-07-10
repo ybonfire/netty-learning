@@ -1,23 +1,26 @@
 package org.ybonfire.pipeline.producer.client.impl;
 
-import org.ybonfire.pipeline.client.NettyRemotingClient;
-import org.ybonfire.pipeline.common.command.RemotingCommand;
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
-import org.ybonfire.pipeline.common.model.Message;
-import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.protocol.ProduceResultResponse;
-import org.ybonfire.pipeline.common.constant.RequestCodeConstant;
-import org.ybonfire.pipeline.common.protocol.TopicInfoResponse;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
-import org.ybonfire.pipeline.producer.client.IRemotingClient;
-import org.ybonfire.pipeline.producer.converter.impl.ProduceResultConverter;
-import org.ybonfire.pipeline.producer.converter.impl.TopicInfoConverter;
-import org.ybonfire.pipeline.producer.model.ProduceResult;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.ybonfire.pipeline.client.NettyRemotingClient;
+import org.ybonfire.pipeline.common.command.RemotingCommand;
+import org.ybonfire.pipeline.common.constant.RequestCodeConstant;
+import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
+import org.ybonfire.pipeline.common.model.Message;
+import org.ybonfire.pipeline.common.model.TopicInfo;
+import org.ybonfire.pipeline.common.protocol.ProduceResultRemotingEntity;
+import org.ybonfire.pipeline.common.protocol.TopicInfoRemotingEntity;
+import org.ybonfire.pipeline.common.util.ExceptionUtil;
+import org.ybonfire.pipeline.producer.client.IRemotingClient;
+import org.ybonfire.pipeline.producer.converter.impl.NodeConverter;
+import org.ybonfire.pipeline.producer.converter.impl.PartitionConverter;
+import org.ybonfire.pipeline.producer.converter.impl.ProduceResultConverter;
+import org.ybonfire.pipeline.producer.converter.impl.TopicInfoConverter;
+import org.ybonfire.pipeline.producer.model.MessageWrapper;
+import org.ybonfire.pipeline.producer.model.ProduceResult;
 
 /**
  * 生产者远程调用客户端
@@ -30,11 +33,10 @@ public class ProducerRemotingClient implements IRemotingClient {
     private final TopicInfoConverter topicInfoConverter;
     private final ProduceResultConverter produceResultConverter;
 
-    public ProducerRemotingClient(final NettyRemotingClient client, final TopicInfoConverter topicInfoConverter,
-        final ProduceResultConverter produceResultConverter) {
+    public ProducerRemotingClient(final NettyRemotingClient client) {
         this.client = client;
-        this.topicInfoConverter = topicInfoConverter;
-        this.produceResultConverter = produceResultConverter;
+        this.topicInfoConverter = new TopicInfoConverter(new PartitionConverter(new NodeConverter()));
+        this.produceResultConverter = new ProduceResultConverter();
     }
 
     /**
@@ -47,7 +49,7 @@ public class ProducerRemotingClient implements IRemotingClient {
     public List<TopicInfo> selectAllTopicInfo(final String address, final long timeoutMillis) {
         try {
             final RemotingCommand response = client.request(address, buildSelectAllTopicInfoRequest(), timeoutMillis);
-            return ((List<TopicInfoResponse>)response.getBody()).stream().map(topicInfoConverter::convert)
+            return ((List<TopicInfoRemotingEntity>)response.getBody()).stream().map(topicInfoConverter::convert)
                 .collect(Collectors.toList());
         } catch (Exception ex) {
             throw ExceptionUtil.exception(ExceptionTypeEnum.REMOTING_INVOKE_FAILED);
@@ -64,7 +66,7 @@ public class ProducerRemotingClient implements IRemotingClient {
     public Optional<TopicInfo> selectTopicInfo(final String topic, final String address, final long timeoutMillis) {
         try {
             final RemotingCommand response = client.request(address, buildSelectTopicInfoRequest(topic), timeoutMillis);
-            return Optional.ofNullable(topicInfoConverter.convert((TopicInfoResponse)response.getBody()));
+            return Optional.ofNullable(topicInfoConverter.convert((TopicInfoRemotingEntity)response.getBody()));
         } catch (Exception ex) {
             throw ExceptionUtil.exception(ExceptionTypeEnum.REMOTING_INVOKE_FAILED);
         }
@@ -77,11 +79,11 @@ public class ProducerRemotingClient implements IRemotingClient {
      * @date: 2022/06/30 10:44:03
      */
     @Override
-    public ProduceResult produce(final Message message, final String address, final long timeoutMillis) {
+    public ProduceResult produce(final MessageWrapper message, final String address, final long timeoutMillis) {
         try {
             final RemotingCommand response =
-                client.request(address, buildProduceMessageRequest(message), timeoutMillis);
-            return produceResultConverter.convert((ProduceResultResponse)response.getBody());
+                client.request(address, buildProduceMessageRequest(message.getMessage()), timeoutMillis);
+            return produceResultConverter.convert((ProduceResultRemotingEntity)response.getBody());
         } catch (Exception ex) {
             throw ExceptionUtil.exception(ExceptionTypeEnum.REMOTING_INVOKE_FAILED);
         }

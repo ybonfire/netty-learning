@@ -7,15 +7,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Topic信息响应体
+ * Partition信息响应体
  *
  * @author Bo.Yuan5
- * @date 2022-06-27 18:39
+ * @date 2022-06-27 18:40
  */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public final class TopicInfoResponse {
-    private String topic;
-    private List<PartitionInfoResponse> partitions;
+public class PartitionInfoRemotingEntity {
+    private Integer partitionId;
+    private List<NodeRemotingEntity> nodes;
 }

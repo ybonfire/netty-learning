@@ -1,6 +1,6 @@
 package org.ybonfire.pipeline.producer.converter.impl;
 
-import org.ybonfire.pipeline.common.protocol.ProduceResultResponse;
+import org.ybonfire.pipeline.common.protocol.ProduceResultRemotingEntity;
 import org.ybonfire.pipeline.producer.converter.IConverter;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 
@@ -10,7 +10,7 @@ import org.ybonfire.pipeline.producer.model.ProduceResult;
  * @author Bo.Yuan5
  * @date 2022-06-30 16:32
  */
-public final class ProduceResultConverter implements IConverter<ProduceResultResponse, ProduceResult> {
+public final class ProduceResultConverter implements IConverter<ProduceResultRemotingEntity, ProduceResult> {
 
     /**
      * @description: 参数转换
@@ -19,7 +19,7 @@ public final class ProduceResultConverter implements IConverter<ProduceResultRes
      * @date: 2022/06/30 16:37:05
      */
     @Override
-    public ProduceResult convert(final ProduceResultResponse src) {
+    public ProduceResult convert(final ProduceResultRemotingEntity src) {
         if (src == null) {
             return null;
         }

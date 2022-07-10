@@ -2,6 +2,7 @@ package org.ybonfire.pipeline.common.model;
 
 import java.io.Serializable;
 
+import lombok.EqualsAndHashCode;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 

@@ -38,9 +38,9 @@ public class NettyChannelManager {
      */
     public void putChannel(final String address, final Channel channel) {
         if (channel.isActive()) {
-            final Channel pre = channelTable.putIfAbsent(address, channel);
-            if (pre != null && pre.isActive()) {
-                this.doCloseChannel(pre);
+            final Channel prev = channelTable.putIfAbsent(address, channel);
+            if (prev != null && prev.isActive()) {
+                this.doCloseChannel(prev);
             }
         }
     }
