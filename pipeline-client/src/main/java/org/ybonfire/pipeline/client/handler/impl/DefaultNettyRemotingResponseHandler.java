@@ -3,7 +3,7 @@ package org.ybonfire.pipeline.client.handler.impl;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
-import org.ybonfire.pipeline.client.handler.INettyRemotingResponseHandler;
+import org.ybonfire.pipeline.client.handler.AbstractNettyRemotingResponseHandler;
 import org.ybonfire.pipeline.client.manager.InflightRequestManager;
 import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
@@ -20,26 +20,61 @@ import io.netty.channel.ChannelHandlerContext;
  * @author Bo.Yuan5
  * @date 2022-05-23 18:24
  */
-public class DefaultNettyRemotingResponseHandler implements INettyRemotingResponseHandler {
+public class DefaultNettyRemotingResponseHandler extends AbstractNettyRemotingResponseHandler {
     private final IInternalLogger logger = new SimpleInternalLogger();
     private final InflightRequestManager inflightRequestManager;
-    private final ExecutorService executorService = ThreadPoolUtil.getTestExecutorService();
+    private final ExecutorService executorService = ThreadPoolUtil.getRequestCallbackExecutorService();
 
     public DefaultNettyRemotingResponseHandler(final InflightRequestManager inflightRequestManager) {
         this.inflightRequestManager = inflightRequestManager;
     }
 
     /**
-     * @description: 处理响应
+     * @description: 参数校验
      * @param:
      * @return:
-     * @date: 2022/05/23 23:42:24
+     * @date: 2022/07/09 15:10:48
      */
     @Override
-    public RemotingCommand handle(final RemotingCommand response, final ChannelHandlerContext context) {
-        logger.info(response.getBody().toString());
+    protected void check(final RemotingCommand response, final ChannelHandlerContext context) {
+
+    }
+
+    /**
+     * @description: 业务处理
+     * @param:
+     * @return:
+     * @date: 2022/07/09 14:02:42
+     */
+    @Override
+    protected RemotingCommand fire(final RemotingCommand response, final ChannelHandlerContext context) {
         inflightRequestManager.get(response.getCommandId()).ifPresent(future -> handleResponse(future, response));
         return null;
+    }
+
+    /**
+     * @description: 异常处理
+     * @param:
+     * @return:
+     * @date: 2022/07/09 14:02:45
+     */
+    @Override
+    protected RemotingCommand onException(final RemotingCommand response, final ChannelHandlerContext context,
+        final Exception ex) {
+        logger.error("响应处理失败", ex);
+        return null;
+    }
+
+    /**
+     * @description: 处理完成流程
+     * @param:
+     * @return:
+     * @date: 2022/07/09 15:24:51
+     */
+    @Override
+    protected void onComplete(final RemotingCommand response, final ChannelHandlerContext context) {
+        /** 移除在途请求 **/
+        inflightRequestManager.remove(response.getCommandId());
     }
 
     /**
@@ -49,8 +84,9 @@ public class DefaultNettyRemotingResponseHandler implements INettyRemotingRespon
      * @date: 2022/06/20 19:02:12
      */
     private void handleResponse(final RemoteRequestFuture future, final RemotingCommand response) {
-        /** 移除在途请求 **/
-        inflightRequestManager.remove(response.getCommandId());
+        if (future.isCompleted()) {
+            return;
+        }
 
         /** 填充响应 **/
         future.complete(response);
@@ -69,19 +105,21 @@ public class DefaultNettyRemotingResponseHandler implements INettyRemotingRespon
      */
     private void invokeCallback(final IRequestCallback callback, final RemoteRequestFuture future) {
         executorService.submit(() -> {
-            if (future.isRequestSuccess()) {
-                try {
+            try {
+                if (future.isRequestSuccess()) {
                     final RemotingCommand response = future.getResponseFuture().get();
                     if (response != null) {
                         callback.onSuccess(response);
                     }
-                } catch (Exception e) {
-                    // ignore
+                } else {
+                    if (future.getCause() != null) {
+                        callback.onException(future.getCause());
+                    }
                 }
-            } else {
-                if (future.getCause() != null) {
-                    callback.onException(future.getCause());
-                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            } catch (Exception ex) {
+                // ignore
             }
         });
     }

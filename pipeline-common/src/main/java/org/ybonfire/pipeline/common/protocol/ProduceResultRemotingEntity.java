@@ -14,7 +14,7 @@ import org.ybonfire.pipeline.common.model.Message;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ProduceResultResponse {
+public class ProduceResultRemotingEntity {
     private Message message;
     private String topic;
     private Integer partitionId;

@@ -1,13 +1,13 @@
 package org.ybonfire.pipeline.producer.converter.impl;
 
-import org.ybonfire.pipeline.producer.converter.IConverter;
-import org.ybonfire.pipeline.common.model.PartitionInfo;
-import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.protocol.TopicInfoResponse;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.ybonfire.pipeline.common.model.PartitionInfo;
+import org.ybonfire.pipeline.common.model.TopicInfo;
+import org.ybonfire.pipeline.common.protocol.TopicInfoRemotingEntity;
+import org.ybonfire.pipeline.producer.converter.IConverter;
 
 /**
  * TopicInfo参数转换器
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * @author Bo.Yuan5
  * @date 2022-06-30 09:42
  */
-public final class TopicInfoConverter implements IConverter<TopicInfoResponse, TopicInfo> {
+public final class TopicInfoConverter implements IConverter<TopicInfoRemotingEntity, TopicInfo> {
     private final PartitionConverter partitionConverter;
 
     public TopicInfoConverter(final PartitionConverter partitionConverter) {
@@ -29,7 +29,7 @@ public final class TopicInfoConverter implements IConverter<TopicInfoResponse, T
      * @date: 2022/06/30 09:42:57
      */
     @Override
-    public TopicInfo convert(TopicInfoResponse src) {
+    public TopicInfo convert(TopicInfoRemotingEntity src) {
         if (src == null) {
             return null;
         }

@@ -4,22 +4,21 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
- * 服务结点响应体
+ * 路由上报请求体
  *
  * @author Bo.Yuan5
- * @date 2022-06-27 18:41
+ * @date 2022-07-01 18:00
  */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class NodeResponse {
-    /**
-     * 结点地址 Ip:port
-     */
+public class RouteUploadRemotingEntity {
+    private String brokerId;
     private String address;
-    /**
-     * 结点角色
-     */
     private Integer role;
+    private List<TopicInfoRemotingEntity> topics;
+    private Long dataVersion;
 }

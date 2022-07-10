@@ -27,6 +27,7 @@ public class RemoteRequestFuture {
     private final long timeoutMillis;
     private final CompletableFuture<RemotingCommand> responseFuture = new CompletableFuture<>();
     private volatile boolean isRequestSuccess = false;
+    private volatile boolean isCompleted = false;
     private volatile Throwable cause;
 
     public RemoteRequestFuture(final String address, final Channel channel, final RemotingCommand request,
@@ -61,7 +62,8 @@ public class RemoteRequestFuture {
      * @date: 2022/06/02 09:56:54
      */
     public void complete(final RemotingCommand response) {
-        responseFuture.complete(response);
+        this.responseFuture.complete(response);
+        this.isCompleted = true;
     }
 
     public String getAddress() {
@@ -86,6 +88,10 @@ public class RemoteRequestFuture {
 
     public void setRequestSuccess(boolean requestSuccess) {
         isRequestSuccess = requestSuccess;
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
     }
 
     public Throwable getCause() {

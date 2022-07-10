@@ -11,8 +11,24 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RequestCodeConstant {
+    /**
+     * 测试请求
+     */
     public static final int TEST_REQUEST_CODE = 0;
-    public static final int SELECT_ALL_ROUTE_CODE = 1;
-    public static final int SELECT_ROUTE_CODE = 2;
-    public static final int PRODUCE_MESSAGE_CODE = 3;
+    /**
+     * 查询全部路由请求
+     */
+    public static final int SELECT_ALL_ROUTE_CODE = 100;
+    /**
+     * 查询指定Topic路由请求
+     */
+    public static final int SELECT_ROUTE_CODE = 101;
+    /**
+     * 消息投递请求
+     */
+    public static final int PRODUCE_MESSAGE_CODE = 102;
+    /**
+     * 上报路由请求
+     */
+    public static final int UPLOAD_ROUTE_CODE = 200;
 }

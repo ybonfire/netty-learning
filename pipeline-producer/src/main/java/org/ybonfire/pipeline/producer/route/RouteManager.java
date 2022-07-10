@@ -58,7 +58,7 @@ public final class RouteManager {
      */
     private void updateRouteInfo() {
         try {
-            final List<TopicInfo> result = nameServers.selectAllTopicInfo();
+            final List<TopicInfo> result = nameServers.selectAllTopicInfo(10 * 1000L);
             lock.writeLock().lock();
             try {
                 topicInfoTable.clear();

@@ -1,13 +1,13 @@
 package org.ybonfire.pipeline.producer.converter.impl;
 
-import org.ybonfire.pipeline.producer.converter.IConverter;
-import org.ybonfire.pipeline.common.model.Node;
-import org.ybonfire.pipeline.common.model.PartitionInfo;
-import org.ybonfire.pipeline.common.protocol.PartitionInfoResponse;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.ybonfire.pipeline.common.model.Node;
+import org.ybonfire.pipeline.common.model.PartitionInfo;
+import org.ybonfire.pipeline.common.protocol.PartitionInfoRemotingEntity;
+import org.ybonfire.pipeline.producer.converter.IConverter;
 
 /**
  * PartitionInfo参数转换器
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * @author Bo.Yuan5
  * @date 2022-06-30 09:44
  */
-public final class PartitionConverter implements IConverter<PartitionInfoResponse, PartitionInfo> {
+public final class PartitionConverter implements IConverter<PartitionInfoRemotingEntity, PartitionInfo> {
     private final NodeConverter nodeConverter;
 
     public PartitionConverter(final NodeConverter nodeConverter) {
@@ -29,7 +29,7 @@ public final class PartitionConverter implements IConverter<PartitionInfoRespons
      * @date: 2022/06/30 09:44:39
      */
     @Override
-    public PartitionInfo convert(final PartitionInfoResponse src) {
+    public PartitionInfo convert(final PartitionInfoRemotingEntity src) {
         if (src == null) {
             return null;
         }

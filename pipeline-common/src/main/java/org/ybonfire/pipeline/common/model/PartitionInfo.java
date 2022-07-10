@@ -1,6 +1,7 @@
 package org.ybonfire.pipeline.common.model;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Optional;
  * @author Bo.Yuan5
  * @date 2022-06-27 18:40
  */
+@EqualsAndHashCode
 @Builder
 @Getter
 public class PartitionInfo {
@@ -27,5 +29,4 @@ public class PartitionInfo {
     public Optional<Node> tryToFindPartitionLeaderNode() {
         return nodes.stream().filter(node -> node.getRole() == NodeRole.LEADER).findAny();
     }
-
 }

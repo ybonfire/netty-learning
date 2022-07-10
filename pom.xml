@@ -12,12 +12,13 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <revision>1.0-SNAPSHOT</revision>
+        <maven_flatten_version>1.2.5</maven_flatten_version>
+        <revision>1.0.0-SNAPSHOT</revision>
         <netty.version>4.1.42.Final</netty.version>
         <jackson.version>2.13.3</jackson.version>
         <lombok.version>1.18.24</lombok.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <maven_flatten_version>1.2.5</maven_flatten_version>
+        <apache.commons.version>3.10</apache.commons.version>
     </properties>
 
     <dependencyManagement>
@@ -32,6 +33,18 @@
             <dependency>
                 <groupId>org.example</groupId>
                 <artifactId>pipeline-client</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- pipeline common -->
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>pipeline-common</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- pipeline server -->
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>pipeline-server</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- netty -->
@@ -50,7 +63,13 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.7.36</version>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <!-- apache commons -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${apache.commons.version}</version>
             </dependency>
             <!-- lombok -->
             <dependency>
@@ -96,5 +115,6 @@
         <module>pipeline-client</module>
         <module>pipeline-common</module>
         <module>pipeline-producer</module>
+        <module>pipeline-nameserver</module>
     </modules>
 </project>

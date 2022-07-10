@@ -30,7 +30,7 @@ public class NameServers {
      * @return:
      * @date: 2022/06/29 09:55:22
      */
-    public List<TopicInfo> selectAllTopicInfo() {
+    public List<TopicInfo> selectAllTopicInfo(final long timeoutMillis) {
         if (nameServerAddressList.isEmpty()) {
             throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
         }
@@ -39,7 +39,7 @@ public class NameServers {
         try {
             for (int i = 0; i < nameServerAddressList.size(); ++i) {
                 final String address = nameServerAddressList.get(i);
-                return client.selectAllTopicInfo(address, 10 * 1000L);
+                return client.selectAllTopicInfo(address, timeoutMillis);
             }
         } catch (BaseException ex) {
             e = ex;
