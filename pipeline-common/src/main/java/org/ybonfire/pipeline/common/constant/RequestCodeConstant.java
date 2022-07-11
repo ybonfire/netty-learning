@@ -16,19 +16,19 @@ public final class RequestCodeConstant {
      */
     public static final int TEST_REQUEST_CODE = 0;
     /**
-     * 查询全部路由请求
-     */
-    public static final int SELECT_ALL_ROUTE_CODE = 100;
-    /**
-     * 查询指定Topic路由请求
-     */
-    public static final int SELECT_ROUTE_CODE = 101;
-    /**
      * 消息投递请求
      */
-    public static final int PRODUCE_MESSAGE_CODE = 102;
+    public static final int PRODUCER_SEND_MESSAGE_CODE = 100;
     /**
      * 上报路由请求
      */
     public static final int UPLOAD_ROUTE_CODE = 200;
+    /**
+     * 查询全部路由请求
+     */
+    public static final int SELECT_ALL_ROUTE_CODE = 201;
+    /**
+     * 查询指定Topic路由请求
+     */
+    public static final int SELECT_ROUTE_CODE = 202;
 }

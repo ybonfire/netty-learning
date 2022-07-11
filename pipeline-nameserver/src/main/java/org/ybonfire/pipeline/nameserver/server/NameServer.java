@@ -2,7 +2,9 @@ package org.ybonfire.pipeline.nameserver.server;
 
 import org.ybonfire.pipeline.common.constant.RequestCodeConstant;
 import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
-import org.ybonfire.pipeline.nameserver.handler.NameServerRequestHandler;
+import org.ybonfire.pipeline.nameserver.handler.SelectAllRouteRequestHandler;
+import org.ybonfire.pipeline.nameserver.handler.SelectByTopicNameRequestHandler;
+import org.ybonfire.pipeline.nameserver.handler.UploadRouteRequestHandler;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.NettyRemotingServer;
@@ -19,8 +21,12 @@ import java.util.concurrent.ExecutorService;
  */
 public class NameServer extends NettyRemotingServer {
     private final RouteManageService routeManageService = new RouteManageService(new InMemoryRouteRepository());
-    private final INettyRemotingRequestHandler nameServerRequestHandler =
-        new NameServerRequestHandler(routeManageService);
+    private final INettyRemotingRequestHandler uploadRouteRequestHandler =
+        new UploadRouteRequestHandler(routeManageService);
+    private final INettyRemotingRequestHandler selectAllRouteRequestHandler =
+        new SelectAllRouteRequestHandler(routeManageService);
+    private final INettyRemotingRequestHandler selectByTopicNameRequestHandler =
+        new SelectByTopicNameRequestHandler(routeManageService);
     private final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
 
     public NameServer(final NettyServerConfig config) {
@@ -35,7 +41,11 @@ public class NameServer extends NettyRemotingServer {
      */
     @Override
     protected void registerRequestHandlers() {
-        // NameServerRequestHandler
-        registerHandler(RequestCodeConstant.UPLOAD_ROUTE_CODE, nameServerRequestHandler, handlerExecutor);
+        // RouteUploadRequestHandler
+        registerHandler(RequestCodeConstant.UPLOAD_ROUTE_CODE, uploadRouteRequestHandler, handlerExecutor);
+        // RouteSelectAllRequestHandler
+        registerHandler(RequestCodeConstant.SELECT_ALL_ROUTE_CODE, selectAllRouteRequestHandler, handlerExecutor);
+        // RouteSelect
+        registerHandler(RequestCodeConstant.SELECT_ROUTE_CODE, selectByTopicNameRequestHandler, handlerExecutor);
     }
 }
