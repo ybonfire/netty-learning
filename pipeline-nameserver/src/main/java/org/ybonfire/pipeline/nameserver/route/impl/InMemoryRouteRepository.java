@@ -56,7 +56,7 @@ public final class InMemoryRouteRepository implements IRouteRepository {
      * @date: 2022/07/10 09:45:54
      */
     @Override
-    public List<TopicInfo> SelectAll() {
+    public List<TopicInfo> selectAll() {
         lock.readLock().lock();
 
         try {

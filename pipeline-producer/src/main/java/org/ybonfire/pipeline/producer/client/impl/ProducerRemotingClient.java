@@ -118,7 +118,7 @@ public class ProducerRemotingClient implements IRemotingClient {
      * @date: 2022/06/30 10:45:21
      */
     private RemotingCommand buildProduceMessageRequest(final Message message) {
-        return RemotingCommand.createRequestCommand(RequestCodeConstant.PRODUCE_MESSAGE_CODE,
+        return RemotingCommand.createRequestCommand(RequestCodeConstant.PRODUCER_SEND_MESSAGE_CODE,
             UUID.randomUUID().toString(), message);
     }
 

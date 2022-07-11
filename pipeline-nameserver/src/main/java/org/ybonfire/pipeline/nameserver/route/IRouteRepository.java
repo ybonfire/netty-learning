@@ -27,7 +27,7 @@ public interface IRouteRepository {
      * @return:
      * @date: 2022/07/10 09:45:54
      */
-    List<TopicInfo> SelectAll();
+    List<TopicInfo> selectAll();
 
     /**
      * @description: 查询指定名称的Topic信息
