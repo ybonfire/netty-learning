@@ -3,7 +3,8 @@ package org.ybonfire.pipeline.common.command;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.ybonfire.pipeline.common.constant.RemotingCommandTypeConstant;
+import org.ybonfire.pipeline.common.constant.RemotingCommandTypeEnum;
+import org.ybonfire.pipeline.common.protocol.IRemotingCommandBody;
 
 import java.io.Serializable;
 
@@ -20,7 +21,11 @@ public class RemotingCommand implements Serializable {
     private Integer commandType;
     private Integer code;
     private String commandId;
-    private Object body;
+    private IRemotingCommandBody body;
+
+    public boolean isSuccess() {
+        return code != null && code >= 0;
+    }
 
     /**
      * @description: 构造请求体
@@ -28,8 +33,9 @@ public class RemotingCommand implements Serializable {
      * @return:
      * @date: 2022/05/23 17:58:37
      */
-    public static RemotingCommand createRequestCommand(int code, final String requestId, final Object body) {
-        return new RemotingCommand(RemotingCommandTypeConstant.REMOTING_COMMAND_REQUEST, code, requestId, body);
+    public static RemotingCommand createRequestCommand(int code, final String requestId,
+        final IRemotingCommandBody body) {
+        return new RemotingCommand(RemotingCommandTypeEnum.REMOTING_COMMAND_REQUEST.getCode(), code, requestId, body);
     }
 
     /**
@@ -38,7 +44,8 @@ public class RemotingCommand implements Serializable {
      * @return:
      * @date: 2022/05/23 17:58:39
      */
-    public static RemotingCommand createResponseCommand(int code, final String responseId, final Object body) {
-        return new RemotingCommand(RemotingCommandTypeConstant.REMOTING_COMMAND_RESPONSE, code, responseId, body);
+    public static RemotingCommand createResponseCommand(int code, final String responseId,
+        final IRemotingCommandBody body) {
+        return new RemotingCommand(RemotingCommandTypeEnum.REMOTING_COMMAND_RESPONSE.getCode(), code, responseId, body);
     }
 }

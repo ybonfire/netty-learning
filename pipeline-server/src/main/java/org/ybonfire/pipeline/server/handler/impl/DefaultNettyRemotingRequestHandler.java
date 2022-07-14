@@ -1,8 +1,8 @@
 package org.ybonfire.pipeline.server.handler.impl;
 
 import org.ybonfire.pipeline.common.command.RemotingCommand;
+import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
-import org.ybonfire.pipeline.server.handler.INettyRemotingRequestHandler;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -33,7 +33,8 @@ public class DefaultNettyRemotingRequestHandler extends AbstractNettyRemotingReq
      */
     @Override
     protected RemotingCommand fire(final RemotingCommand request, final ChannelHandlerContext context) {
-        return RemotingCommand.createResponseCommand(request.getCode(), request.getCommandId(), "success");
+        return RemotingCommand.createResponseCommand(request.getCode(), request.getCommandId(),
+            DefaultResponse.create("success"));
     }
 
     /**

@@ -23,12 +23,4 @@ public final class ResponseCodeConstant {
      * 系统内部异常
      */
     public static final int INTERNAL_SYSTEM_ERROR = 2;
-    /**
-     * 服务未响应异常
-     */
-    public static final int SERVER_NOT_RESPONSE = 3;
-    /**
-     * 请求超时异常
-     */
-    public static final int REQUEST_TIMEOUT = 4;
 }

@@ -15,7 +15,7 @@ import org.ybonfire.pipeline.producer.model.ProduceResult;
  * @author Bo.Yuan5
  * @date 2022-06-29 16:28
  */
-public interface IRemotingClient {
+public interface IProduceClient {
     /**
      * @description: 发送查询所有TopicInfo请求
      * @param:

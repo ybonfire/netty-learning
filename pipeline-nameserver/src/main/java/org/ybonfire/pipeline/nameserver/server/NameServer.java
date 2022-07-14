@@ -1,6 +1,8 @@
 package org.ybonfire.pipeline.nameserver.server;
 
-import org.ybonfire.pipeline.common.constant.RequestCodeConstant;
+import java.util.concurrent.ExecutorService;
+
+import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.nameserver.handler.SelectAllRouteRequestHandler;
 import org.ybonfire.pipeline.nameserver.handler.SelectByTopicNameRequestHandler;
@@ -11,15 +13,13 @@ import org.ybonfire.pipeline.server.NettyRemotingServer;
 import org.ybonfire.pipeline.server.config.NettyServerConfig;
 import org.ybonfire.pipeline.server.handler.INettyRemotingRequestHandler;
 
-import java.util.concurrent.ExecutorService;
-
 /**
  * NameServer服务
  *
  * @author Bo.Yuan5
  * @date 2022-07-01 17:13
  */
-public class NameServer extends NettyRemotingServer {
+public final class NameServer extends NettyRemotingServer {
     private final RouteManageService routeManageService = new RouteManageService(new InMemoryRouteRepository());
     private final INettyRemotingRequestHandler uploadRouteRequestHandler =
         new UploadRouteRequestHandler(routeManageService);
@@ -42,10 +42,10 @@ public class NameServer extends NettyRemotingServer {
     @Override
     protected void registerRequestHandlers() {
         // RouteUploadRequestHandler
-        registerHandler(RequestCodeConstant.UPLOAD_ROUTE_CODE, uploadRouteRequestHandler, handlerExecutor);
+        registerHandler(RequestEnum.UPLOAD_ROUTE.getCode(), uploadRouteRequestHandler, handlerExecutor);
         // RouteSelectAllRequestHandler
-        registerHandler(RequestCodeConstant.SELECT_ALL_ROUTE_CODE, selectAllRouteRequestHandler, handlerExecutor);
+        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(), selectAllRouteRequestHandler, handlerExecutor);
         // RouteSelect
-        registerHandler(RequestCodeConstant.SELECT_ROUTE_CODE, selectByTopicNameRequestHandler, handlerExecutor);
+        registerHandler(RequestEnum.SELECT_ROUTE.getCode(), selectByTopicNameRequestHandler, handlerExecutor);
     }
 }

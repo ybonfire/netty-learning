@@ -7,7 +7,7 @@ import org.ybonfire.pipeline.common.exception.BaseException;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
-import org.ybonfire.pipeline.producer.client.IRemotingClient;
+import org.ybonfire.pipeline.producer.client.IProduceClient;
 
 /**
  * 元数据服务
@@ -17,9 +17,9 @@ import org.ybonfire.pipeline.producer.client.IRemotingClient;
  */
 public class NameServers {
     private final List<String> nameServerAddressList;
-    private final IRemotingClient client;
+    private final IProduceClient client;
 
-    public NameServers(final List<String> nameServerAddressList, final IRemotingClient client) {
+    public NameServers(final List<String> nameServerAddressList, final IProduceClient client) {
         this.nameServerAddressList = nameServerAddressList;
         this.client = client;
     }

@@ -15,7 +15,7 @@ import org.ybonfire.pipeline.common.model.NodeRole;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.protocol.PartitionInfoRemotingEntity;
-import org.ybonfire.pipeline.common.protocol.RouteUploadRemotingEntity;
+import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.common.protocol.TopicInfoRemotingEntity;
 import org.ybonfire.pipeline.nameserver.constant.NameServerConstant;
 
@@ -40,7 +40,7 @@ public class RouteManageService {
      * @return:
      * @date: 2022/07/04 17:53:21
      */
-    public void uploadByBroker(final RouteUploadRemotingEntity data) {
+    public void uploadByBroker(final RouteUploadRequest data) {
         routeRepository.updateRoute(buildTopicInfos(data));
     }
 
@@ -80,7 +80,7 @@ public class RouteManageService {
      * @return:
      * @date: 2022/07/09 14:47:44
      */
-    private List<TopicInfo> buildTopicInfos(final RouteUploadRemotingEntity data) {
+    private List<TopicInfo> buildTopicInfos(final RouteUploadRequest data) {
         if (data == null) {
             return Collections.emptyList();
         }
