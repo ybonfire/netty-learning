@@ -1,8 +1,8 @@
 package org.ybonfire.pipeline.nameserver.handler;
 
-import io.netty.channel.ChannelHandlerContext;
+import java.util.List;
+
 import org.ybonfire.pipeline.common.command.RemotingCommand;
-import org.ybonfire.pipeline.common.constant.ResponseCodeConstant;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
@@ -10,8 +10,7 @@ import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import io.netty.channel.ChannelHandlerContext;
 
 /**
  * SelectAllRoute请求处理器

@@ -3,7 +3,6 @@ package org.ybonfire.pipeline.nameserver.handler;
 import java.util.Optional;
 
 import org.ybonfire.pipeline.common.command.RemotingCommand;
-import org.ybonfire.pipeline.common.constant.ResponseCodeConstant;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.protocol.request.RouteSelectRequest;

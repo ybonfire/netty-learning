@@ -7,6 +7,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import org.ybonfire.pipeline.common.codec.Decoder;
 import org.ybonfire.pipeline.common.codec.Encoder;
 import org.ybonfire.pipeline.common.command.RemotingCommand;
@@ -111,7 +113,7 @@ public abstract class NettyRemotingServer
                 .option(ChannelOption.SO_KEEPALIVE, true).childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_SNDBUF, this.config.getServerSocketSendBufferSize())
                 .childOption(ChannelOption.SO_RCVBUF, this.config.getServerSocketReceiveBufferSize())
-                .localAddress(new InetSocketAddress(this.config.getPort()))
+                .localAddress(new InetSocketAddress(this.config.getPort())).handler(new LoggingHandler(LogLevel.INFO))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
