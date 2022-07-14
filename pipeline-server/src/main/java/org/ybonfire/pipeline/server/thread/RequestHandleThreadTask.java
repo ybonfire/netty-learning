@@ -3,7 +3,8 @@ package org.ybonfire.pipeline.server.thread;
 import java.util.UUID;
 
 import org.ybonfire.pipeline.common.command.RemotingCommand;
-import org.ybonfire.pipeline.common.constant.ResponseCodeConstant;
+import org.ybonfire.pipeline.common.constant.ResponseEnum;
+import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
 import org.ybonfire.pipeline.server.handler.INettyRemotingRequestHandler;
@@ -47,8 +48,9 @@ public final class RequestHandleThreadTask extends AbstractThreadTask {
         } catch (Throwable ex) {
             final String error = "请求处理失败";
             log.error(error, ex);
-            final RemotingCommand response = RemotingCommand
-                .createResponseCommand(ResponseCodeConstant.INTERNAL_SYSTEM_ERROR, this.request.getCommandId(), error);
+            final RemotingCommand response =
+                RemotingCommand.createResponseCommand(ResponseEnum.INTERNAL_SYSTEM_ERROR.getCode(),
+                    this.request.getCommandId(), DefaultResponse.create(error));
             callback.callback(this.context, response);
         }
     }

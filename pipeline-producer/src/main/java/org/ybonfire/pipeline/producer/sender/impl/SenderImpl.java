@@ -5,7 +5,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.Node;
@@ -13,8 +12,8 @@ import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
-import org.ybonfire.pipeline.producer.client.IRemotingClient;
-import org.ybonfire.pipeline.producer.client.impl.ProducerRemotingClient;
+import org.ybonfire.pipeline.producer.client.IProduceClient;
+import org.ybonfire.pipeline.producer.client.impl.ProducerClientImpl;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 import org.ybonfire.pipeline.producer.sender.ISender;
@@ -29,16 +28,17 @@ import lombok.Getter;
  */
 public class SenderImpl implements ISender {
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private final IRemotingClient client;
+    private final ProducerClientImpl producerClient;
     private ExecutorService produceMessageExecutor;
 
     public SenderImpl() {
-        this.client = new ProducerRemotingClient(new NettyRemotingClient(new NettyClientConfig()));
+        this.producerClient = new ProducerClientImpl((new NettyClientConfig()));
     }
 
     @Override
     public void start() {
         if (started.compareAndSet(false, true)) {
+            producerClient.start();
             produceMessageExecutor = ThreadPoolUtil.getMessageProduceExecutorService();
         }
     }
@@ -82,8 +82,8 @@ public class SenderImpl implements ISender {
         }
     }
 
-    IRemotingClient getClient() {
-        return client;
+    IProduceClient getProducerClient() {
+        return producerClient;
     }
 
     /**
@@ -125,7 +125,7 @@ public class SenderImpl implements ISender {
                 final String address = partition.tryToFindPartitionLeaderNode().map(Node::getAddress)
                     .orElseThrow(() -> ExceptionUtil.exception(ExceptionTypeEnum.UNKNOWN_PARTITION_LEADER));
                 final ProduceResult result =
-                    SenderImpl.this.getClient().produce(message, address, message.getTimeoutMillis());
+                    SenderImpl.this.getProducerClient().produce(message, address, message.getTimeoutMillis());
                 message.setResult(result);
 
                 // 执行回调

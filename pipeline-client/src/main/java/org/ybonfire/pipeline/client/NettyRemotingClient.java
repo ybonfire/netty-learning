@@ -11,25 +11,24 @@ import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.client.dispatcher.IRemotingResponseDispatcher;
 import org.ybonfire.pipeline.client.dispatcher.impl.NettyRemotingResponseDispatcher;
 import org.ybonfire.pipeline.client.handler.INettyRemotingResponseHandler;
-import org.ybonfire.pipeline.client.handler.impl.DefaultNettyRemotingResponseHandler;
 import org.ybonfire.pipeline.client.manager.InflightRequestManager;
 import org.ybonfire.pipeline.client.manager.NettyChannelManager;
 import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
+import org.ybonfire.pipeline.client.model.RequestTypeEnum;
 import org.ybonfire.pipeline.client.thread.ClientChannelEventHandleThreadService;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
 import org.ybonfire.pipeline.common.client.IRemotingClient;
 import org.ybonfire.pipeline.common.codec.Decoder;
 import org.ybonfire.pipeline.common.codec.Encoder;
 import org.ybonfire.pipeline.common.command.RemotingCommand;
+import org.ybonfire.pipeline.common.constant.RemotingCommandTypeEnum;
+import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.NettyChannelEvent;
 import org.ybonfire.pipeline.common.model.NettyChannelEventTypeEnum;
 import org.ybonfire.pipeline.common.model.Pair;
-import org.ybonfire.pipeline.common.constant.RemotingCommandTypeConstant;
-import org.ybonfire.pipeline.client.model.RequestTypeEnum;
-import org.ybonfire.pipeline.common.constant.ResponseCodeConstant;
+import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.common.util.AssertUtils;
 import org.ybonfire.pipeline.common.util.RemotingUtil;
-import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -52,7 +51,8 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
  * @author Bo.Yuan5
  * @date 2022-05-18 15:28
  */
-public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContext, INettyRemotingResponseHandler> {
+public abstract class NettyRemotingClient
+    implements IRemotingClient<ChannelHandlerContext, INettyRemotingResponseHandler> {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final Bootstrap bootstrap = new Bootstrap();
     private final NettyClientConfig config;
@@ -64,9 +64,6 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
     private final IRemotingResponseDispatcher<ChannelHandlerContext, INettyRemotingResponseHandler> dispatcher =
         new NettyRemotingResponseDispatcher();
     private final InflightRequestManager inflightRequestManager = new InflightRequestManager();
-    private final INettyRemotingResponseHandler responseHandler =
-        new DefaultNettyRemotingResponseHandler(this.inflightRequestManager);
-    private final ExecutorService testExecutorService = ThreadPoolUtil.getTestExecutorService();
 
     public NettyRemotingClient(final NettyClientConfig config) {
         this.config = config;
@@ -104,7 +101,7 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
     public void start() {
         if (started.compareAndSet(false, true)) {
             // register handler
-            this.registerHandler(ResponseCodeConstant.SUCCESS, responseHandler, this.testExecutorService);
+            registerResponseHandlers();
 
             // start ChannelEventHandleThreadService
             this.channelEventHandleThreadService.start();
@@ -200,6 +197,14 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
         final ExecutorService executor) {
         this.dispatcher.registerRemotingRequestHandler(responseCode, handler, executor);
     }
+
+    /**
+     * @description: 注册远程调用响应处理器
+     * @param:
+     * @return:
+     * @date: 2022/07/01 17:41:06
+     */
+    protected abstract void registerResponseHandlers();
 
     /**
      * @description: 构造EventLoopGroup
@@ -303,11 +308,11 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
             final RemotingCommand response = future.get(timeoutMillis);
             if (response == null) {
                 if (future.isRequestSuccess()) { // 请求成功，但未响应
-                    return RemotingCommand.createResponseCommand(ResponseCodeConstant.SERVER_NOT_RESPONSE,
-                        future.getRequest().getCommandId(), "服务未响应");
-                } else { // 请求失败
-                    return RemotingCommand.createResponseCommand(ResponseCodeConstant.REQUEST_TIMEOUT,
-                        future.getRequest().getCommandId(), "请求超时");
+                    return RemotingCommand.createResponseCommand(ResponseEnum.SERVER_NOT_RESPONSE.getCode(),
+                        future.getRequest().getCommandId(), DefaultResponse.create("服务未响应"));
+                } else { // 未在指定时间内获得响应
+                    return RemotingCommand.createResponseCommand(ResponseEnum.REQUEST_TIMEOUT.getCode(),
+                        future.getRequest().getCommandId(), DefaultResponse.create("请求超时"));
                 }
             }
 
@@ -409,7 +414,7 @@ public class NettyRemotingClient implements IRemotingClient<ChannelHandlerContex
          */
         @Override
         protected void channelRead0(final ChannelHandlerContext ctx, final RemotingCommand msg) throws Exception {
-            if (msg.getCommandType() == RemotingCommandTypeConstant.REMOTING_COMMAND_RESPONSE) { // Response
+            if (msg.getCommandType() == RemotingCommandTypeEnum.REMOTING_COMMAND_RESPONSE.getCode()) { // Response
                 NettyRemotingClient.this.handleResponseCommand(ctx, msg);
             } else { // Request
                 // TODO

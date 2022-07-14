@@ -2,7 +2,9 @@ package org.ybonfire.pipeline.nameserver.handler;
 
 import org.ybonfire.pipeline.common.command.RemotingCommand;
 import org.ybonfire.pipeline.common.constant.ResponseCodeConstant;
-import org.ybonfire.pipeline.common.protocol.RouteUploadRemotingEntity;
+import org.ybonfire.pipeline.common.constant.ResponseEnum;
+import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
+import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
@@ -40,9 +42,10 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
      */
     @Override
     protected RemotingCommand fire(final RemotingCommand request, final ChannelHandlerContext context) {
-        final RouteUploadRemotingEntity data = (RouteUploadRemotingEntity)request.getBody();
+        final RouteUploadRequest data = (RouteUploadRequest)request.getBody();
         routeManageService.uploadByBroker(data);
-        return RemotingCommand.createResponseCommand(ResponseCodeConstant.SUCCESS, request.getCommandId(), "success");
+        return RemotingCommand.createResponseCommand(request.getCode(), request.getCommandId(),
+            DefaultResponse.create("success"));
     }
 
     /**
@@ -54,8 +57,8 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
     @Override
     protected RemotingCommand onException(final RemotingCommand request, final ChannelHandlerContext context,
         Exception ex) {
-        return RemotingCommand.createResponseCommand(ResponseCodeConstant.INTERNAL_SYSTEM_ERROR, request.getCommandId(),
-            "failed");
+        return RemotingCommand.createResponseCommand(ResponseEnum.INTERNAL_SYSTEM_ERROR.getCode(),
+            request.getCommandId(), DefaultResponse.create("failed"));
     }
 
     /**

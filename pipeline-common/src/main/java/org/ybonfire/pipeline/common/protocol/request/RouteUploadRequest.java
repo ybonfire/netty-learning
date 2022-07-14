@@ -1,8 +1,11 @@
-package org.ybonfire.pipeline.common.protocol;
+package org.ybonfire.pipeline.common.protocol.request;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
+import org.ybonfire.pipeline.common.protocol.TopicInfoRemotingEntity;
 
 import java.util.List;
 
@@ -12,10 +15,9 @@ import java.util.List;
  * @author Bo.Yuan5
  * @date 2022-07-01 18:00
  */
-@AllArgsConstructor
-@NoArgsConstructor
+@Builder
 @Data
-public class RouteUploadRemotingEntity {
+public final class RouteUploadRequest implements IRemotingRequestBody {
     private String brokerId;
     private String address;
     private Integer role;

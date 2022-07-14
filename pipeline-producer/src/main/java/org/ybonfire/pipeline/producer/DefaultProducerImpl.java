@@ -1,5 +1,7 @@
 package org.ybonfire.pipeline.producer;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
@@ -16,7 +18,8 @@ import org.ybonfire.pipeline.producer.sender.ISender;
  * @author Bo.Yuan5
  * @date 2022-06-27 18:12
  */
-public class DefaultProducerImpl implements IProducer {
+public final class DefaultProducerImpl implements IProducer {
+    private final AtomicBoolean started = new AtomicBoolean(false);
     private final ProducerConfig config;
     private final IPartitionSelector partitionSelector;
     private final ISender sender;
@@ -36,7 +39,9 @@ public class DefaultProducerImpl implements IProducer {
      */
     @Override
     public void start() {
-        this.sender.start();
+        if (started.compareAndSet(false, true)) {
+            this.sender.start();
+        }
     }
 
     /**
@@ -47,7 +52,9 @@ public class DefaultProducerImpl implements IProducer {
      */
     @Override
     public void shutdown() {
-        this.sender.stop();
+        if (started.compareAndSet(true, false)) {
+            this.sender.stop();
+        }
     }
 
     /**
@@ -58,6 +65,8 @@ public class DefaultProducerImpl implements IProducer {
      */
     @Override
     public ProduceResult produce(final Message message, final long timeoutMillis) {
+        acquireOK();
+
         final long startTime = System.currentTimeMillis();
         // 参数合法性校验
         check(message);
@@ -105,4 +114,17 @@ public class DefaultProducerImpl implements IProducer {
     private void send(final MessageWrapper message) {
         sender.send(message);
     }
+
+    /**
+     * @description: 判断生产者是否启动
+     * @param:
+     * @return:
+     * @date: 2022/07/14 14:37:04
+     */
+    private void acquireOK() {
+        if (!this.started.get()) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
 }

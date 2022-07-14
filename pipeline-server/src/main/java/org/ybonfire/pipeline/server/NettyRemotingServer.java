@@ -10,9 +10,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.ybonfire.pipeline.common.codec.Decoder;
 import org.ybonfire.pipeline.common.codec.Encoder;
 import org.ybonfire.pipeline.common.command.RemotingCommand;
-import org.ybonfire.pipeline.common.constant.RemotingCommandTypeConstant;
-import org.ybonfire.pipeline.common.constant.ResponseCodeConstant;
+import org.ybonfire.pipeline.common.constant.RemotingCommandTypeEnum;
+import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.Pair;
+import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.common.server.IRemotingServer;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
 import org.ybonfire.pipeline.server.callback.impl.DefaultResponseCallback;
@@ -196,8 +197,9 @@ public abstract class NettyRemotingServer
             executorService.submit(task);
         } else {
             String error = "request type " + request.getCode() + " not supported";
-            final RemotingCommand response = RemotingCommand
-                .createResponseCommand(ResponseCodeConstant.REQUEST_CODE_NOT_SUPPORTED, request.getCommandId(), error);
+            final RemotingCommand response =
+                RemotingCommand.createResponseCommand(ResponseEnum.REQUEST_CODE_NOT_SUPPORTED.getCode(),
+                    request.getCommandId(), DefaultResponse.create(error));
             response.setCommandId(request.getCommandId());
             this.callback.callback(context, response);
         }
@@ -240,7 +242,7 @@ public abstract class NettyRemotingServer
          */
         @Override
         protected void channelRead0(final ChannelHandlerContext ctx, final RemotingCommand msg) throws Exception {
-            if (msg.getCommandType() == RemotingCommandTypeConstant.REMOTING_COMMAND_REQUEST) { // Request
+            if (msg.getCommandType() == RemotingCommandTypeEnum.REMOTING_COMMAND_REQUEST.getCode()) { // Request
                 NettyRemotingServer.this.handleRequestCommand(ctx, msg);
             } else { // Response
                 // TODO

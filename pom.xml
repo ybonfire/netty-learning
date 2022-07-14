@@ -18,7 +18,8 @@
         <jackson.version>2.13.3</jackson.version>
         <lombok.version>1.18.24</lombok.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <apache.commons.version>3.10</apache.commons.version>
+        <commons.lang3.version>3.10</commons.lang3.version>
+        <commons.collection4.version>4.4</commons.collection4.version>
     </properties>
 
     <dependencyManagement>
@@ -65,11 +66,17 @@
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
-            <!-- apache commons -->
+            <!-- apache commons lang3 -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>${apache.commons.version}</version>
+                <version>${commons.lang3.version}</version>
+            </dependency>
+            <!-- apache commons collection4 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons.collection4.version}</version>
             </dependency>
             <!-- lombok -->
             <dependency>
