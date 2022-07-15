@@ -38,6 +38,10 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
         new TopicInfoConverter(new PartitionConverter(new NodeConverter()));
     private final ProduceResultConverter produceResultConverter = new ProduceResultConverter();
 
+    public ProducerClientImpl() {
+        this(new NettyClientConfig());
+    }
+
     public ProducerClientImpl(final NettyClientConfig config) {
         super(config);
     }
@@ -109,7 +113,13 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
         try {
             final RemotingCommand response =
                 request(address, buildProduceMessageRequest(message, address), timeoutMillis);
-            return produceResultConverter.convert((ProduceResultRemotingEntity)response.getBody());
+            if (response.isSuccess()) {
+                return produceResultConverter.convert((ProduceResultRemotingEntity)response.getBody());
+            } else {
+                return ProduceResult.builder().topic(message.getMessage().getTopic())
+                    .partitionId(message.getPartition().getPartitionId()).offset(-1L).isSuccess(false)
+                    .message(message.getMessage()).build();
+            }
         } catch (Exception ex) {
             throw ExceptionUtil.exception(ExceptionTypeEnum.REMOTING_INVOKE_FAILED);
         }

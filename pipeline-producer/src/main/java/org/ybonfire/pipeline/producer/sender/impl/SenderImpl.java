@@ -16,6 +16,7 @@ import org.ybonfire.pipeline.producer.client.IProduceClient;
 import org.ybonfire.pipeline.producer.client.impl.ProducerClientImpl;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
+import org.ybonfire.pipeline.producer.model.ProduceTypeEnum;
 import org.ybonfire.pipeline.producer.sender.ISender;
 
 import lombok.Getter;
@@ -72,7 +73,7 @@ public class SenderImpl implements ISender {
 
         final MessageSendThreadTask task = buildMessageSendThreadTask(message);
         produceMessageExecutor.submit(task);
-        if (timeoutMillis - (System.currentTimeMillis() - startTime) > 0L) {
+        if (isSyncMessage(message) && timeoutMillis - (System.currentTimeMillis() - startTime) > 0L) {
             try {
                 task.getLatch().await(timeoutMillis, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -84,6 +85,16 @@ public class SenderImpl implements ISender {
 
     IProduceClient getProducerClient() {
         return producerClient;
+    }
+
+    /**
+     * @description: 判断是否是同步消息
+     * @param:
+     * @return:
+     * @date: 2022/07/15 10:24:50
+     */
+    private boolean isSyncMessage(final MessageWrapper message) {
+        return message.getProduceType() == null || message.getProduceType() == ProduceTypeEnum.SYNC;
     }
 
     /**
@@ -131,7 +142,9 @@ public class SenderImpl implements ISender {
                 // 执行回调
                 message.getCallbackOptional().ifPresent(callback -> callback.onComplete(result));
             } finally {
-                latch.countDown();
+                if (isSyncMessage(message)) {
+                    latch.countDown();
+                }
             }
         }
     }
