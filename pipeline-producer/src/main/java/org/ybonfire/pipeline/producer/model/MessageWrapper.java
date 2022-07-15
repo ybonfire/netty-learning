@@ -17,14 +17,16 @@ import java.util.concurrent.CountDownLatch;
 @Getter
 public class MessageWrapper {
     private final Message message;
+    private final ProduceTypeEnum produceType;
     private final PartitionInfo partition;
     private final Optional<IMessageProduceCallback> callbackOptional;
     private final long timeoutMillis;
     private volatile ProduceResult result;
 
-    private MessageWrapper(final Message message, final PartitionInfo partition, final IMessageProduceCallback callback,
-        final long timeoutMillis) {
+    private MessageWrapper(final Message message, final ProduceTypeEnum produceType, final PartitionInfo partition,
+        final IMessageProduceCallback callback, final long timeoutMillis) {
         this.message = message;
+        this.produceType = produceType;
         this.partition = partition;
         this.callbackOptional = Optional.ofNullable(callback);
         this.timeoutMillis = timeoutMillis;
@@ -34,8 +36,8 @@ public class MessageWrapper {
         this.result = result;
     }
 
-    public static MessageWrapper wrap(final Message message, final PartitionInfo partition,
-        final IMessageProduceCallback callback, final long timeoutMillis) {
-        return new MessageWrapper(message, partition, callback, timeoutMillis);
+    public static MessageWrapper wrap(final Message message, final ProduceTypeEnum produceType,
+        final PartitionInfo partition, final IMessageProduceCallback callback, final long timeoutMillis) {
+        return new MessageWrapper(message, produceType, partition, callback, timeoutMillis);
     }
 }

@@ -8,6 +8,7 @@ import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.producer.client.IProduceClient;
+import org.ybonfire.pipeline.producer.client.impl.ProducerClientImpl;
 
 /**
  * 元数据服务
@@ -18,6 +19,10 @@ import org.ybonfire.pipeline.producer.client.IProduceClient;
 public class NameServers {
     private final List<String> nameServerAddressList;
     private final IProduceClient client;
+
+    public NameServers(final List<String> nameServerAddressList) {
+        this(nameServerAddressList, new ProducerClientImpl());
+    }
 
     public NameServers(final List<String> nameServerAddressList, final IProduceClient client) {
         this.nameServerAddressList = nameServerAddressList;
