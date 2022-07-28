@@ -14,9 +14,9 @@ import org.ybonfire.pipeline.common.model.Node;
 import org.ybonfire.pipeline.common.model.NodeRole;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.protocol.PartitionInfoRemotingEntity;
+import org.ybonfire.pipeline.common.model.PartitionInfoRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
-import org.ybonfire.pipeline.common.protocol.TopicInfoRemotingEntity;
+import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 import org.ybonfire.pipeline.nameserver.constant.NameServerConstant;
 
 /**

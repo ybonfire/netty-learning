@@ -14,9 +14,9 @@ import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.protocol.ProduceResultRemotingEntity;
+import org.ybonfire.pipeline.common.model.ProduceResultRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
-import org.ybonfire.pipeline.common.protocol.request.RouteSelectRequest;
+import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
 import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.producer.client.IProduceClient;
@@ -144,7 +144,7 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
      */
     private RemotingCommand buildSelectTopicInfoRequest(final String topic) {
         return RemotingCommand.createRequestCommand(RequestEnum.SELECT_ROUTE.getCode(), UUID.randomUUID().toString(),
-            RouteSelectRequest.builder().topic(topic).build());
+            RouteSelectByTopicRequest.builder().topic(topic).build());
     }
 
     /**

@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.protocol.TopicInfoRemotingEntity;
+import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 import org.ybonfire.pipeline.producer.converter.IConverter;
 
 /**

@@ -1,6 +1,6 @@
 package org.ybonfire.pipeline.server.callback.impl;
 
-import org.ybonfire.pipeline.common.command.RemotingCommand;
+import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -20,7 +20,7 @@ public class DefaultResponseCallback implements IResponseCallback {
      * @date: 2022/05/18 18:07:46
      */
     @Override
-    public void callback(final ChannelHandlerContext context, final RemotingCommand response) {
+    public void callback(final IRemotingResponse response, final ChannelHandlerContext context) {
         context.writeAndFlush(response);
     }
 }

@@ -1,7 +1,7 @@
 package org.ybonfire.pipeline.producer.converter.impl;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.ybonfire.pipeline.common.protocol.ProduceResultRemotingEntity;
+import org.ybonfire.pipeline.common.model.ProduceResultRemotingEntity;
 import org.ybonfire.pipeline.producer.converter.IConverter;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 

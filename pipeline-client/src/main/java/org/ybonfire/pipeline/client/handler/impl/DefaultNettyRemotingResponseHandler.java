@@ -7,12 +7,10 @@ import org.ybonfire.pipeline.client.handler.AbstractNettyRemotingResponseHandler
 import org.ybonfire.pipeline.client.manager.InflightRequestManager;
 import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
-import org.ybonfire.pipeline.common.command.RemotingCommand;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
-
-import io.netty.channel.ChannelHandlerContext;
 
 /**
  * 默认远程响应处理器
@@ -36,7 +34,7 @@ public class DefaultNettyRemotingResponseHandler extends AbstractNettyRemotingRe
      * @date: 2022/07/09 15:10:48
      */
     @Override
-    protected void check(final RemotingCommand response, final ChannelHandlerContext context) {
+    protected void check(final RemotingResponse response) {
 
     }
 
@@ -47,9 +45,8 @@ public class DefaultNettyRemotingResponseHandler extends AbstractNettyRemotingRe
      * @date: 2022/07/09 14:02:42
      */
     @Override
-    protected RemotingCommand fire(final RemotingCommand response, final ChannelHandlerContext context) {
-        inflightRequestManager.get(response.getCommandId()).ifPresent(future -> handleResponse(future, response));
-        return null;
+    protected void fire(final RemotingResponse response) {
+        inflightRequestManager.get(response.getId()).ifPresent(future -> handleResponse(future, response));
     }
 
     /**
@@ -59,10 +56,8 @@ public class DefaultNettyRemotingResponseHandler extends AbstractNettyRemotingRe
      * @date: 2022/07/09 14:02:45
      */
     @Override
-    protected RemotingCommand onException(final RemotingCommand response, final ChannelHandlerContext context,
-        final Exception ex) {
+    protected void onException(final RemotingResponse response, final Exception ex) {
         logger.error("响应处理失败", ex);
-        return null;
     }
 
     /**
@@ -72,9 +67,9 @@ public class DefaultNettyRemotingResponseHandler extends AbstractNettyRemotingRe
      * @date: 2022/07/09 15:24:51
      */
     @Override
-    protected void onComplete(final RemotingCommand response, final ChannelHandlerContext context) {
+    protected void onComplete(final RemotingResponse response) {
         /** 移除在途请求 **/
-        inflightRequestManager.remove(response.getCommandId());
+        inflightRequestManager.remove(response.getId());
     }
 
     /**
@@ -83,7 +78,7 @@ public class DefaultNettyRemotingResponseHandler extends AbstractNettyRemotingRe
      * @return:
      * @date: 2022/06/20 19:02:12
      */
-    private void handleResponse(final RemoteRequestFuture future, final RemotingCommand response) {
+    private void handleResponse(final RemoteRequestFuture future, final RemotingResponse response) {
         if (future.isCompleted()) {
             return;
         }
@@ -107,7 +102,7 @@ public class DefaultNettyRemotingResponseHandler extends AbstractNettyRemotingRe
         executorService.submit(() -> {
             try {
                 if (future.isRequestSuccess()) {
-                    final RemotingCommand response = future.getResponseFuture().get();
+                    final RemotingResponse response = future.getResponseFuture().get();
                     if (response != null) {
                         callback.onSuccess(response);
                     }

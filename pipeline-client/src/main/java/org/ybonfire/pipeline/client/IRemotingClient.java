@@ -1,11 +1,12 @@
-package org.ybonfire.pipeline.common.client;
-
-import org.ybonfire.pipeline.common.callback.IRequestCallback;
-import org.ybonfire.pipeline.common.command.RemotingCommand;
-import org.ybonfire.pipeline.common.handler.IRemotingRequestResponseHandler;
-import org.ybonfire.pipeline.common.remoting.IRemotingService;
+package org.ybonfire.pipeline.client;
 
 import java.util.concurrent.ExecutorService;
+
+import org.ybonfire.pipeline.client.handler.IRemotingResponseHandler;
+import org.ybonfire.pipeline.common.callback.IRequestCallback;
+import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
+import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
+import org.ybonfire.pipeline.common.remoting.IRemotingService;
 
 /**
  * 客户端接口
@@ -13,8 +14,7 @@ import java.util.concurrent.ExecutorService;
  * @author Bo.Yuan5
  * @date 2022-05-18 10:14
  */
-public interface IRemotingClient<Context, Handler extends IRemotingRequestResponseHandler<Context>>
-    extends IRemotingService {
+public interface IRemotingClient<Handler extends IRemotingResponseHandler> extends IRemotingService {
 
     /**
      * @description: 同步调用
@@ -22,7 +22,7 @@ public interface IRemotingClient<Context, Handler extends IRemotingRequestRespon
      * @return:
      * @date: 2022/05/18 18:20:45
      */
-    RemotingCommand request(final String address, final RemotingCommand request, final long timeoutMillis)
+    IRemotingResponse request(final String address, final IRemotingRequest request, final long timeoutMillis)
         throws InterruptedException;
 
     /**
@@ -31,7 +31,7 @@ public interface IRemotingClient<Context, Handler extends IRemotingRequestRespon
      * @return:
      * @date: 2022/05/18 18:20:53
      */
-    void requestAsync(final String address, final RemotingCommand request, final IRequestCallback callback,
+    void requestAsync(final String address, final IRemotingRequest request, final IRequestCallback callback,
         final long timeoutMillis) throws InterruptedException;
 
     /**
@@ -40,7 +40,7 @@ public interface IRemotingClient<Context, Handler extends IRemotingRequestRespon
      * @return:
      * @date: 2022/05/18 18:21:02
      */
-    void requestOneWay(final String address, final RemotingCommand request, final long timeoutMillis)
+    void requestOneWay(final String address, final IRemotingRequest request, final long timeoutMillis)
         throws InterruptedException;
 
     /**

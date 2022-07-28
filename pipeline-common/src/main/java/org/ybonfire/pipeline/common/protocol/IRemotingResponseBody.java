@@ -6,4 +6,4 @@ package org.ybonfire.pipeline.common.protocol;
  * @author Bo.Yuan5
  * @date 2022-07-13 10:23
  */
-public interface IRemotingResponseBody extends IRemotingCommandBody {}
+public interface IRemotingResponseBody {}

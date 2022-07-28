@@ -32,7 +32,7 @@ public class InflightRequestManager {
      * @date: 2022/05/23 17:41:56
      */
     public void add(final RemoteRequestFuture future) {
-        inflightRequestTable.put(future.getRequest().getCommandId(), future);
+        inflightRequestTable.put(future.getRequest().getId(), future);
     }
 
     /**

@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.common.protocol;
+package org.ybonfire.pipeline.common.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

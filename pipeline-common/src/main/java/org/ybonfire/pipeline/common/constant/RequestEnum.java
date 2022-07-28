@@ -1,7 +1,7 @@
 package org.ybonfire.pipeline.common.constant;
 
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
-import org.ybonfire.pipeline.common.protocol.request.RouteSelectRequest;
+import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
 import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 
 import java.util.Optional;
@@ -28,7 +28,7 @@ public enum RequestEnum {
     /**
      * 查询指定路由请求
      */
-    SELECT_ROUTE(202, RouteSelectRequest.class);
+    SELECT_ROUTE(202, RouteSelectByTopicRequest.class);
 
     private final int code;
     private final Class<? extends IRemotingRequestBody> clazz;
