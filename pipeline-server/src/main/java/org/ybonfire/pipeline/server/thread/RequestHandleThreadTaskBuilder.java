@@ -1,8 +1,8 @@
 package org.ybonfire.pipeline.server.thread;
 
-import org.ybonfire.pipeline.common.command.RemotingCommand;
+import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
-import org.ybonfire.pipeline.server.handler.INettyRemotingRequestHandler;
+import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
 
 import io.netty.channel.ChannelHandlerContext;
 import lombok.AccessLevel;
@@ -23,8 +23,8 @@ public final class RequestHandleThreadTaskBuilder {
      * @return:
      * @date: 2022/05/18 17:30:30
      */
-    public static RequestHandleThreadTask build(final INettyRemotingRequestHandler handler,
-        final RemotingCommand request, final ChannelHandlerContext context, final IResponseCallback callback) {
+    public static RequestHandleThreadTask build(final IRemotingRequestHandler handler, final IRemotingRequest request,
+        final ChannelHandlerContext context, final IResponseCallback callback) {
         return new RequestHandleThreadTask(handler, request, context, callback);
     }
 }

@@ -11,7 +11,7 @@ import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.NettyRemotingServer;
 import org.ybonfire.pipeline.server.config.NettyServerConfig;
-import org.ybonfire.pipeline.server.handler.INettyRemotingRequestHandler;
+import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
 
 /**
  * NameServer服务
@@ -21,11 +21,11 @@ import org.ybonfire.pipeline.server.handler.INettyRemotingRequestHandler;
  */
 public final class NameServer extends NettyRemotingServer {
     private final RouteManageService routeManageService = new RouteManageService(new InMemoryRouteRepository());
-    private final INettyRemotingRequestHandler uploadRouteRequestHandler =
+    private final IRemotingRequestHandler uploadRouteRequestHandler =
         new UploadRouteRequestHandler(routeManageService);
-    private final INettyRemotingRequestHandler selectAllRouteRequestHandler =
+    private final IRemotingRequestHandler selectAllRouteRequestHandler =
         new SelectAllRouteRequestHandler(routeManageService);
-    private final INettyRemotingRequestHandler selectByTopicNameRequestHandler =
+    private final IRemotingRequestHandler selectByTopicNameRequestHandler =
         new SelectByTopicNameRequestHandler(routeManageService);
     private final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
 

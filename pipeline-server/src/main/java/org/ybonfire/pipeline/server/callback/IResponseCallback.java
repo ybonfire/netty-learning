@@ -1,6 +1,6 @@
 package org.ybonfire.pipeline.server.callback;
 
-import org.ybonfire.pipeline.common.command.RemotingCommand;
+import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -18,5 +18,5 @@ public interface IResponseCallback {
      * @return:
      * @date: 2022/05/18 18:07:46
      */
-    void callback(final ChannelHandlerContext context, final RemotingCommand response);
+    void callback(final IRemotingResponse response, final ChannelHandlerContext context);
 }

@@ -2,7 +2,7 @@ package org.ybonfire.pipeline.producer.converter.impl;
 
 import org.ybonfire.pipeline.common.model.Node;
 import org.ybonfire.pipeline.common.model.NodeRole;
-import org.ybonfire.pipeline.common.protocol.NodeRemotingEntity;
+import org.ybonfire.pipeline.common.model.NodeRemotingEntity;
 import org.ybonfire.pipeline.producer.converter.IConverter;
 
 /**

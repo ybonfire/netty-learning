@@ -1,13 +1,11 @@
 package org.ybonfire.pipeline.nameserver.handler;
 
-import org.ybonfire.pipeline.common.command.RemotingCommand;
-import org.ybonfire.pipeline.common.constant.ResponseEnum;
+import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
+import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
-
-import io.netty.channel.ChannelHandlerContext;
 
 /**
  * UploadRoute请求处理器
@@ -15,7 +13,8 @@ import io.netty.channel.ChannelHandlerContext;
  * @author Bo.Yuan5
  * @date 2022-07-01 17:35
  */
-public final class UploadRouteRequestHandler extends AbstractNettyRemotingRequestHandler {
+public final class UploadRouteRequestHandler
+    extends AbstractNettyRemotingRequestHandler<RouteUploadRequest, DefaultResponse> {
     private final RouteManageService routeManageService;
 
     public UploadRouteRequestHandler(final RouteManageService routeManageService) {
@@ -29,7 +28,7 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
      * @date: 2022/07/09 15:10:48
      */
     @Override
-    protected void check(RemotingCommand request, ChannelHandlerContext context) {
+    protected void check(final IRemotingRequest<RouteUploadRequest> request) {
 
     }
 
@@ -40,11 +39,8 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
      * @date: 2022/07/01 18:22:39
      */
     @Override
-    protected RemotingCommand fire(final RemotingCommand request, final ChannelHandlerContext context) {
-        final RouteUploadRequest data = (RouteUploadRequest)request.getBody();
-        routeManageService.uploadByBroker(data);
-        return RemotingCommand.createResponseCommand(request.getCode(), request.getCommandId(),
-            DefaultResponse.create("success"));
+    protected RemotingResponse<DefaultResponse> fire(final IRemotingRequest<RouteUploadRequest> request) {
+        return null;
     }
 
     /**
@@ -54,10 +50,9 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
      * @date: 2022/07/01 18:22:39
      */
     @Override
-    protected RemotingCommand onException(final RemotingCommand request, final ChannelHandlerContext context,
+    protected RemotingResponse<DefaultResponse> onException(final IRemotingRequest<RouteUploadRequest> request,
         Exception ex) {
-        return RemotingCommand.createResponseCommand(ResponseEnum.INTERNAL_SYSTEM_ERROR.getCode(),
-            request.getCommandId(), DefaultResponse.create("failed"));
+        return null;
     }
 
     /**
@@ -67,7 +62,7 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
      * @date: 2022/07/09 15:20:21
      */
     @Override
-    protected void onComplete(RemotingCommand request, ChannelHandlerContext context) {
+    protected void onComplete(IRemotingRequest<RouteUploadRequest> request) {
 
     }
 }

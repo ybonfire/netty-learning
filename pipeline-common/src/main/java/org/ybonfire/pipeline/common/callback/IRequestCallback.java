@@ -1,6 +1,6 @@
 package org.ybonfire.pipeline.common.callback;
 
-import org.ybonfire.pipeline.common.command.RemotingCommand;
+import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
 /**
  * 请求回调接口
@@ -15,7 +15,7 @@ public interface IRequestCallback {
      * @return:
      * @date: 2022/06/20 18:53:48
      */
-    void onSuccess(final RemotingCommand response);
+    void onSuccess(final RemotingResponse response);
 
     /**
      * @description: 请求失败回调

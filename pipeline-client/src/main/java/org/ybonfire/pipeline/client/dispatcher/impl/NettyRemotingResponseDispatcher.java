@@ -6,11 +6,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 import org.ybonfire.pipeline.client.dispatcher.IRemotingResponseDispatcher;
-import org.ybonfire.pipeline.client.handler.INettyRemotingResponseHandler;
-import org.ybonfire.pipeline.common.command.RemotingCommand;
+import org.ybonfire.pipeline.client.handler.IRemotingResponseHandler;
 import org.ybonfire.pipeline.common.model.Pair;
-
-import io.netty.channel.ChannelHandlerContext;
+import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
 /**
  * Netty远程调用响应分发器
@@ -18,9 +16,8 @@ import io.netty.channel.ChannelHandlerContext;
  * @author Bo.Yuan5
  * @date 2022-05-24 00:00
  */
-public class NettyRemotingResponseDispatcher
-    implements IRemotingResponseDispatcher<ChannelHandlerContext, INettyRemotingResponseHandler> {
-    private final Map<Integer, Pair<INettyRemotingResponseHandler, ExecutorService>> handlerTable =
+public class NettyRemotingResponseDispatcher implements IRemotingResponseDispatcher<IRemotingResponseHandler> {
+    private final Map<Integer, Pair<IRemotingResponseHandler, ExecutorService>> handlerTable =
         new ConcurrentHashMap<>();
 
     /**
@@ -30,7 +27,7 @@ public class NettyRemotingResponseDispatcher
      * @date: 2022/05/24 00:08:13
      */
     @Override
-    public Optional<Pair<INettyRemotingResponseHandler, ExecutorService>> dispatch(final RemotingCommand response) {
+    public Optional<Pair<IRemotingResponseHandler, ExecutorService>> dispatch(final RemotingResponse response) {
         return Optional.ofNullable(handlerTable.get(response.getCode()));
     }
 
@@ -41,7 +38,7 @@ public class NettyRemotingResponseDispatcher
      * @date: 2022/05/24 00:08:16
      */
     @Override
-    public void registerRemotingRequestHandler(final int responseCode, final INettyRemotingResponseHandler handler,
+    public void registerRemotingRequestHandler(final int responseCode, final IRemotingResponseHandler handler,
         ExecutorService executor) {
         if (handler == null || executor == null) {
             throw new IllegalArgumentException();

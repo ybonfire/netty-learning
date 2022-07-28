@@ -2,10 +2,7 @@ package org.ybonfire.pipeline.common.constant;
 
 import java.util.Optional;
 
-import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
-import org.ybonfire.pipeline.common.protocol.request.RouteSelectRequest;
-import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 
 /**
@@ -15,6 +12,10 @@ import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
  * @date 2022-05-18 16:49
  */
 public enum ResponseEnum {
+    /**
+     * 成功
+     */
+    SUCCESS(0, IRemotingResponseBody.class),
     /**
      * 不支持的请求码
      */

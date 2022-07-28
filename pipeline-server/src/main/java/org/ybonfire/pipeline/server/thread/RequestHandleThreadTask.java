@@ -2,12 +2,14 @@ package org.ybonfire.pipeline.server.thread;
 
 import java.util.UUID;
 
-import org.ybonfire.pipeline.common.command.RemotingCommand;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
+import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
+import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
+import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
-import org.ybonfire.pipeline.server.handler.INettyRemotingRequestHandler;
+import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
 
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +22,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public final class RequestHandleThreadTask extends AbstractThreadTask {
-    private final INettyRemotingRequestHandler handler;
-    private final RemotingCommand request;
+    private final IRemotingRequestHandler handler;
+    private final IRemotingRequest request;
     private final ChannelHandlerContext context;
     private final IResponseCallback callback;
 
-    RequestHandleThreadTask(final INettyRemotingRequestHandler handler, final RemotingCommand request,
+    RequestHandleThreadTask(final IRemotingRequestHandler handler, final IRemotingRequest request,
         final ChannelHandlerContext context, final IResponseCallback callback) {
         super(UUID.randomUUID().toString(), (task, ex) -> log.error("异步任务执行失败."));
         this.handler = handler;
@@ -43,15 +45,14 @@ public final class RequestHandleThreadTask extends AbstractThreadTask {
     @Override
     protected void execute() {
         try {
-            final RemotingCommand response = handler.handle(this.request, this.context);
-            callback.callback(this.context, response);
+            final IRemotingResponse response = handler.handle(this.request);
+            callback.callback(response, this.context);
         } catch (Throwable ex) {
             final String error = "请求处理失败";
             log.error(error, ex);
-            final RemotingCommand response =
-                RemotingCommand.createResponseCommand(ResponseEnum.INTERNAL_SYSTEM_ERROR.getCode(),
-                    this.request.getCommandId(), DefaultResponse.create(error));
-            callback.callback(this.context, response);
+            final IRemotingResponse response = RemotingResponse.create(request.getId(), request.getCode(),
+                ResponseEnum.INTERNAL_SYSTEM_ERROR.getCode(), DefaultResponse.create(error));
+            callback.callback(response, this.context);
         }
     }
 }

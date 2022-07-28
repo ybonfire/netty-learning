@@ -12,6 +12,6 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
  */
 @Builder
 @Data
-public class RouteSelectRequest implements IRemotingRequestBody {
+public class RouteSelectByTopicRequest implements IRemotingRequestBody {
     private final String topic;
 }

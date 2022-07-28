@@ -6,8 +6,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
-import org.ybonfire.pipeline.common.command.RemotingCommand;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
+import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
+import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
+import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 
 import io.netty.channel.Channel;
@@ -22,15 +24,15 @@ public class RemoteRequestFuture {
     private final String address;
     private final Channel channel;
     private final long startTimestamp = System.currentTimeMillis();
-    private final RemotingCommand request;
+    private final IRemotingRequest request;
     private final IRequestCallback callback;
     private final long timeoutMillis;
-    private final CompletableFuture<RemotingCommand> responseFuture = new CompletableFuture<>();
+    private final CompletableFuture<RemotingResponse> responseFuture = new CompletableFuture<>();
     private volatile boolean isRequestSuccess = false;
     private volatile boolean isCompleted = false;
     private volatile Throwable cause;
 
-    public RemoteRequestFuture(final String address, final Channel channel, final RemotingCommand request,
+    public RemoteRequestFuture(final String address, final Channel channel, final IRemotingRequest request,
         IRequestCallback callback, final long timeoutMillis) {
         this.address = address;
         this.channel = channel;
@@ -45,7 +47,7 @@ public class RemoteRequestFuture {
      * @return:
      * @date: 2022/06/02 09:56:41
      */
-    public RemotingCommand get(final long timeoutMillis) throws InterruptedException {
+    public IRemotingResponse get(final long timeoutMillis) throws InterruptedException {
         try {
             return this.responseFuture.get(timeoutMillis, TimeUnit.MILLISECONDS);
         } catch (ExecutionException e) {
@@ -61,7 +63,7 @@ public class RemoteRequestFuture {
      * @return:
      * @date: 2022/06/02 09:56:54
      */
-    public void complete(final RemotingCommand response) {
+    public void complete(final RemotingResponse response) {
         this.responseFuture.complete(response);
         this.isCompleted = true;
     }
@@ -74,11 +76,11 @@ public class RemoteRequestFuture {
         return channel;
     }
 
-    public RemotingCommand getRequest() {
+    public IRemotingRequest getRequest() {
         return request;
     }
 
-    public CompletableFuture<RemotingCommand> getResponseFuture() {
+    public CompletableFuture<RemotingResponse> getResponseFuture() {
         return responseFuture;
     }
 

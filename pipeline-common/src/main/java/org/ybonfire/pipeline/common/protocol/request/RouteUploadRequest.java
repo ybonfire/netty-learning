@@ -1,11 +1,9 @@
 package org.ybonfire.pipeline.common.protocol.request;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
-import org.ybonfire.pipeline.common.protocol.TopicInfoRemotingEntity;
+import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 
 import java.util.List;
 

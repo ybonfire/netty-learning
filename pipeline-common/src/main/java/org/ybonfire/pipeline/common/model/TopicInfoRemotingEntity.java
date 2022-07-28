@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.common.protocol;
+package org.ybonfire.pipeline.common.model;
 
 import java.util.List;
 

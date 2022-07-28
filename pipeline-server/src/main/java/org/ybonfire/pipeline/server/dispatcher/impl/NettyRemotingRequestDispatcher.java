@@ -5,12 +5,10 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
-import org.ybonfire.pipeline.common.command.RemotingCommand;
 import org.ybonfire.pipeline.common.model.Pair;
+import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.server.dispatcher.IRemotingRequestDispatcher;
-import org.ybonfire.pipeline.server.handler.INettyRemotingRequestHandler;
-
-import io.netty.channel.ChannelHandlerContext;
+import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
 
 /**
  * Netty远程调用请求分发器
@@ -18,10 +16,8 @@ import io.netty.channel.ChannelHandlerContext;
  * @author Bo.Yuan5
  * @date 2022-05-19 09:46
  */
-public class NettyRemotingRequestDispatcher
-    implements IRemotingRequestDispatcher<ChannelHandlerContext, INettyRemotingRequestHandler> {
-    private final Map<Integer, Pair<INettyRemotingRequestHandler, ExecutorService>> handlerTable =
-        new ConcurrentHashMap<>();
+public class NettyRemotingRequestDispatcher implements IRemotingRequestDispatcher<IRemotingRequestHandler> {
+    private final Map<Integer, Pair<IRemotingRequestHandler, ExecutorService>> handlerTable = new ConcurrentHashMap<>();
 
     /**
      * @description: 请求分发
@@ -30,7 +26,7 @@ public class NettyRemotingRequestDispatcher
      * @date: 2022/05/19 09:47:39
      */
     @Override
-    public Optional<Pair<INettyRemotingRequestHandler, ExecutorService>> dispatch(final RemotingCommand request) {
+    public Optional<Pair<IRemotingRequestHandler, ExecutorService>> dispatch(final IRemotingRequest request) {
         return Optional.ofNullable(handlerTable.get(request.getCode()));
     }
 
@@ -41,7 +37,7 @@ public class NettyRemotingRequestDispatcher
      * @date: 2022/05/19 09:49:29
      */
     @Override
-    public void registerRemotingRequestHandler(final int requestCode, final INettyRemotingRequestHandler handler,
+    public void registerRemotingRequestHandler(final int requestCode, final IRemotingRequestHandler handler,
         final ExecutorService executor) {
         if (handler == null || executor == null) {
             throw new IllegalArgumentException();

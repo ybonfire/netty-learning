@@ -3,9 +3,9 @@ package org.ybonfire.pipeline.client.dispatcher;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
-import org.ybonfire.pipeline.common.command.RemotingCommand;
-import org.ybonfire.pipeline.common.handler.IRemotingRequestResponseHandler;
+import org.ybonfire.pipeline.client.handler.IRemotingResponseHandler;
 import org.ybonfire.pipeline.common.model.Pair;
+import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
 /**
  * 远程调用响应分发接口
@@ -13,7 +13,7 @@ import org.ybonfire.pipeline.common.model.Pair;
  * @author Bo.Yuan5
  * @date 2022-05-23 23:59
  */
-public interface IRemotingResponseDispatcher<Context, Handler extends IRemotingRequestResponseHandler<Context>> {
+public interface IRemotingResponseDispatcher<Handler extends IRemotingResponseHandler> {
 
     /**
      * @description: 响应分发
@@ -21,7 +21,7 @@ public interface IRemotingResponseDispatcher<Context, Handler extends IRemotingR
      * @return:
      * @date: 2022/05/19 09:41:39
      */
-    Optional<Pair<Handler, ExecutorService>> dispatch(final RemotingCommand response);
+    Optional<Pair<Handler, ExecutorService>> dispatch(final RemotingResponse response);
 
     /**
      * @description: 注册响应处理器
