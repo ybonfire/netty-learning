@@ -45,7 +45,7 @@ public final class RequestHandleThreadTask extends AbstractThreadTask {
     @Override
     protected void execute() {
         try {
-            final IRemotingResponse response = handler.handle(this.request);
+            final RemotingResponse<?> response = handler.handle(this.request);
             callback.callback(response, this.context);
         } catch (Throwable ex) {
             final String error = "请求处理失败";

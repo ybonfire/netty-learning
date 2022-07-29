@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.ybonfire.pipeline.common.codec.request.RequestDecoder;
 import org.ybonfire.pipeline.common.codec.request.RequestEncoder;
+import org.ybonfire.pipeline.common.codec.response.ResponseEncoder;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.Pair;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
@@ -116,7 +117,7 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         System.out.println(ch.remoteAddress());
-                        ch.pipeline().addLast(defaultEventExecutorGroup, new RequestEncoder(), new RequestDecoder(),
+                        ch.pipeline().addLast(defaultEventExecutorGroup, new ResponseEncoder(), new RequestDecoder(),
                             nettyServerHandler);
                     }
                 });

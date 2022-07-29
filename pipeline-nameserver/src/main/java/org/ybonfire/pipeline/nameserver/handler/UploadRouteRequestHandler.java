@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.nameserver.handler;
 
+import org.ybonfire.pipeline.common.constant.ResponseStatusEnum;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
@@ -40,6 +41,7 @@ public final class UploadRouteRequestHandler
      */
     @Override
     protected RemotingResponse<DefaultResponse> fire(final IRemotingRequest<RouteUploadRequest> request) {
+        routeManageService.uploadByBroker(request.getBody());
         return null;
     }
 
@@ -51,7 +53,7 @@ public final class UploadRouteRequestHandler
      */
     @Override
     protected RemotingResponse<DefaultResponse> onException(final IRemotingRequest<RouteUploadRequest> request,
-        Exception ex) {
+        final Exception ex) {
         return null;
     }
 
@@ -64,5 +66,28 @@ public final class UploadRouteRequestHandler
     @Override
     protected void onComplete(IRemotingRequest<RouteUploadRequest> request) {
 
+    }
+
+    /**
+     * @description: 构造处理成功响应体
+     * @param:
+     * @return:
+     * @date: 2022/07/29 12:30:45
+     */
+    private RemotingResponse<DefaultResponse> success(final IRemotingRequest<RouteUploadRequest> request) {
+        return RemotingResponse.create(request.getId(), request.getCode(), ResponseStatusEnum.SUCCESS.getCode());
+    }
+
+    /**
+     * @description: 构造处理异常响应体
+     * @param:
+     * @return:
+     * @date: 2022/07/29 12:30:45
+     */
+    private RemotingResponse<DefaultResponse> exception(final IRemotingRequest<RouteUploadRequest> request,
+        final Exception ex) {
+        // TODO 不同Exception对应不同Status
+        return RemotingResponse.create(request.getId(), request.getCode(),
+            ResponseStatusEnum.INTERNAL_SYSTEM_ERROR.getCode());
     }
 }

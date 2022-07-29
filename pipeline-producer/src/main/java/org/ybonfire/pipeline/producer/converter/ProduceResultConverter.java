@@ -1,8 +1,8 @@
-package org.ybonfire.pipeline.producer.converter.impl;
+package org.ybonfire.pipeline.producer.converter;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.ybonfire.pipeline.common.model.ProduceResultRemotingEntity;
-import org.ybonfire.pipeline.producer.converter.IConverter;
+import org.ybonfire.pipeline.common.converter.IConverter;
+import org.ybonfire.pipeline.common.protocol.response.MessageProduceResponse;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 
 /**
@@ -11,7 +11,7 @@ import org.ybonfire.pipeline.producer.model.ProduceResult;
  * @author Bo.Yuan5
  * @date 2022-06-30 16:32
  */
-public final class ProduceResultConverter implements IConverter<ProduceResultRemotingEntity, ProduceResult> {
+public final class ProduceResultConverter implements IConverter<MessageProduceResponse, ProduceResult> {
 
     /**
      * @description: 参数转换
@@ -20,7 +20,7 @@ public final class ProduceResultConverter implements IConverter<ProduceResultRem
      * @date: 2022/06/30 16:37:05
      */
     @Override
-    public ProduceResult convert(final ProduceResultRemotingEntity src) {
+    public ProduceResult convert(final MessageProduceResponse src) {
         if (src == null) {
             return null;
         }

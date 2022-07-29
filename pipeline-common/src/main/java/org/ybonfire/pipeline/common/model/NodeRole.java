@@ -25,6 +25,10 @@ public enum NodeRole {
 
     private int code;
 
+    public int getCode() {
+        return code;
+    }
+
     public static NodeRole of(final Integer code) {
         if (code == null) {
             throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);

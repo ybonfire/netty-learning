@@ -1,6 +1,7 @@
 package org.ybonfire.pipeline.client;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
@@ -8,6 +9,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
 
 /**
  * 这里添加类的注释【强制】
@@ -17,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class NameServerGetRouteTester extends NettyRemotingClient {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ExecutorService handlerExecutor = ThreadPoolUtil.getResponseHandlerExecutorService();
 
     public NameServerGetRouteTester(NettyClientConfig config) {
         super(config);
@@ -31,12 +34,17 @@ public class NameServerGetRouteTester extends NettyRemotingClient {
 
         final RemotingRequest request =
             RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ALL_ROUTE.getCode());
-        client.request("0:0:0:0:0:0:0:0:4690", request, 3 * 1000L);
+        client.request("0:0:0:0:0:0:0:0:14690", request, 15 * 1000L);
         Thread.sleep(1000L);
     }
 
     @Override
     protected void registerResponseHandlers() {
-
+        // RouteSelectAllRequestHandler
+        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(), response -> System.out.println(response.getBody()),
+            handlerExecutor);
+        // RouteSelect
+        registerHandler(RequestEnum.SELECT_ROUTE.getCode(), response -> System.out.println(response.getBody()),
+            handlerExecutor);
     }
 }

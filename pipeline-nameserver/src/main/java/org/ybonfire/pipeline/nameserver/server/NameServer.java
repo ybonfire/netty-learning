@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
+import org.ybonfire.pipeline.nameserver.converter.provider.TopicInfoConverterProvider;
 import org.ybonfire.pipeline.nameserver.handler.SelectAllRouteRequestHandler;
 import org.ybonfire.pipeline.nameserver.handler.SelectByTopicNameRequestHandler;
 import org.ybonfire.pipeline.nameserver.handler.UploadRouteRequestHandler;
@@ -21,12 +22,11 @@ import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
  */
 public final class NameServer extends NettyRemotingServer {
     private final RouteManageService routeManageService = new RouteManageService(new InMemoryRouteRepository());
-    private final IRemotingRequestHandler uploadRouteRequestHandler =
-        new UploadRouteRequestHandler(routeManageService);
+    private final IRemotingRequestHandler uploadRouteRequestHandler = new UploadRouteRequestHandler(routeManageService);
     private final IRemotingRequestHandler selectAllRouteRequestHandler =
-        new SelectAllRouteRequestHandler(routeManageService);
+        new SelectAllRouteRequestHandler(routeManageService, TopicInfoConverterProvider.getInstance());
     private final IRemotingRequestHandler selectByTopicNameRequestHandler =
-        new SelectByTopicNameRequestHandler(routeManageService);
+        new SelectByTopicNameRequestHandler(routeManageService, TopicInfoConverterProvider.getInstance());
     private final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
 
     public NameServer(final NettyServerConfig config) {

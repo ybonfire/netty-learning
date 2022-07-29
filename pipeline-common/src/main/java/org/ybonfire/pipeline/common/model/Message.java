@@ -1,8 +1,8 @@
 package org.ybonfire.pipeline.common.model;
 
 import java.io.Serializable;
+import java.util.UUID;
 
-import lombok.EqualsAndHashCode;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 
@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class Message implements Serializable {
+    private String id = UUID.randomUUID().toString();
     private String topic;
     private String key;
     private byte[] payload;

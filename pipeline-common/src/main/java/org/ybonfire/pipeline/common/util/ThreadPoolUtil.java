@@ -17,13 +17,6 @@ import java.util.concurrent.TimeUnit;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ThreadPoolUtil {
-    // Test Thread Pool
-    private static final int TEST_THREAD_NUMS_MIN = 2;
-    private static final int TEST_THREAD_NUMS_MAX = 2;
-    private static final int TEST_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final ThreadFactory TEST_THREAD_FACTORY = new ThreadWorkerFactory("test_", true);
-    private static final ExecutorService TEST_EXECUTOR_SERVICE =
-        buildThreadPool(TEST_THREAD_NUMS_MIN, TEST_THREAD_NUMS_MAX, TEST_QUEUE_CAPACITY, TEST_THREAD_FACTORY);
     // Request Callback Thread Pool
     private static final int REQUEST_CALLBACK_THREAD_NUMS_MIN = 4;
     private static final int REQUEST_CALLBACK_THREAD_NUMS_MAX = 4;
@@ -52,10 +45,15 @@ public final class ThreadPoolUtil {
     private static final ExecutorService NAMESERVER_HANDLER_EXECUTOR_SERVICE =
         buildThreadPool(NAMESERVER_HANDLER_THREAD_NUMS_MIN, NAMESERVER_HANDLER_THREAD_NUMS_MAX,
             NAMESERVER_HANDLER_QUEUE_CAPACITY, NAMESERVER_HANDLER_THREAD_FACTORY);
-
-    public static ExecutorService getTestExecutorService() {
-        return TEST_EXECUTOR_SERVICE;
-    }
+    // Response Handler Thread Pool
+    private static final int RESPONSE_HANDLER_THREAD_NUMS_MIN = Math.max(4, Runtime.getRuntime().availableProcessors());
+    private static final int RESPONSE_HANDLER_THREAD_NUMS_MAX = Math.max(4, Runtime.getRuntime().availableProcessors());
+    private static final int RESPONSE_HANDLER_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final ThreadFactory RESPONSE_HANDLER_THREAD_FACTORY =
+        new ThreadWorkerFactory("response_handler_", true);
+    private static final ExecutorService RESPONSE_HANDLER_EXECUTOR_SERVICE =
+        buildThreadPool(RESPONSE_HANDLER_THREAD_NUMS_MIN, RESPONSE_HANDLER_THREAD_NUMS_MAX,
+            RESPONSE_HANDLER_QUEUE_CAPACITY, RESPONSE_HANDLER_THREAD_FACTORY);
 
     public static ExecutorService getRequestCallbackExecutorService() {
         return REQUEST_CALLBACK_EXECUTOR_SERVICE;
@@ -67,6 +65,10 @@ public final class ThreadPoolUtil {
 
     public static ExecutorService getNameserverHandlerExecutorService() {
         return NAMESERVER_HANDLER_EXECUTOR_SERVICE;
+    }
+
+    public static ExecutorService getResponseHandlerExecutorService() {
+        return RESPONSE_HANDLER_EXECUTOR_SERVICE;
     }
 
     /**

@@ -2,7 +2,6 @@ package org.ybonfire.pipeline.nameserver;
 
 import org.ybonfire.pipeline.nameserver.config.NameServerConfig;
 import org.ybonfire.pipeline.nameserver.server.NameServer;
-import org.ybonfire.pipeline.server.config.NettyServerConfig;
 
 /**
  * NameServer启动器

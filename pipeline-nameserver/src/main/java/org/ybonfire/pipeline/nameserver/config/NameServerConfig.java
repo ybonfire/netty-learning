@@ -11,5 +11,5 @@ import org.ybonfire.pipeline.server.config.NettyServerConfig;
  */
 @Getter
 public class NameServerConfig extends NettyServerConfig {
-    private int port = 4690;
+    private int port = 14690;
 }

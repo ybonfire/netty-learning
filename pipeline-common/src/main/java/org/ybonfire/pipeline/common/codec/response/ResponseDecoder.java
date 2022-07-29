@@ -1,7 +1,7 @@
-package org.ybonfire.pipeline.common.codec.request;
+package org.ybonfire.pipeline.common.codec.response;
 
-import org.ybonfire.pipeline.common.codec.request.serializer.IRequestSerializer;
-import org.ybonfire.pipeline.common.codec.request.serializer.impl.DefaultRequestSerializerImpl;
+import org.ybonfire.pipeline.common.codec.response.serializer.IResponseSerializer;
+import org.ybonfire.pipeline.common.codec.response.serializer.impl.DefaultResponseSerializerImpl;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 
@@ -10,22 +10,22 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 /**
- * 请求反序列化器
+ * 响应反序列化器
  *
  * @author Bo.Yuan5
- * @date 2022-05-18 12:35
+ * @date 2022-07-29 14:35
  */
-public class RequestDecoder extends LengthFieldBasedFrameDecoder {
+public class ResponseDecoder extends LengthFieldBasedFrameDecoder {
     private static final int INT_BYTE_LENGTH = 4;
     private static final IInternalLogger logger = new SimpleInternalLogger();
-    private final IRequestSerializer serializer;
+    private final IResponseSerializer serializer;
 
-    public RequestDecoder() {
+    public ResponseDecoder() {
         super(65536, 0, INT_BYTE_LENGTH, 0, 0);
-        this.serializer = new DefaultRequestSerializerImpl();
+        this.serializer = new DefaultResponseSerializerImpl();
     }
 
-    public RequestDecoder(final IRequestSerializer serializer) {
+    public ResponseDecoder(final IResponseSerializer serializer) {
         super(65536, 0, INT_BYTE_LENGTH, 0, 0);
         this.serializer = serializer;
     }

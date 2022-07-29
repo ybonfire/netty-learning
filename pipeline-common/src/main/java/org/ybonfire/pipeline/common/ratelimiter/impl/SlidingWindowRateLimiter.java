@@ -93,7 +93,7 @@ public final class SlidingWindowRateLimiter implements IRateLimiter {
          * @date: 2022/07/11 18:36:20
          */
         private void tryRefresh() {
-            if (System.currentTimeMillis() - startTime > intervalMillis) {
+            if (System.currentTimeMillis() - startTime > intervalMillis) { // 判断当前时间是否在window时间区间之内
                 counter.set(0);
             }
         }
