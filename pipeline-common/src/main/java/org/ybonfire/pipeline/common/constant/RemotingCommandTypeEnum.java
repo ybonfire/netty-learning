@@ -1,8 +1,5 @@
 package org.ybonfire.pipeline.common.constant;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 /**
  * 远程命令类型枚举
  *

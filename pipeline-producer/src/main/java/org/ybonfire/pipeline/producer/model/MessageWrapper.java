@@ -1,12 +1,12 @@
 package org.ybonfire.pipeline.producer.model;
 
-import lombok.Getter;
+import java.util.Optional;
+
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.producer.callback.IMessageProduceCallback;
 
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
+import lombok.Getter;
 
 /**
  * Message包装类

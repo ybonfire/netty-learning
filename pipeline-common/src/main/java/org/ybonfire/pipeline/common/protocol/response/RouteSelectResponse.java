@@ -2,8 +2,10 @@ package org.ybonfire.pipeline.common.protocol.response;
 
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
 import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 
@@ -14,7 +16,9 @@ import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
  * @date 2022-07-13 10:58
  */
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class RouteSelectResponse implements IRemotingResponseBody {
-    private final Map<String, TopicInfoRemotingEntity> result;
+    private Map<String, TopicInfoRemotingEntity> result;
 }

@@ -11,7 +11,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 /**
- * 序列化器
+ * 请求序列化器
  *
  * @author Bo.Yuan5
  * @date 2022-05-18 12:35

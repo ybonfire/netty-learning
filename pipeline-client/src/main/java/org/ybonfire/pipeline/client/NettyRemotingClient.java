@@ -19,6 +19,7 @@ import org.ybonfire.pipeline.client.thread.ClientChannelEventHandleThreadService
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
 import org.ybonfire.pipeline.common.codec.request.RequestDecoder;
 import org.ybonfire.pipeline.common.codec.request.RequestEncoder;
+import org.ybonfire.pipeline.common.codec.response.ResponseDecoder;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.NettyChannelEvent;
 import org.ybonfire.pipeline.common.model.NettyChannelEventTypeEnum;
@@ -112,7 +113,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(defaultEventExecutorGroup, new RequestEncoder(), new RequestDecoder(),
+                        ch.pipeline().addLast(defaultEventExecutorGroup, new RequestEncoder(), new ResponseDecoder(),
                             new NettyConnectEventHandler(), new NettyClientHandler());
                     }
                 });

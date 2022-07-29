@@ -3,7 +3,6 @@ package org.ybonfire.pipeline.common.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.ybonfire.pipeline.common.model.Message;
 
 /**
  * 消息生产结果响应

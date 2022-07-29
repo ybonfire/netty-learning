@@ -1,12 +1,18 @@
 package org.ybonfire.pipeline.nameserver.handler;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
+import org.ybonfire.pipeline.common.constant.ResponseStatusEnum;
 import org.ybonfire.pipeline.common.model.TopicInfo;
+import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.RouteSelectAllRequest;
 import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
+import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
@@ -19,9 +25,12 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 public final class SelectAllRouteRequestHandler
     extends AbstractNettyRemotingRequestHandler<RouteSelectAllRequest, RouteSelectResponse> {
     private final RouteManageService routeManageService;
+    private final TopicInfoConverter topicInfoConverter;
 
-    public SelectAllRouteRequestHandler(final RouteManageService routeManageService) {
+    public SelectAllRouteRequestHandler(final RouteManageService routeManageService,
+        final TopicInfoConverter topicInfoConverter) {
         this.routeManageService = routeManageService;
+        this.topicInfoConverter = topicInfoConverter;
     }
 
     /**
@@ -44,7 +53,7 @@ public final class SelectAllRouteRequestHandler
     @Override
     protected RemotingResponse<RouteSelectResponse> fire(final IRemotingRequest<RouteSelectAllRequest> request) {
         final List<TopicInfo> result = this.routeManageService.selectAll();
-        return null;
+        return success(request, result);
     }
 
     /**
@@ -56,7 +65,7 @@ public final class SelectAllRouteRequestHandler
     @Override
     protected RemotingResponse<RouteSelectResponse> onException(final IRemotingRequest<RouteSelectAllRequest> request,
         final Exception ex) {
-        return null;
+        return exception(request, ex);
     }
 
     /**
@@ -71,13 +80,40 @@ public final class SelectAllRouteRequestHandler
     }
 
     /**
-     * @description: 构造RouteSelectResponse
+     * @description: 构造处理成功响应体
      * @param:
      * @return:
      * @date: 2022/07/13 18:37:24
      */
-    private RouteSelectResponse buildRouteSelectResponse(final List<TopicInfo> topicInfos) {
-        // TODO
-        return null;
+    private RemotingResponse<RouteSelectResponse> success(final IRemotingRequest<RouteSelectAllRequest> request,
+        final List<TopicInfo> topicInfos) {
+        return RemotingResponse.create(request.getId(), request.getCode(), ResponseStatusEnum.SUCCESS.getCode(),
+            convert(topicInfos));
+    }
+
+    /**
+     * @description: 构造处理异常响应体
+     * @param:
+     * @return:
+     * @date: 2022/07/28 20:11:11
+     */
+    private RemotingResponse<RouteSelectResponse> exception(final IRemotingRequest<RouteSelectAllRequest> request,
+        final Exception ex) {
+        // TODO 不同Exception对应不同Status
+        return RemotingResponse.create(request.getId(), request.getCode(),
+            ResponseStatusEnum.INTERNAL_SYSTEM_ERROR.getCode());
+    }
+
+    /**
+     * @description: 转换TopicInfo至RouteSelectResponse
+     * @param:
+     * @return:
+     * @date: 2022/07/28 19:43:59
+     */
+    private RouteSelectResponse convert(final List<TopicInfo> topicInfos) {
+        final Map<String, TopicInfoRemotingEntity> result =
+            topicInfos.stream().map(topicInfoConverter::convert).filter(Objects::nonNull).collect(Collectors
+                .toMap(TopicInfoRemotingEntity::getTopic, topicInfoRemotingEntity -> topicInfoRemotingEntity));
+        return RouteSelectResponse.builder().result(result).build();
     }
 }

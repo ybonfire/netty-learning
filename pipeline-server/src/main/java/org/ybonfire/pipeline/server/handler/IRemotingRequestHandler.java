@@ -3,7 +3,6 @@ package org.ybonfire.pipeline.server.handler;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
-import org.ybonfire.pipeline.common.protocol.RemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
 /**

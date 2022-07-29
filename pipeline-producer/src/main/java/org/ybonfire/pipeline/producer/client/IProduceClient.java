@@ -3,8 +3,6 @@ package org.ybonfire.pipeline.producer.client;
 import java.util.List;
 import java.util.Optional;
 
-import org.ybonfire.pipeline.common.callback.IRequestCallback;
-import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;

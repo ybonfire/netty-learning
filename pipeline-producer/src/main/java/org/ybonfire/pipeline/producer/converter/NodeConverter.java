@@ -1,9 +1,9 @@
-package org.ybonfire.pipeline.producer.converter.impl;
+package org.ybonfire.pipeline.producer.converter;
 
+import org.ybonfire.pipeline.common.converter.IConverter;
 import org.ybonfire.pipeline.common.model.Node;
-import org.ybonfire.pipeline.common.model.NodeRole;
 import org.ybonfire.pipeline.common.model.NodeRemotingEntity;
-import org.ybonfire.pipeline.producer.converter.IConverter;
+import org.ybonfire.pipeline.common.model.NodeRole;
 
 /**
  * Node参数转换器

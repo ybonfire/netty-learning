@@ -9,21 +9,24 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.MapUtils;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
-import org.ybonfire.pipeline.common.command.RemotingCommand;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.model.ProduceResultRemotingEntity;
+import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
+import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
+import org.ybonfire.pipeline.common.protocol.RemotingRequest;
 import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
+import org.ybonfire.pipeline.common.protocol.request.RouteSelectAllRequest;
 import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
+import org.ybonfire.pipeline.common.protocol.response.MessageProduceResponse;
 import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.producer.client.IProduceClient;
-import org.ybonfire.pipeline.producer.converter.impl.NodeConverter;
-import org.ybonfire.pipeline.producer.converter.impl.PartitionConverter;
-import org.ybonfire.pipeline.producer.converter.impl.ProduceResultConverter;
-import org.ybonfire.pipeline.producer.converter.impl.TopicInfoConverter;
+import org.ybonfire.pipeline.producer.converter.NodeConverter;
+import org.ybonfire.pipeline.producer.converter.PartitionConverter;
+import org.ybonfire.pipeline.producer.converter.ProduceResultConverter;
+import org.ybonfire.pipeline.producer.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 
@@ -64,9 +67,10 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
     @Override
     public List<TopicInfo> selectAllTopicInfo(final String address, final long timeoutMillis) {
         try {
-            final RemotingCommand response = request(address, buildSelectAllTopicInfoRequest(), timeoutMillis);
-            if (response.isSuccess()) {
-                final RouteSelectResponse data = (RouteSelectResponse)response.getBody();
+            final IRemotingResponse<RouteSelectResponse> response =
+                request(address, buildSelectAllTopicInfoRequest(), timeoutMillis);
+            if (response.getStatus() == 0) {
+                final RouteSelectResponse data = response.getBody();
                 return MapUtils.isEmpty(data.getResult()) ? Collections.emptyList()
                     : data.getResult().values().stream().map(topicInfoConverter::convert).collect(Collectors.toList());
             } else { // 远程调用响应异常
@@ -87,9 +91,10 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
     @Override
     public Optional<TopicInfo> selectTopicInfo(final String topic, final String address, final long timeoutMillis) {
         try {
-            final RemotingCommand response = request(address, buildSelectTopicInfoRequest(topic), timeoutMillis);
-            if (response.isSuccess()) {
-                final RouteSelectResponse data = (RouteSelectResponse)response.getBody();
+            final IRemotingResponse<RouteSelectResponse> response =
+                request(address, buildSelectTopicInfoRequest(topic), timeoutMillis);
+            if (response.getStatus() == 0) {
+                final RouteSelectResponse data = response.getBody();
 
                 return MapUtils.isEmpty(data.getResult()) ? Optional.empty()
                     : Optional.ofNullable(data.getResult().get(topic)).map(topicInfoConverter::convert);
@@ -111,10 +116,10 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
     @Override
     public ProduceResult produce(final MessageWrapper message, final String address, final long timeoutMillis) {
         try {
-            final RemotingCommand response =
+            final IRemotingResponse<MessageProduceResponse> response =
                 request(address, buildProduceMessageRequest(message, address), timeoutMillis);
-            if (response.isSuccess()) {
-                return produceResultConverter.convert((ProduceResultRemotingEntity)response.getBody());
+            if (response.getStatus() == 0) {
+                return produceResultConverter.convert(response.getBody());
             } else {
                 return ProduceResult.builder().topic(message.getMessage().getTopic())
                     .partitionId(message.getPartition().getPartitionId()).offset(-1L).isSuccess(false)
@@ -131,9 +136,8 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
      * @return:
      * @date: 2022/06/29 17:13:21
      */
-    private RemotingCommand buildSelectAllTopicInfoRequest() {
-        return RemotingCommand.createRequestCommand(RequestEnum.SELECT_ALL_ROUTE.getCode(),
-            UUID.randomUUID().toString(), null);
+    private IRemotingRequest<RouteSelectAllRequest> buildSelectAllTopicInfoRequest() {
+        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ALL_ROUTE.getCode());
     }
 
     /**
@@ -142,8 +146,8 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
      * @return:
      * @date: 2022/06/29 17:13:30
      */
-    private RemotingCommand buildSelectTopicInfoRequest(final String topic) {
-        return RemotingCommand.createRequestCommand(RequestEnum.SELECT_ROUTE.getCode(), UUID.randomUUID().toString(),
+    private IRemotingRequest<RouteSelectByTopicRequest> buildSelectTopicInfoRequest(final String topic) {
+        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ROUTE.getCode(),
             RouteSelectByTopicRequest.builder().topic(topic).build());
     }
 
@@ -153,13 +157,14 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
      * @return:
      * @date: 2022/06/30 10:45:21
      */
-    private RemotingCommand buildProduceMessageRequest(final MessageWrapper messageWrapper, final String address) {
+    private IRemotingRequest<MessageProduceRequest> buildProduceMessageRequest(final MessageWrapper messageWrapper,
+        final String address) {
         final String topic = messageWrapper.getMessage().getTopic();
         final int partitionId = messageWrapper.getPartition().getPartitionId();
         final Message message = messageWrapper.getMessage();
 
-        return RemotingCommand.createRequestCommand(RequestEnum.PRODUCER_SEND_MESSAGE.getCode(),
-            UUID.randomUUID().toString(), MessageProduceRequest.builder().topic(topic).partitionId(partitionId)
-                .address(address).message(message).build());
+        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.PRODUCER_SEND_MESSAGE.getCode(),
+            MessageProduceRequest.builder().topic(topic).partitionId(partitionId).address(address).message(message)
+                .build());
     }
 }

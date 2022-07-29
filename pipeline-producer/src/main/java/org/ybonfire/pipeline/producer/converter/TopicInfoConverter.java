@@ -1,13 +1,13 @@
-package org.ybonfire.pipeline.producer.converter.impl;
+package org.ybonfire.pipeline.producer.converter;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.ybonfire.pipeline.common.converter.IConverter;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
-import org.ybonfire.pipeline.producer.converter.IConverter;
 
 /**
  * TopicInfo参数转换器
@@ -26,7 +26,7 @@ public final class TopicInfoConverter implements IConverter<TopicInfoRemotingEnt
      * @description: 参数转换
      * @param:
      * @return:
-     * @date: 2022/06/30 09:42:57
+     * @date: 2022/07/28 20:31:40
      */
     @Override
     public TopicInfo convert(TopicInfoRemotingEntity src) {
