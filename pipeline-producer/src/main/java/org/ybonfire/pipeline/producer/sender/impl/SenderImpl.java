@@ -12,8 +12,8 @@ import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
-import org.ybonfire.pipeline.producer.client.IProduceClient;
-import org.ybonfire.pipeline.producer.client.impl.ProducerClientImpl;
+import org.ybonfire.pipeline.producer.client.IBrokerClient;
+import org.ybonfire.pipeline.producer.client.impl.BrokerClientImpl;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 import org.ybonfire.pipeline.producer.model.ProduceTypeEnum;
@@ -29,17 +29,17 @@ import lombok.Getter;
  */
 public class SenderImpl implements ISender {
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private final ProducerClientImpl producerClient;
+    private final BrokerClientImpl brokerClient;
     private ExecutorService produceMessageExecutor;
 
     public SenderImpl() {
-        this.producerClient = new ProducerClientImpl((new NettyClientConfig()));
+        this.brokerClient = new BrokerClientImpl((new NettyClientConfig()));
     }
 
     @Override
     public void start() {
         if (started.compareAndSet(false, true)) {
-            producerClient.start();
+            brokerClient.start();
             produceMessageExecutor = ThreadPoolUtil.getMessageProduceExecutorService();
         }
     }
@@ -83,8 +83,8 @@ public class SenderImpl implements ISender {
         }
     }
 
-    IProduceClient getProducerClient() {
-        return producerClient;
+    IBrokerClient getBrokerClient() {
+        return brokerClient;
     }
 
     /**
@@ -136,7 +136,7 @@ public class SenderImpl implements ISender {
                 final String address = partition.tryToFindPartitionLeaderNode().map(Node::getAddress)
                     .orElseThrow(() -> ExceptionUtil.exception(ExceptionTypeEnum.UNKNOWN_PARTITION_LEADER));
                 final ProduceResult result =
-                    SenderImpl.this.getProducerClient().produce(message, address, message.getTimeoutMillis());
+                    SenderImpl.this.getBrokerClient().produce(message, address, message.getTimeoutMillis());
                 message.setResult(result);
 
                 // 执行回调

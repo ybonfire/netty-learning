@@ -17,7 +17,6 @@ import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
 import org.ybonfire.pipeline.client.model.RequestTypeEnum;
 import org.ybonfire.pipeline.client.thread.ClientChannelEventHandleThreadService;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
-import org.ybonfire.pipeline.common.codec.request.RequestDecoder;
 import org.ybonfire.pipeline.common.codec.request.RequestEncoder;
 import org.ybonfire.pipeline.common.codec.response.ResponseDecoder;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
@@ -30,6 +29,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.common.util.AssertUtils;
 import org.ybonfire.pipeline.common.util.RemotingUtil;
+import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -64,6 +64,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
     private final IRemotingResponseDispatcher<IRemotingResponseHandler> dispatcher =
         new NettyRemotingResponseDispatcher();
     private final InflightRequestManager inflightRequestManager = new InflightRequestManager();
+    private final ExecutorService defaultHandler = ThreadPoolUtil.getResponseHandlerExecutorService();
 
     public NettyRemotingClient(final NettyClientConfig config) {
         this.config = config;
@@ -198,6 +199,10 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
         this.dispatcher.registerRemotingRequestHandler(responseCode, handler, executor);
     }
 
+    protected InflightRequestManager getInflightRequestManager() {
+        return inflightRequestManager;
+    }
+
     /**
      * @description: 注册远程调用响应处理器
      * @param:
@@ -307,12 +312,12 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
             // 等待响应
             final IRemotingResponse response = future.get(timeoutMillis);
             if (response == null) {
-                if (future.isRequestSuccess()) { // 请求成功，但未响应
-                    return RemotingResponse.create(future.getRequest().getId(), response.getCode(),
-                        response.getStatus(), response.getBody());
-                } else { // 未在指定时间内获得响应
+                if (future.isRequestSuccess()) { // 请求成功，未在指定时间内获得响应
                     return RemotingResponse.create(future.getRequest().getId(), future.getRequest().getCode(),
                         ResponseEnum.REQUEST_TIMEOUT.getCode(), DefaultResponse.create("请求超时"));
+                } else { // 请求失败
+                    return RemotingResponse.create(future.getRequest().getId(), future.getRequest().getCode(),
+                        ResponseEnum.REQUEST_FAILED.getCode(), DefaultResponse.create("请求失败"));
                 }
             }
 
@@ -367,7 +372,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
         if (pairOptional.isPresent()) {
             final Pair<IRemotingResponseHandler, ExecutorService> pair = pairOptional.get();
             final IRemotingResponseHandler handler = pair.getKey();
-            final ExecutorService executorService = pair.getValue();
+            final ExecutorService executorService = pair.getValue() == null ? defaultHandler : pair.getValue();
 
             executorService.submit(() -> handler.handle(response));
         } else {

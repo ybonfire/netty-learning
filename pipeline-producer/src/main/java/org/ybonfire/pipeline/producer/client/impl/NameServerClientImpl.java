@@ -4,59 +4,65 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.MapUtils;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
+import org.ybonfire.pipeline.client.handler.IRemotingResponseHandler;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
-import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingRequest;
-import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
 import org.ybonfire.pipeline.common.protocol.request.RouteSelectAllRequest;
 import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
-import org.ybonfire.pipeline.common.protocol.response.MessageProduceResponse;
 import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
-import org.ybonfire.pipeline.producer.client.IProduceClient;
-import org.ybonfire.pipeline.producer.converter.NodeConverter;
-import org.ybonfire.pipeline.producer.converter.PartitionConverter;
-import org.ybonfire.pipeline.producer.converter.ProduceResultConverter;
+import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
+import org.ybonfire.pipeline.producer.client.INameServerClient;
 import org.ybonfire.pipeline.producer.converter.TopicInfoConverter;
-import org.ybonfire.pipeline.producer.model.MessageWrapper;
-import org.ybonfire.pipeline.producer.model.ProduceResult;
+import org.ybonfire.pipeline.producer.converter.provider.TopicInfoConverterProvider;
+import org.ybonfire.pipeline.producer.handler.SelectAllRouteResponseHandler;
+import org.ybonfire.pipeline.producer.handler.SelectRouteResponseHandler;
 
 /**
- * Producer远程调用客户端
+ * Nameserver远程调用
  *
  * @author Bo.Yuan5
- * @date 2022-07-14 14:01
+ * @date 2022-08-04 17:56
  */
-public final class ProducerClientImpl extends NettyRemotingClient implements IProduceClient {
-    private final TopicInfoConverter topicInfoConverter =
-        new TopicInfoConverter(new PartitionConverter(new NodeConverter()));
-    private final ProduceResultConverter produceResultConverter = new ProduceResultConverter();
+public class NameServerClientImpl extends NettyRemotingClient implements INameServerClient {
+    private final TopicInfoConverter topicInfoConverter = TopicInfoConverterProvider.getInstance();
+    private final IRemotingResponseHandler<RouteSelectResponse> selectAllRouteResponseHandler =
+        new SelectAllRouteResponseHandler(getInflightRequestManager());
+    private final IRemotingResponseHandler<RouteSelectResponse> selectRouteSelectResponseHandler =
+        new SelectRouteResponseHandler(getInflightRequestManager());
+    private final ExecutorService responseHandler = ThreadPoolUtil.getResponseHandlerExecutorService();
 
-    public ProducerClientImpl() {
+    public NameServerClientImpl() {
         this(new NettyClientConfig());
     }
 
-    public ProducerClientImpl(final NettyClientConfig config) {
+    public NameServerClientImpl(final NettyClientConfig config) {
         super(config);
     }
 
     /**
-     * @description: 注册Producer响应处理器
+     * @description: 注册远程调用响应处理器
      * @param:
      * @return:
-     * @date: 2022/07/14 14:02:24
+     * @date: 2022/08/04 18:12:08
      */
     @Override
-    protected void registerResponseHandlers() {}
+    protected void registerResponseHandlers() {
+        // SelectAllResponseHandler
+        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(), selectAllRouteResponseHandler, responseHandler);
+        // SelectRouteResponseHandler
+        registerHandler(RequestEnum.SELECT_ROUTE.getCode(), selectRouteSelectResponseHandler, responseHandler);
+    }
 
     /**
      * @description: 发送查询所有TopicInfo请求
@@ -108,29 +114,6 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
     }
 
     /**
-     * @description: 投递消息
-     * @param:
-     * @return:
-     * @date: 2022/06/30 10:44:03
-     */
-    @Override
-    public ProduceResult produce(final MessageWrapper message, final String address, final long timeoutMillis) {
-        try {
-            final IRemotingResponse<MessageProduceResponse> response =
-                request(address, buildProduceMessageRequest(message, address), timeoutMillis);
-            if (response.getStatus() == 0) {
-                return produceResultConverter.convert(response.getBody());
-            } else {
-                return ProduceResult.builder().topic(message.getMessage().getTopic())
-                    .partitionId(message.getPartition().getPartitionId()).offset(-1L).isSuccess(false)
-                    .message(message.getMessage()).build();
-            }
-        } catch (Exception ex) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.REMOTING_INVOKE_FAILED);
-        }
-    }
-
-    /**
      * @description: 构造查询所有TopicInfo请求
      * @param:
      * @return:
@@ -149,22 +132,5 @@ public final class ProducerClientImpl extends NettyRemotingClient implements IPr
     private IRemotingRequest<RouteSelectByTopicRequest> buildSelectTopicInfoRequest(final String topic) {
         return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ROUTE.getCode(),
             RouteSelectByTopicRequest.builder().topic(topic).build());
-    }
-
-    /**
-     * @description: 构造消息生产请求
-     * @param:
-     * @return:
-     * @date: 2022/06/30 10:45:21
-     */
-    private IRemotingRequest<MessageProduceRequest> buildProduceMessageRequest(final MessageWrapper messageWrapper,
-        final String address) {
-        final String topic = messageWrapper.getMessage().getTopic();
-        final int partitionId = messageWrapper.getPartition().getPartitionId();
-        final Message message = messageWrapper.getMessage();
-
-        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.PRODUCER_SEND_MESSAGE.getCode(),
-            MessageProduceRequest.builder().topic(topic).partitionId(partitionId).address(address).message(message)
-                .build());
     }
 }

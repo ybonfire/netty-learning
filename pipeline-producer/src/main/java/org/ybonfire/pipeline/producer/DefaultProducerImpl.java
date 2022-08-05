@@ -8,7 +8,6 @@ import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.producer.callback.IMessageProduceCallback;
-import org.ybonfire.pipeline.producer.config.ProducerConfig;
 import org.ybonfire.pipeline.producer.constant.ProducerConstant;
 import org.ybonfire.pipeline.producer.metadata.NameServers;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
@@ -28,24 +27,18 @@ import org.ybonfire.pipeline.producer.sender.impl.SenderImpl;
  */
 public final class DefaultProducerImpl implements IProducer {
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private final NameServers nameServers;
-    private final ProducerConfig config;
     private final RouteManager routeManager;
     private final IPartitionSelector partitionSelector;
     private final ISender sender;
 
     public DefaultProducerImpl(final List<String> nameServerAddressList) {
-        this.nameServers = new NameServers(nameServerAddressList);
-        this.config = new ProducerConfig();
-        this.routeManager = new RouteManager(this.nameServers);
+        this.routeManager = new RouteManager(new NameServers(nameServerAddressList));
         this.partitionSelector = new RoundRobinPartitionSelector(this.routeManager);
         this.sender = new SenderImpl();
     }
 
-    public DefaultProducerImpl(final NameServers nameServers, final ProducerConfig config,
-        final RouteManager routeManager, final IPartitionSelector partitionSelector, final ISender sender) {
-        this.nameServers = nameServers;
-        this.config = config;
+    public DefaultProducerImpl(final RouteManager routeManager, final IPartitionSelector partitionSelector,
+        final ISender sender) {
         this.routeManager = routeManager;
         this.partitionSelector = partitionSelector;
         this.sender = sender;
@@ -60,6 +53,7 @@ public final class DefaultProducerImpl implements IProducer {
     @Override
     public void start() {
         if (started.compareAndSet(false, true)) {
+            this.routeManager.start();
             this.sender.start();
         }
     }
@@ -73,6 +67,7 @@ public final class DefaultProducerImpl implements IProducer {
     @Override
     public void shutdown() {
         if (started.compareAndSet(true, false)) {
+            this.routeManager.stop();
             this.sender.stop();
         }
     }

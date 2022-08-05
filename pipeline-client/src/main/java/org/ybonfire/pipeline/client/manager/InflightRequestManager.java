@@ -41,8 +41,8 @@ public class InflightRequestManager {
      * @return:
      * @date: 2022/05/23 17:42:08
      */
-    public Optional<RemoteRequestFuture> get(final String requestId) {
-        return Optional.ofNullable(inflightRequestTable.get(requestId));
+    public Optional<RemoteRequestFuture> get(final String id) {
+        return Optional.ofNullable(inflightRequestTable.get(id));
     }
 
     /**
@@ -51,8 +51,8 @@ public class InflightRequestManager {
      * @return:
      * @date: 2022/05/23 17:42:15
      */
-    public void remove(final String requestId) {
-        inflightRequestTable.remove(requestId);
+    public void remove(final String id) {
+        inflightRequestTable.remove(id);
     }
 
     /**
