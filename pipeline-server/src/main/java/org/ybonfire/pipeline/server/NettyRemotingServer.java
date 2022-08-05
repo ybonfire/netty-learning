@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.ybonfire.pipeline.common.codec.request.RequestDecoder;
-import org.ybonfire.pipeline.common.codec.request.RequestEncoder;
 import org.ybonfire.pipeline.common.codec.response.ResponseEncoder;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.Pair;

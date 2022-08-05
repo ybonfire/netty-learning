@@ -31,6 +31,7 @@ public class RemoteRequestFuture {
     private volatile boolean isRequestSuccess = false;
     private volatile boolean isCompleted = false;
     private volatile Throwable cause;
+    private volatile RemotingRequestFutureStateEnum state = RemotingRequestFutureStateEnum.FLIGHT;
 
     public RemoteRequestFuture(final String address, final Channel channel, final IRemotingRequest request,
         IRequestCallback callback, final long timeoutMillis) {
@@ -118,5 +119,13 @@ public class RemoteRequestFuture {
 
     public boolean isExpired() {
         return System.currentTimeMillis() > startTimestamp + timeoutMillis;
+    }
+
+    public void setState(RemotingRequestFutureStateEnum state) {
+        this.state = state;
+    }
+
+    public RemotingRequestFutureStateEnum getState() {
+        return state;
     }
 }

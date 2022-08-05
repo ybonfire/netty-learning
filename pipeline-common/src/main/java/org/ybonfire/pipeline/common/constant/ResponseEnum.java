@@ -31,14 +31,14 @@ public enum ResponseEnum {
     /**
      * 请求超时
      */
-    REQUEST_TIMEOUT(-4, DefaultResponse.class);
+    REQUEST_TIMEOUT(-4, DefaultResponse.class),
+    /**
+     * 请求失败
+     */
+    REQUEST_FAILED(-5, DefaultResponse.class);
 
     private final int code;
     private final Class<? extends IRemotingResponseBody> clazz;
-
-    ResponseEnum(final int code) {
-        this(code, null);
-    }
 
     ResponseEnum(final int code, final Class<? extends IRemotingResponseBody> clazz) {
         this.code = code;

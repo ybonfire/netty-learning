@@ -2,13 +2,13 @@ package org.ybonfire.pipeline.producer.metadata;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.ybonfire.pipeline.common.exception.BaseException;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.util.ExceptionUtil;
-import org.ybonfire.pipeline.producer.client.IProduceClient;
-import org.ybonfire.pipeline.producer.client.impl.ProducerClientImpl;
+import org.ybonfire.pipeline.producer.client.impl.NameServerClientImpl;
 
 /**
  * 元数据服务
@@ -17,16 +17,29 @@ import org.ybonfire.pipeline.producer.client.impl.ProducerClientImpl;
  * @date 2022-06-27 21:46
  */
 public class NameServers {
+    private final AtomicBoolean started = new AtomicBoolean(false);
     private final List<String> nameServerAddressList;
-    private final IProduceClient client;
+    private final NameServerClientImpl nameServerClient;
 
     public NameServers(final List<String> nameServerAddressList) {
-        this(nameServerAddressList, new ProducerClientImpl());
+        this(nameServerAddressList, new NameServerClientImpl());
     }
 
-    public NameServers(final List<String> nameServerAddressList, final IProduceClient client) {
+    public NameServers(final List<String> nameServerAddressList, final NameServerClientImpl nameServerClient) {
         this.nameServerAddressList = nameServerAddressList;
-        this.client = client;
+        this.nameServerClient = nameServerClient;
+    }
+
+    public void start() {
+        if (started.compareAndSet(false, true)) {
+            nameServerClient.start();
+        }
+    }
+
+    public void stop() {
+        if (started.compareAndSet(true, false)) {
+            nameServerClient.shutdown();
+        }
     }
 
     /**
@@ -44,7 +57,7 @@ public class NameServers {
         try {
             for (int i = 0; i < nameServerAddressList.size(); ++i) {
                 final String address = nameServerAddressList.get(i);
-                return client.selectAllTopicInfo(address, timeoutMillis);
+                return nameServerClient.selectAllTopicInfo(address, timeoutMillis);
             }
         } catch (BaseException ex) {
             e = ex;
@@ -68,7 +81,7 @@ public class NameServers {
         try {
             for (int i = 0; i < nameServerAddressList.size(); ++i) {
                 final String address = nameServerAddressList.get(i);
-                return client.selectTopicInfo(topic, address, timeoutMillis);
+                return nameServerClient.selectTopicInfo(topic, address, timeoutMillis);
             }
         } catch (BaseException ex) {
             e = ex;

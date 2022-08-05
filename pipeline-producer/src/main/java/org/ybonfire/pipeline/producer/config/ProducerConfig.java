@@ -10,5 +10,6 @@ import lombok.Getter;
  */
 @Getter
 public final class ProducerConfig {
+
     private final long lingerMillis = 1000L;
 }

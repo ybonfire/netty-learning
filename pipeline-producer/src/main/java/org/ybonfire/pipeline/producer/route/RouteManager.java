@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ import org.ybonfire.pipeline.producer.metadata.NameServers;
  */
 public final class RouteManager {
     private final IInternalLogger logger = new SimpleInternalLogger();
+    private final AtomicBoolean started = new AtomicBoolean(false);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<String, TopicInfo> topicInfoTable = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -31,7 +33,20 @@ public final class RouteManager {
 
     public RouteManager(final NameServers nameServers) {
         this.nameServers = nameServers;
-        this.scheduler.scheduleAtFixedRate(this::updateRouteInfo, 15 * 1000L, 0L, TimeUnit.MILLISECONDS);
+    }
+
+    public void start() {
+        if (started.compareAndSet(false, true)) {
+            nameServers.start();
+            scheduler.scheduleAtFixedRate(this::updateRouteInfo, 0L, 15 * 1000L, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    public void stop() {
+        if (started.compareAndSet(true, false)) {
+            nameServers.stop();
+            scheduler.shutdown();
+        }
     }
 
     /**

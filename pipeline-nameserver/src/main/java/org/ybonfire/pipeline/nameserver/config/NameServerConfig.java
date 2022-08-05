@@ -1,15 +1,16 @@
 package org.ybonfire.pipeline.nameserver.config;
 
-import lombok.Getter;
 import org.ybonfire.pipeline.server.config.NettyServerConfig;
 
+import lombok.Getter;
+
 /**
- * 这里添加类的注释【强制】
+ * NameServer配置类
  *
  * @author Bo.Yuan5
  * @date 2022-07-18 17:22
  */
 @Getter
 public class NameServerConfig extends NettyServerConfig {
-    private int port = 14690;
+    private final int port = 14690;
 }
