@@ -31,4 +31,12 @@ public interface IRemotingRequest<T extends IRemotingRequestBody> {
      * @date: 2022/07/19 19:19:12
      */
     T getBody();
+
+    /**
+     * @description: 获取超时时间
+     * @param:
+     * @return:
+     * @date: 2022/08/12 22:16:34
+     */
+    long getTimeoutMillis();
 }

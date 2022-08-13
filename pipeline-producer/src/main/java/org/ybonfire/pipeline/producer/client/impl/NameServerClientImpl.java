@@ -120,7 +120,7 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      * @date: 2022/06/29 17:13:21
      */
     private IRemotingRequest<RouteSelectAllRequest> buildSelectAllTopicInfoRequest() {
-        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ALL_ROUTE.getCode());
+        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ALL_ROUTE.getCode(), -1L);
     }
 
     /**
@@ -131,6 +131,6 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      */
     private IRemotingRequest<RouteSelectByTopicRequest> buildSelectTopicInfoRequest(final String topic) {
         return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ROUTE.getCode(),
-            RouteSelectByTopicRequest.builder().topic(topic).build());
+            RouteSelectByTopicRequest.builder().topic(topic).build(), -1L);
     }
 }

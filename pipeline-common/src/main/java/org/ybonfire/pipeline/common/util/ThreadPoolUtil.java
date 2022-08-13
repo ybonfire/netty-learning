@@ -20,40 +20,51 @@ public final class ThreadPoolUtil {
     // Request Callback Thread Pool
     private static final int REQUEST_CALLBACK_THREAD_NUMS_MIN = 4;
     private static final int REQUEST_CALLBACK_THREAD_NUMS_MAX = 4;
-    private static final int REQUEST_CALLBACK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final int REQUEST_CALLBACK_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
     private static final ThreadFactory REQUEST_CALLBACK_THREAD_FACTORY =
         new ThreadWorkerFactory("request_callback_", true);
     private static final ExecutorService REQUEST_CALLBACK_EXECUTOR_SERVICE =
         buildThreadPool(REQUEST_CALLBACK_THREAD_NUMS_MIN, REQUEST_CALLBACK_THREAD_NUMS_MAX,
-            REQUEST_CALLBACK_QUEUE_CAPACITY, REQUEST_CALLBACK_THREAD_FACTORY);
+            REQUEST_CALLBACK_TASK_QUEUE_CAPACITY, REQUEST_CALLBACK_THREAD_FACTORY);
     // Message Produce Thread Pool
     private static final int MESSAGE_PRODUCE_THREAD_NUMS_MIN = Math.max(8, Runtime.getRuntime().availableProcessors());
     private static final int MESSAGE_PRODUCE_THREAD_NUMS_MAX = Math.max(8, Runtime.getRuntime().availableProcessors());
-    private static final int MESSAGE_PRODUCE_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final int MESSAGE_PRODUCE_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
     private static final ThreadFactory MESSAGE_PRODUCE_THREAD_FACTORY = new ThreadWorkerFactory("produce_", true);
     private static final ExecutorService MESSAGE_PRODUCE_EXECUTOR_SERVICE =
         buildThreadPool(MESSAGE_PRODUCE_THREAD_NUMS_MIN, MESSAGE_PRODUCE_THREAD_NUMS_MAX,
-            MESSAGE_PRODUCE_QUEUE_CAPACITY, MESSAGE_PRODUCE_THREAD_FACTORY);
+            MESSAGE_PRODUCE_TASK_QUEUE_CAPACITY, MESSAGE_PRODUCE_THREAD_FACTORY);
     // NameServer Handler Thread Pool
     private static final int NAMESERVER_HANDLER_THREAD_NUMS_MIN =
         Math.max(4, Runtime.getRuntime().availableProcessors());
     private static final int NAMESERVER_HANDLER_THREAD_NUMS_MAX =
         Math.max(4, Runtime.getRuntime().availableProcessors());
-    private static final int NAMESERVER_HANDLER_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final int NAMESERVER_HANDLER_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
     private static final ThreadFactory NAMESERVER_HANDLER_THREAD_FACTORY =
         new ThreadWorkerFactory("namesrv_handler_", true);
     private static final ExecutorService NAMESERVER_HANDLER_EXECUTOR_SERVICE =
         buildThreadPool(NAMESERVER_HANDLER_THREAD_NUMS_MIN, NAMESERVER_HANDLER_THREAD_NUMS_MAX,
-            NAMESERVER_HANDLER_QUEUE_CAPACITY, NAMESERVER_HANDLER_THREAD_FACTORY);
+            NAMESERVER_HANDLER_TASK_QUEUE_CAPACITY, NAMESERVER_HANDLER_THREAD_FACTORY);
     // Response Handler Thread Pool
     private static final int RESPONSE_HANDLER_THREAD_NUMS_MIN = Math.max(4, Runtime.getRuntime().availableProcessors());
     private static final int RESPONSE_HANDLER_THREAD_NUMS_MAX = Math.max(4, Runtime.getRuntime().availableProcessors());
-    private static final int RESPONSE_HANDLER_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final int RESPONSE_HANDLER_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
     private static final ThreadFactory RESPONSE_HANDLER_THREAD_FACTORY =
         new ThreadWorkerFactory("response_handler_", true);
     private static final ExecutorService RESPONSE_HANDLER_EXECUTOR_SERVICE =
         buildThreadPool(RESPONSE_HANDLER_THREAD_NUMS_MIN, RESPONSE_HANDLER_THREAD_NUMS_MAX,
-            RESPONSE_HANDLER_QUEUE_CAPACITY, RESPONSE_HANDLER_THREAD_FACTORY);
+            RESPONSE_HANDLER_TASK_QUEUE_CAPACITY, RESPONSE_HANDLER_THREAD_FACTORY);
+    // RouteUploadRequestPublish Thread Pool
+    private static final int ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_NUMS_MIN =
+        Math.max(4, Runtime.getRuntime().availableProcessors());
+    private static final int ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_NUMS_MAX =
+        Math.max(4, Runtime.getRuntime().availableProcessors());
+    private static final int ROUTE_UPLOAD_REQUEST_PUBLISH_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final ThreadFactory ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_FACTORY =
+        new ThreadWorkerFactory("route_upload_request_publish_", true);
+    private static final ExecutorService ROUTE_UPLOAD_REQUEST_PUBLISH_EXECUTOR_SERVICE =
+        buildThreadPool(ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_NUMS_MIN, ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_NUMS_MAX,
+            ROUTE_UPLOAD_REQUEST_PUBLISH_TASK_QUEUE_CAPACITY, ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_FACTORY);
 
     public static ExecutorService getRequestCallbackExecutorService() {
         return REQUEST_CALLBACK_EXECUTOR_SERVICE;
@@ -69,6 +80,10 @@ public final class ThreadPoolUtil {
 
     public static ExecutorService getResponseHandlerExecutorService() {
         return RESPONSE_HANDLER_EXECUTOR_SERVICE;
+    }
+
+    public static ExecutorService getRouteUploadRequestPublishExecutorService() {
+        return ROUTE_UPLOAD_REQUEST_PUBLISH_EXECUTOR_SERVICE;
     }
 
     /**

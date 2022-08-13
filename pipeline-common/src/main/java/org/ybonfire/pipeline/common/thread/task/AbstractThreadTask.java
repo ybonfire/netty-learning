@@ -1,8 +1,8 @@
 package org.ybonfire.pipeline.common.thread.task;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.UUID;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 异步线程任务模板

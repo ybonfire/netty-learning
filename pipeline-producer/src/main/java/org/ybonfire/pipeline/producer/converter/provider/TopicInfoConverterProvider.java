@@ -15,6 +15,12 @@ import lombok.NoArgsConstructor;
 public final class TopicInfoConverterProvider {
     private static final TopicInfoConverter INSTANCE = new TopicInfoConverter(PartitionConverterProvider.getInstance());
 
+    /**
+     * @description: 获取TopicInfoConverter实例
+     * @param:
+     * @return:
+     * @date: 2022/08/12 21:56:36
+     */
     public static TopicInfoConverter getInstance() {
         return INSTANCE;
     }

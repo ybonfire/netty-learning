@@ -5,9 +5,11 @@ import java.util.concurrent.ExecutorService;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.nameserver.converter.provider.TopicInfoConverterProvider;
+import org.ybonfire.pipeline.nameserver.handler.JoinClusterRequestHandler;
 import org.ybonfire.pipeline.nameserver.handler.SelectAllRouteRequestHandler;
 import org.ybonfire.pipeline.nameserver.handler.SelectByTopicNameRequestHandler;
 import org.ybonfire.pipeline.nameserver.handler.UploadRouteRequestHandler;
+import org.ybonfire.pipeline.nameserver.handler.provider.NameServerRequestHandlerProvider;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.NettyRemotingServer;
@@ -21,12 +23,6 @@ import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
  * @date 2022-07-01 17:13
  */
 public final class NameServer extends NettyRemotingServer {
-    private final RouteManageService routeManageService = new RouteManageService(new InMemoryRouteRepository());
-    private final IRemotingRequestHandler uploadRouteRequestHandler = new UploadRouteRequestHandler(routeManageService);
-    private final IRemotingRequestHandler selectAllRouteRequestHandler =
-        new SelectAllRouteRequestHandler(routeManageService, TopicInfoConverterProvider.getInstance());
-    private final IRemotingRequestHandler selectByTopicNameRequestHandler =
-        new SelectByTopicNameRequestHandler(routeManageService, TopicInfoConverterProvider.getInstance());
     private final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
 
     public NameServer(final NettyServerConfig config) {
@@ -42,10 +38,16 @@ public final class NameServer extends NettyRemotingServer {
     @Override
     protected void registerRequestHandlers() {
         // RouteUploadRequestHandler
-        registerHandler(RequestEnum.UPLOAD_ROUTE.getCode(), uploadRouteRequestHandler, handlerExecutor);
+        registerHandler(RequestEnum.UPLOAD_ROUTE.getCode(),
+            NameServerRequestHandlerProvider.getUploadRouteRequestHandler(), handlerExecutor);
         // RouteSelectAllRequestHandler
-        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(), selectAllRouteRequestHandler, handlerExecutor);
-        // RouteSelect
-        registerHandler(RequestEnum.SELECT_ROUTE.getCode(), selectByTopicNameRequestHandler, handlerExecutor);
+        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(),
+            NameServerRequestHandlerProvider.getSelectAllRouteRequestHandler(), handlerExecutor);
+        // RouteSelectRequestHandler
+        registerHandler(RequestEnum.SELECT_ROUTE.getCode(),
+            NameServerRequestHandlerProvider.getSelectByTopicNameRequestHandler(), handlerExecutor);
+        // JoinClusterRequestHandler
+        registerHandler(RequestEnum.JOIN_CLUSTER.getCode(),
+            NameServerRequestHandlerProvider.getJoinClusterRequestHandler(), handlerExecutor);
     }
 }

@@ -13,15 +13,17 @@ public class RemotingRequest<T extends IRemotingRequestBody> implements IRemotin
     private final String id;
     private final Integer code;
     private final T body;
+    private long timeoutMillis = -1L;
 
-    private RemotingRequest(final String id, final Integer code) {
-        this(id, code, null);
+    private RemotingRequest(final String id, final Integer code, final long timeoutMillis) {
+        this(id, code, null, timeoutMillis);
     }
 
-    private RemotingRequest(final String id, final Integer code, final T body) {
+    private RemotingRequest(final String id, final Integer code, final T body, final long timeoutMillis) {
         this.id = id;
         this.code = code;
         this.body = body;
+        this.timeoutMillis = timeoutMillis;
     }
 
     /**
@@ -30,8 +32,8 @@ public class RemotingRequest<T extends IRemotingRequestBody> implements IRemotin
      * @return:
      * @date: 2022/07/19 16:51:43
      */
-    public static RemotingRequest create(final String id, final int code) {
-        return new RemotingRequest<>(id, code);
+    public static RemotingRequest create(final String id, final int code, final long timeoutMillis) {
+        return new RemotingRequest<>(id, code, timeoutMillis);
     }
 
     /**
@@ -40,22 +42,8 @@ public class RemotingRequest<T extends IRemotingRequestBody> implements IRemotin
      * @return:
      * @date: 2022/07/19 16:51:51
      */
-    public static RemotingRequest create(final String id, final int code, IRemotingRequestBody data) {
-        return new RemotingRequest<>(id, code, data);
-    }
-
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public Integer getCode() {
-        return code;
-    }
-
-    @Override
-    public T getBody() {
-        return body;
+    public static RemotingRequest create(final String id, final int code, IRemotingRequestBody data,
+        final long timeoutMillis) {
+        return new RemotingRequest<>(id, code, data, timeoutMillis);
     }
 }
