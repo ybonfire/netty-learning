@@ -23,6 +23,10 @@
         </dependency>
         <dependency>
             <groupId>org.example</groupId>
+            <artifactId>pipeline-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.example</groupId>
             <artifactId>pipeline-common</artifactId>
         </dependency>
         <dependency>

@@ -15,6 +15,12 @@ import org.ybonfire.pipeline.producer.converter.NodeConverter;
 public final class NodeConverterProvider {
     private static final NodeConverter INSTANCE = new NodeConverter();
 
+    /**
+     * @description: 获取NodeConverter实例
+     * @param:
+     * @return:
+     * @date: 2022/08/12 21:56:10
+     */
     public static NodeConverter getInstance() {
         return INSTANCE;
     }

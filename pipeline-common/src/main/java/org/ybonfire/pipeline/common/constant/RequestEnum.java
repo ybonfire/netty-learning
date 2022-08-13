@@ -2,6 +2,7 @@ package org.ybonfire.pipeline.common.constant;
 
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
+import org.ybonfire.pipeline.common.protocol.request.JoinClusterRequest;
 import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
 import org.ybonfire.pipeline.common.protocol.request.RouteSelectAllRequest;
 import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
@@ -33,7 +34,15 @@ public enum RequestEnum {
     /**
      * 查询指定路由请求
      */
-    SELECT_ROUTE(202, RouteSelectByTopicRequest.class, RouteSelectResponse.class);
+    SELECT_ROUTE(202, RouteSelectByTopicRequest.class, RouteSelectResponse.class),
+    /**
+     * 加入集群请求
+     */
+    JOIN_CLUSTER(203, JoinClusterRequest.class, DefaultResponse.class),
+    /**
+     * 路由复制请求
+     */
+    ROUTE_REPLICA(204, null, DefaultResponse.class);
 
     private final int code;
     private final Class<? extends IRemotingRequestBody> requestClazz;

@@ -5,6 +5,7 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
+import org.ybonfire.pipeline.nameserver.replica.publish.RouteUploadRequestPublisher;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
@@ -17,9 +18,12 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 public final class UploadRouteRequestHandler
     extends AbstractNettyRemotingRequestHandler<RouteUploadRequest, DefaultResponse> {
     private final RouteManageService routeManageService;
+    private final RouteUploadRequestPublisher uploadRouteRequestPublisher;
 
-    public UploadRouteRequestHandler(final RouteManageService routeManageService) {
+    public UploadRouteRequestHandler(final RouteManageService routeManageService,
+        final RouteUploadRequestPublisher uploadRouteRequestPublisher) {
         this.routeManageService = routeManageService;
+        this.uploadRouteRequestPublisher = uploadRouteRequestPublisher;
     }
 
     /**
@@ -42,7 +46,9 @@ public final class UploadRouteRequestHandler
     @Override
     protected RemotingResponse<DefaultResponse> fire(final IRemotingRequest<RouteUploadRequest> request) {
         routeManageService.uploadByBroker(request.getBody());
-        return null;
+        // TODO 广播信息不保证一定能发送到集群所有结点, 考虑quorum？
+        uploadRouteRequestPublisher.publish(request);
+        return success(request);
     }
 
     /**
@@ -54,7 +60,7 @@ public final class UploadRouteRequestHandler
     @Override
     protected RemotingResponse<DefaultResponse> onException(final IRemotingRequest<RouteUploadRequest> request,
         final Exception ex) {
-        return null;
+        return exception(request, ex);
     }
 
     /**

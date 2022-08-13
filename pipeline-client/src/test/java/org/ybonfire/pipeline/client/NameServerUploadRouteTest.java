@@ -14,21 +14,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
 
 /**
- * 这里添加类的注释【强制】
+ * NameServerUploadRoute测试
  *
  * @author Bo.Yuan5
  * @date 2022-07-18 17:26
  */
-public class NameServerUploadRouteTester extends NettyRemotingClient {
+public class NameServerUploadRouteTest extends NettyRemotingClient {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final ExecutorService handlerExecutor = ThreadPoolUtil.getResponseHandlerExecutorService();
 
-    public NameServerUploadRouteTester(NettyClientConfig config) {
+    public NameServerUploadRouteTest(NettyClientConfig config) {
         super(config);
     }
 
     public static void main(String[] args) throws InterruptedException, JsonProcessingException {
-        final NettyRemotingClient client = new NameServerUploadRouteTester(new NettyClientConfig());
+        final NettyRemotingClient client = new NameServerUploadRouteTest(new NettyClientConfig());
 
         Runtime.getRuntime().addShutdownHook(new Thread(client::shutdown));
 
@@ -37,7 +37,7 @@ public class NameServerUploadRouteTester extends NettyRemotingClient {
         final RouteUploadRequest request = RouteUploadRequest.builder().brokerId("brokerId").address("address").role(1)
             .topics(Collections.emptyList()).dataVersion(0L).build();
         client.request("0:0:0:0:0:0:0:0:4690",
-            RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.UPLOAD_ROUTE.getCode(), request),
+            RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.UPLOAD_ROUTE.getCode(), request, -1L),
             3 * 1000L);
         Thread.sleep(1000L);
     }
@@ -45,6 +45,7 @@ public class NameServerUploadRouteTester extends NettyRemotingClient {
     @Override
     protected void registerResponseHandlers() {
         // RouteUploadRequestHandler
-        registerHandler(RequestEnum.UPLOAD_ROUTE.getCode(), response -> System.out.println(response.getBody()), handlerExecutor);
+        registerHandler(RequestEnum.UPLOAD_ROUTE.getCode(), response -> System.out.println(response.getBody()),
+            handlerExecutor);
     }
 }
