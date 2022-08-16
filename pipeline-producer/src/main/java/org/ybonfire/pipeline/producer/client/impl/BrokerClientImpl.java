@@ -81,6 +81,7 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
 
         return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.PRODUCER_SEND_MESSAGE.getCode(),
             MessageProduceRequest.builder().topic(topic).partitionId(partitionId).address(address).message(message)
-                .build());
+                .build(),
+            -1L);
     }
 }
