@@ -33,7 +33,7 @@ public class NameServerGetRouteTest extends NettyRemotingClient {
         client.start();
 
         final RemotingRequest request =
-            RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ALL_ROUTE.getCode(), -1L);
+            RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ALL_ROUTE.getCode(), 15000L);
         client.request("0:0:0:0:0:0:0:0:14690", request, 15 * 1000L);
         Thread.sleep(1000L);
     }

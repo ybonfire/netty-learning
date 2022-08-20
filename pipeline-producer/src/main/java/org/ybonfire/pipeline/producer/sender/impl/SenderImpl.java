@@ -5,7 +5,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.Node;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
@@ -33,7 +32,7 @@ public class SenderImpl implements ISender {
     private ExecutorService produceMessageExecutor;
 
     public SenderImpl() {
-        this.brokerClient = new BrokerClientImpl((new NettyClientConfig()));
+        this.brokerClient = new BrokerClientImpl();
     }
 
     @Override

@@ -72,18 +72,16 @@ public final class RouteManager {
      * @date: 2022/06/29 09:54:32
      */
     private void updateRouteInfo() {
+        lock.writeLock().lock();
         try {
-            final List<TopicInfo> result = nameServers.selectAllTopicInfo(10 * 1000L);
-            lock.writeLock().lock();
-            try {
-                topicInfoTable.clear();
-                topicInfoTable
-                    .putAll(result.stream().collect(Collectors.toMap(TopicInfo::getTopic, topicInfo -> topicInfo)));
-            } finally {
-                lock.writeLock().unlock();
-            }
+            final List<TopicInfo> result = nameServers.selectAllTopicInfo(15 * 1000L);
+            topicInfoTable.clear();
+            topicInfoTable
+                .putAll(result.stream().collect(Collectors.toMap(TopicInfo::getTopic, topicInfo -> topicInfo)));
         } catch (Exception ex) {
             logger.warn("远程调用NameServer查询路由信息异常");
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 

@@ -36,7 +36,7 @@ public abstract class AbstractThreadTask implements Runnable {
     public final void run() {
         try {
             execute();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             if (threadTaskExecuteFailedCallback != null) {
                 threadTaskExecuteFailedCallback.onException(this, e);
             } else {

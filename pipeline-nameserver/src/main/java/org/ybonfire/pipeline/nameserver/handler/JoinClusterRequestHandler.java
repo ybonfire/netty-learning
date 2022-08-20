@@ -73,7 +73,8 @@ public class JoinClusterRequestHandler
      * @date: 2022/07/29 12:30:45
      */
     private RemotingResponse<DefaultResponse> success(final IRemotingRequest<JoinClusterRequest> request) {
-        return RemotingResponse.create(request.getId(), request.getCode(), ResponseStatusEnum.SUCCESS.getCode());
+        return RemotingResponse.create(request.getId(), request.getCode(), ResponseStatusEnum.SUCCESS.getCode(),
+            DefaultResponse.create("success"));
     }
 
     /**

@@ -12,5 +12,8 @@ import lombok.Getter;
  */
 @Getter
 public class NameServerConfig extends NettyServerConfig {
+    /**
+     * NameServer默认端口
+     */
     private final int port = 14690;
 }

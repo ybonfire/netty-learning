@@ -116,7 +116,8 @@ public final class SelectByTopicNameRequestHandler
             final TopicInfoRemotingEntity topicInfoRemotingEntity = topicInfoRemotingEntityOptional.get();
             return RouteSelectResponse.builder()
                 .result(Collections.singletonMap(topicInfoRemotingEntity.getTopic(), topicInfoRemotingEntity)).build();
+        } else {
+            return RouteSelectResponse.builder().result(Collections.emptyMap()).build();
         }
-        return RouteSelectResponse.builder().result(Collections.emptyMap()).build();
     }
 }
