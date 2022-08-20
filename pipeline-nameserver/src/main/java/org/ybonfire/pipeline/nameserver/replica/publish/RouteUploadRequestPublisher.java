@@ -40,11 +40,7 @@ public class RouteUploadRequestPublisher {
             ThreadPoolUtil.getRouteUploadRequestPublishExecutorService().submit(task);
         }
         try {
-            if (request.getTimeoutMillis() > 0L) {
-                latch.await(request.getTimeoutMillis(), TimeUnit.MILLISECONDS);
-            } else {
-                latch.await();
-            }
+            latch.await(request.getTimeoutMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             // ignored

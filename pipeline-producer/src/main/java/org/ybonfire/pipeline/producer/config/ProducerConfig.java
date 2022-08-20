@@ -10,6 +10,8 @@ import lombok.Getter;
  */
 @Getter
 public final class ProducerConfig {
-
-    private final long lingerMillis = 1000L;
+    /**
+     * 默认请求超时时间
+     */
+    private final long requestTimeoutMillis = 15 * 1000L;
 }

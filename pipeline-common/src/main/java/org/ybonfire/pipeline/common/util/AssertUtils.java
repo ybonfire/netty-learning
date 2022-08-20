@@ -13,12 +13,15 @@ import lombok.NoArgsConstructor;
 public final class AssertUtils {
 
     public static void notNull(Object object) {
-        notNull(object, "[Assertion failed] - this argument is required; it must not be null");
-    }
-
-    public static void notNull(Object object, String errorMsgTemplate, Object... params) {
         if (object == null) {
-            throw new IllegalArgumentException(String.format(errorMsgTemplate, params));
+            throw new IllegalArgumentException("[Assertion failed] - this argument is required; it must not be null");
         }
     }
+
+    public static void express(boolean express, final String message) {
+        if (!express) {
+            throw new IllegalArgumentException("[Assertion failed] - " + message);
+        }
+    }
+
 }

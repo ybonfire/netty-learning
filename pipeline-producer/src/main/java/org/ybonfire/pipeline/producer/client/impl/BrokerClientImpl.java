@@ -78,10 +78,11 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
         final String topic = messageWrapper.getMessage().getTopic();
         final int partitionId = messageWrapper.getPartition().getPartitionId();
         final Message message = messageWrapper.getMessage();
+        final MessageProduceRequest request = MessageProduceRequest.builder().topic(topic).partitionId(partitionId)
+            .address(address).message(message).build();
+        final long timeoutMillis = messageWrapper.getTimeoutMillis();
 
         return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.PRODUCER_SEND_MESSAGE.getCode(),
-            MessageProduceRequest.builder().topic(topic).partitionId(partitionId).address(address).message(message)
-                .build(),
-            -1L);
+            request, timeoutMillis);
     }
 }
