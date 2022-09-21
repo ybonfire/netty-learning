@@ -2,10 +2,8 @@ package org.ybonfire.pipeline.common.ratelimiter.impl;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.ratelimiter.IRateLimiter;
 import org.ybonfire.pipeline.common.thread.service.AbstractThreadService;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
 
 /**
  * 令牌桶限流器
@@ -22,10 +20,10 @@ public final class TokenBucketRateLimiter implements IRateLimiter {
 
     public TokenBucketRateLimiter(final long tickMillis, final long tokenPerTicket, final long capacity) {
         if (tickMillis < 1000L) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+            throw new IllegalArgumentException("tickMillis must be more than 1000");
         }
-        if (tokenPerTicket < 0) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+        if (capacity < 0) {
+            throw new IllegalArgumentException("capacity must be more than 0");
         }
 
         this.tickMillis = tickMillis;

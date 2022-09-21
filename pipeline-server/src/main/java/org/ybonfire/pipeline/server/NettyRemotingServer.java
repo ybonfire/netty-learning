@@ -3,23 +3,26 @@ package org.ybonfire.pipeline.server;
 import java.net.InetSocketAddress;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.ybonfire.pipeline.common.codec.request.RequestDecoder;
 import org.ybonfire.pipeline.common.codec.response.ResponseEncoder;
-import org.ybonfire.pipeline.common.constant.ResponseEnum;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.model.Pair;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
-import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
-import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
+import org.ybonfire.pipeline.common.util.ThreadWorkerFactory;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
 import org.ybonfire.pipeline.server.callback.impl.DefaultResponseCallback;
 import org.ybonfire.pipeline.server.config.NettyServerConfig;
 import org.ybonfire.pipeline.server.dispatcher.IRemotingRequestDispatcher;
 import org.ybonfire.pipeline.server.dispatcher.impl.NettyRemotingRequestDispatcher;
+import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
+import org.ybonfire.pipeline.server.exception.ServerException;
 import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
 import org.ybonfire.pipeline.server.thread.RequestHandleThreadTask;
 import org.ybonfire.pipeline.server.thread.RequestHandleThreadTaskBuilder;
@@ -46,17 +49,19 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
  * @date 2022-05-18 10:34
  */
 public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRequestHandler> {
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final ServerBootstrap serverBootstrap = new ServerBootstrap();
+    private final IRemotingRequestDispatcher<IRemotingRequestHandler> dispatcher = new NettyRemotingRequestDispatcher();
+    private final NettyServerHandler nettyServerHandler = new NettyServerHandler();
+    private final IResponseCallback callback = new DefaultResponseCallback();
     private final NettyServerConfig config;
     private final EventLoopGroup parentGroup;
     private final EventLoopGroup childGroup;
     private final DefaultEventExecutorGroup defaultEventExecutorGroup;
-    private final IRemotingRequestDispatcher<IRemotingRequestHandler> dispatcher = new NettyRemotingRequestDispatcher();
-    private final NettyServerHandler nettyServerHandler = new NettyServerHandler();
-    private final IResponseCallback callback = new DefaultResponseCallback();
+    private final ExecutorService defaultHandler;
 
-    public NettyRemotingServer(final NettyServerConfig config) {
+    protected NettyRemotingServer(final NettyServerConfig config) {
         this.config = config;
 
         // parentGroup
@@ -91,6 +96,9 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
                 return new Thread(r, String.format("EventExecutor_%d", this.threadIndex.incrementAndGet()));
             }
         });
+
+        // defaultHandler
+        this.defaultHandler = Executors.newFixedThreadPool(4, new ThreadWorkerFactory("server_default_", true));
     }
 
     /**
@@ -184,21 +192,25 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
      * @date: 2022/05/18 16:27:19
      */
     private void handleRequestCommand(final ChannelHandlerContext context, final IRemotingRequest request) {
+        if (request == null) {
+            return;
+        }
+
         final Optional<Pair<IRemotingRequestHandler, ExecutorService>> pairOptional = this.dispatcher.dispatch(request);
         if (pairOptional.isPresent()) {
             final Pair<IRemotingRequestHandler, ExecutorService> pair = pairOptional.get();
             final IRemotingRequestHandler handler = pair.getKey();
-            final ExecutorService executorService = pair.getValue();
+            final ExecutorService executorService = ObjectUtils.defaultIfNull(pair.getValue(), defaultHandler);
 
             // 构造请求处理异步任务
             final RequestHandleThreadTask task =
                 RequestHandleThreadTaskBuilder.build(handler, request, context, this.callback);
             executorService.submit(task);
         } else {
-            String error = "request type " + request.getCode() + " not supported";
-            final IRemotingResponse<DefaultResponse> response = RemotingResponse.create(request.getId(),
-                request.getCode(), ResponseEnum.REQUEST_CODE_NOT_SUPPORTED.getCode(), DefaultResponse.create(error));
-            this.callback.callback(response, context);
+            String message = "request type " + request.getCode() + " not supported";
+            LOGGER.warn(message);
+            final ServerException ex = new RequestTypeNotSupportException(message);
+            this.callback.onException(request, ex, context);
         }
     }
 
@@ -238,7 +250,7 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
          * @date: 2022/05/18 18:13:20
          */
         @Override
-        protected void channelRead0(final ChannelHandlerContext ctx, final IRemotingRequest msg) throws Exception {
+        protected void channelRead0(final ChannelHandlerContext ctx, final IRemotingRequest msg) {
             NettyRemotingServer.this.handleRequestCommand(ctx, msg);
         }
     }

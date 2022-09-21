@@ -5,12 +5,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.ybonfire.pipeline.client.exception.InvokeExecuteException;
+import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
 
 import io.netty.channel.Channel;
 
@@ -52,9 +52,9 @@ public class RemoteRequestFuture {
         try {
             return this.responseFuture.get(timeoutMillis, TimeUnit.MILLISECONDS);
         } catch (ExecutionException e) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.UNKNOWN, e);
+            throw new InvokeExecuteException(e);
         } catch (TimeoutException e) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.REQUEST_TIMEOUT, e);
+            throw new ReadTimeoutException(e);
         }
     }
 

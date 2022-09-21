@@ -22,7 +22,7 @@ public enum RequestEnum {
     /**
      * 消息投递请求
      */
-    PRODUCER_SEND_MESSAGE(100, MessageProduceRequest.class, DefaultResponse.class),
+    PRODUCE_MESSAGE(100, MessageProduceRequest.class, DefaultResponse.class),
     /**
      * 上报路由请求
      */

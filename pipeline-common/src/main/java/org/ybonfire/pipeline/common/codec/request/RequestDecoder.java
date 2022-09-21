@@ -8,6 +8,7 @@ import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import org.ybonfire.pipeline.common.util.RemotingUtil;
 
 /**
  * 请求反序列化器
@@ -17,7 +18,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
  */
 public class RequestDecoder extends LengthFieldBasedFrameDecoder {
     private static final int INT_BYTE_LENGTH = 4;
-    private static final IInternalLogger logger = new SimpleInternalLogger();
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final IRequestSerializer serializer;
 
     public RequestDecoder() {
@@ -37,7 +38,7 @@ public class RequestDecoder extends LengthFieldBasedFrameDecoder {
      * @date: 2022/05/18 12:48:34
      */
     @Override
-    protected Object decode(final ChannelHandlerContext ctx, final ByteBuf in) throws Exception {
+    protected Object decode(final ChannelHandlerContext ctx, final ByteBuf in) {
         ByteBuf frame = null;
         try {
             frame = (ByteBuf)super.decode(ctx, in);
@@ -46,18 +47,21 @@ public class RequestDecoder extends LengthFieldBasedFrameDecoder {
             }
 
             if (frame.readableBytes() < INT_BYTE_LENGTH) {
-                logger.warn("数据异常, 丢弃");
+                LOGGER.warn("数据异常, 丢弃");
                 return null;
             }
 
             final int totalLength = frame.readInt();
             if (frame.readableBytes() < totalLength) {
                 in.resetReaderIndex();
-                logger.warn("数据异常, 丢弃");
+                LOGGER.warn("数据异常, 丢弃");
                 return null;
             }
 
             return serializer.decode(frame.nioBuffer());
+        } catch (Exception ex) {
+            RemotingUtil.closeChannel(ctx.channel());
+            return null;
         } finally {
             if (frame != null) {
                 frame.release();

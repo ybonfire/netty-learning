@@ -24,7 +24,7 @@ import org.ybonfire.pipeline.producer.metadata.NameServers;
  * @date 2022-06-27 18:47
  */
 public final class RouteManager {
-    private final IInternalLogger logger = new SimpleInternalLogger();
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<String, TopicInfo> topicInfoTable = new ConcurrentHashMap<>();
@@ -79,7 +79,7 @@ public final class RouteManager {
             topicInfoTable
                 .putAll(result.stream().collect(Collectors.toMap(TopicInfo::getTopic, topicInfo -> topicInfo)));
         } catch (Exception ex) {
-            logger.warn("远程调用NameServer查询路由信息异常");
+            LOGGER.warn("远程调用NameServer查询路由信息异常");
         } finally {
             lock.writeLock().unlock();
         }
@@ -105,7 +105,7 @@ public final class RouteManager {
         try {
             return nameServers.selectTopicInfo(topic, timeoutMillis);
         } catch (Exception ex) {
-            logger.warn("远程调用NameServer查询路由信息异常");
+            LOGGER.warn("远程调用NameServer查询路由信息异常");
             return Optional.empty();
         }
     }

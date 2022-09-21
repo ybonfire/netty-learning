@@ -3,9 +3,6 @@ package org.ybonfire.pipeline.common.model;
 import java.io.Serializable;
 import java.util.UUID;
 
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -55,10 +52,10 @@ public class Message implements Serializable {
 
         public Message build() {
             if (this.topic == null) {
-                throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+                throw new IllegalArgumentException();
             }
             if (this.payload == null) {
-                throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+                throw new IllegalArgumentException();
             }
 
             return new Message(this);

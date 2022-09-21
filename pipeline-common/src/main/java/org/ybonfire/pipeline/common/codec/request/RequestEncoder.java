@@ -9,6 +9,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import org.ybonfire.pipeline.common.util.RemotingUtil;
 
 /**
  * 请求序列化器
@@ -34,11 +35,14 @@ public class RequestEncoder extends MessageToByteEncoder<RemotingRequest> {
      * @date: 2022/05/18 12:44:42
      */
     @Override
-    protected void encode(final ChannelHandlerContext ctx, final RemotingRequest msg, final ByteBuf out)
-        throws Exception {
-        final ByteBuffer result = serializer.encode(msg);
-        if (result != null) {
-            out.writeBytes(result);
+    protected void encode(final ChannelHandlerContext ctx, final RemotingRequest msg, final ByteBuf out) {
+        try {
+            final ByteBuffer result = serializer.encode(msg);
+            if (result != null) {
+                out.writeBytes(result);
+            }
+        } catch (Exception ex) {
+            RemotingUtil.closeChannel(ctx.channel());
         }
     }
 }

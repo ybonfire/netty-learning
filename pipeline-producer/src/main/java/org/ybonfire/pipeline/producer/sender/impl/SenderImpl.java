@@ -5,20 +5,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.Node;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
-import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.producer.client.IBrokerClient;
 import org.ybonfire.pipeline.producer.client.impl.BrokerClientImpl;
+import org.ybonfire.pipeline.producer.exception.PartitionLeaderNotFoundException;
+import org.ybonfire.pipeline.producer.exception.ProduceTimeoutException;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 import org.ybonfire.pipeline.producer.model.ProduceTypeEnum;
 import org.ybonfire.pipeline.producer.sender.ISender;
 
 import lombok.Getter;
+import org.ybonfire.pipeline.producer.util.ThreadPoolUtil;
 
 /**
  * 发送器实现
@@ -67,7 +67,7 @@ public class SenderImpl implements ISender {
         final long startTime = System.currentTimeMillis();
         final long timeoutMillis = message.getTimeoutMillis();
         if (timeoutMillis <= 0L) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.TIMEOUT_EXCEPTION);
+            throw new ProduceTimeoutException();
         }
 
         final MessageSendThreadTask task = buildMessageSendThreadTask(message);
@@ -133,7 +133,7 @@ public class SenderImpl implements ISender {
             try {
                 // 消息投递
                 final String address = partition.tryToFindPartitionLeaderNode().map(Node::getAddress)
-                    .orElseThrow(() -> ExceptionUtil.exception(ExceptionTypeEnum.UNKNOWN_PARTITION_LEADER));
+                    .orElseThrow(PartitionLeaderNotFoundException::new);
                 final ProduceResult result =
                     SenderImpl.this.getBrokerClient().produce(message, address, message.getTimeoutMillis());
                 message.setResult(result);

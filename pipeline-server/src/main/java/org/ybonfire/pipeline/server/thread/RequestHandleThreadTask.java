@@ -2,13 +2,12 @@ package org.ybonfire.pipeline.server.thread;
 
 import java.util.UUID;
 
-import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
-import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
+import org.ybonfire.pipeline.server.exception.ServerException;
+import org.ybonfire.pipeline.server.exception.UnknownException;
 import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -46,13 +45,17 @@ public final class RequestHandleThreadTask extends AbstractThreadTask {
     protected void execute() {
         try {
             final RemotingResponse<?> response = handler.handle(this.request);
-            callback.callback(response, this.context);
-        } catch (Throwable ex) {
-            final String error = "请求处理失败";
+            callback.onSuccess(response, this.context);
+        } catch (Exception ex) {
+            final String error = "请求处理异常";
             log.error(error, ex);
-            final IRemotingResponse response = RemotingResponse.create(request.getId(), request.getCode(),
-                ResponseEnum.INTERNAL_SYSTEM_ERROR.getCode(), DefaultResponse.create(error));
-            callback.callback(response, this.context);
+
+            if (ex instanceof ServerException) {
+                callback.onException(request, ex, context);
+            } else {
+                final ServerException exWrapper = new UnknownException(ex);
+                callback.onException(request, exWrapper, context);
+            }
         }
     }
 }

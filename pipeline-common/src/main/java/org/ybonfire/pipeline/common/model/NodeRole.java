@@ -1,8 +1,5 @@
 package org.ybonfire.pipeline.common.model;
 
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
-
 /**
  * 结点角色
  *
@@ -31,7 +28,7 @@ public enum NodeRole {
 
     public static NodeRole of(final Integer code) {
         if (code == null) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+            throw new IllegalArgumentException();
         }
 
         for (final NodeRole role : NodeRole.values()) {
@@ -40,6 +37,6 @@ public enum NodeRole {
             }
         }
 
-        throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+        throw new IllegalArgumentException();
     }
 }
