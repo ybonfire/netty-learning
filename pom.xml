@@ -131,5 +131,6 @@
         <module>pipeline-common</module>
         <module>pipeline-producer</module>
         <module>pipeline-nameserver</module>
+        <module>pipeline-broker</module>
     </modules>
 </project>

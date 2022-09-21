@@ -1,7 +1,6 @@
 package org.ybonfire.pipeline.nameserver.client;
 
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
-import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 
 /**
  * Nameserver远程调用接口

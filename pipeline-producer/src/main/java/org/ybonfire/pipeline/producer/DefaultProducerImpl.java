@@ -3,12 +3,14 @@ package org.ybonfire.pipeline.producer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
+import org.apache.commons.lang3.StringUtils;
+import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.producer.callback.IMessageProduceCallback;
 import org.ybonfire.pipeline.producer.constant.ProducerConstant;
+import org.ybonfire.pipeline.producer.exception.IllegalMessageException;
+import org.ybonfire.pipeline.producer.exception.RouteNotFoundException;
 import org.ybonfire.pipeline.producer.metadata.NameServers;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
@@ -85,7 +87,8 @@ public final class DefaultProducerImpl implements IProducer {
         if (result != null) {
             return result;
         }
-        throw ExceptionUtil.exception(ExceptionTypeEnum.TIMEOUT_EXCEPTION);
+
+        throw new ReadTimeoutException();
     }
 
     /**
@@ -123,7 +126,19 @@ public final class DefaultProducerImpl implements IProducer {
      * @return:
      * @date: 2022/06/28 09:48:42
      */
-    private void check(final Message message) {}
+    private void check(final Message message) {
+        if (message == null) {
+            throw new IllegalMessageException("message must not be null");
+        }
+
+        if (StringUtils.isBlank(message.getTopic())) {
+            throw new IllegalMessageException("topic must not blank");
+        }
+
+        if (message.getPayload() == null || message.getPayload().length == 0) {
+            throw new IllegalMessageException("payload must not be empty");
+        }
+    }
 
     /**
      * @description: 执行消息投递逻辑
@@ -149,7 +164,7 @@ public final class DefaultProducerImpl implements IProducer {
             return wrapper.getResult();
         }
 
-        throw ExceptionUtil.exception(ExceptionTypeEnum.TIMEOUT_EXCEPTION);
+        throw new ReadTimeoutException();
     }
 
     /**
@@ -160,8 +175,7 @@ public final class DefaultProducerImpl implements IProducer {
      */
     private PartitionInfo selectPartition(final Message message, final long timeoutMillis) {
         // TODO 未查找到对应路由时的处理
-        return partitionSelector.select(message, timeoutMillis)
-            .orElseThrow(() -> ExceptionUtil.exception(ExceptionTypeEnum.UNKNOWN_ROUTE));
+        return partitionSelector.select(message, timeoutMillis).orElseThrow(RouteNotFoundException::new);
     }
 
     /**

@@ -2,9 +2,8 @@ package org.ybonfire.pipeline.nameserver.client.impl;
 
 import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
+import org.ybonfire.pipeline.client.exception.InvokeInterruptedException;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.nameserver.client.INameServerClient;
 
 /**
@@ -29,8 +28,9 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
     public void uploadRoute(final String address, final IRemotingRequest request, final long timeoutMillis) {
         try {
             requestOneWay(address, request, timeoutMillis);
-        } catch (Exception ex) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.REMOTING_INVOKE_FAILED);
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new InvokeInterruptedException(e);
         }
     }
 

@@ -3,7 +3,9 @@ package org.ybonfire.pipeline.nameserver.handler;
 import java.util.Collections;
 import java.util.Optional;
 
-import org.ybonfire.pipeline.common.constant.ResponseStatusEnum;
+import org.ybonfire.pipeline.common.constant.ResponseEnum;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
@@ -21,7 +23,8 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @date 2022-07-11 14:04
  */
 public final class SelectByTopicNameRequestHandler
-    extends AbstractNettyRemotingRequestHandler<RouteSelectByTopicRequest, RouteSelectResponse> {
+    extends AbstractNettyRemotingRequestHandler<RouteSelectByTopicRequest> {
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final RouteManageService routeManageService;
     private final TopicInfoConverter topicInfoConverter;
 
@@ -49,22 +52,11 @@ public final class SelectByTopicNameRequestHandler
      * @date: 2022/07/11 14:23:13
      */
     @Override
-    protected RemotingResponse<RouteSelectResponse> fire(final IRemotingRequest<RouteSelectByTopicRequest> request) {
+    protected RemotingResponse fire(final IRemotingRequest<RouteSelectByTopicRequest> request) {
         final Optional<TopicInfo> topicInfoOptional =
             routeManageService.selectByTopicName(request.getBody().getTopic());
-        return success(request, topicInfoOptional);
-    }
-
-    /**
-     * @description: 异常处理
-     * @param:
-     * @return:
-     * @date: 2022/07/11 14:23:18
-     */
-    @Override
-    protected RemotingResponse<RouteSelectResponse>
-        onException(final IRemotingRequest<RouteSelectByTopicRequest> request, final Exception ex) {
-        return exception(request, ex);
+        return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
+            convert(topicInfoOptional));
     }
 
     /**
@@ -76,31 +68,6 @@ public final class SelectByTopicNameRequestHandler
     @Override
     protected void onComplete(final IRemotingRequest<RouteSelectByTopicRequest> request) {
 
-    }
-
-    /**
-     * @description: 构造处理成功响应体
-     * @param:
-     * @return:
-     * @date: 2022/07/13 18:37:24
-     */
-    private RemotingResponse<RouteSelectResponse> success(final IRemotingRequest<RouteSelectByTopicRequest> request,
-        final Optional<TopicInfo> topicInfoOptional) {
-        return RemotingResponse.create(request.getId(), request.getCode(), ResponseStatusEnum.SUCCESS.getCode(),
-            convert(topicInfoOptional));
-    }
-
-    /**
-     * @description: 构造处理异常响应体
-     * @param:
-     * @return:
-     * @date: 2022/07/28 20:11:11
-     */
-    private RemotingResponse<RouteSelectResponse> exception(final IRemotingRequest<RouteSelectByTopicRequest> request,
-        final Exception ex) {
-        // TODO 不同Exception对应不同Status
-        return RemotingResponse.create(request.getId(), request.getCode(),
-            ResponseStatusEnum.INTERNAL_SYSTEM_ERROR.getCode());
     }
 
     /**

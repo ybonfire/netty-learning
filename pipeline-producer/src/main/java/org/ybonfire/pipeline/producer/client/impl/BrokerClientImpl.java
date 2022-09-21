@@ -5,14 +5,12 @@ import java.util.UUID;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingRequest;
 import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
 import org.ybonfire.pipeline.common.protocol.response.MessageProduceResponse;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.producer.client.IBrokerClient;
 import org.ybonfire.pipeline.producer.converter.ProduceResultConverter;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
@@ -52,18 +50,14 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
      */
     @Override
     public ProduceResult produce(final MessageWrapper message, final String address, final long timeoutMillis) {
-        try {
-            final IRemotingResponse<MessageProduceResponse> response =
-                request(address, buildProduceMessageRequest(message, address), timeoutMillis);
-            if (response.getStatus() == 0) {
-                return produceResultConverter.convert(response.getBody());
-            } else {
-                return ProduceResult.builder().topic(message.getMessage().getTopic())
-                    .partitionId(message.getPartition().getPartitionId()).offset(-1L).isSuccess(false)
-                    .message(message.getMessage()).build();
-            }
-        } catch (Exception ex) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.REMOTING_INVOKE_FAILED);
+        final IRemotingResponse<MessageProduceResponse> response =
+            request(address, buildProduceMessageRequest(message, address), timeoutMillis);
+        if (response.getStatus() == 0) {
+            return produceResultConverter.convert(response.getBody());
+        } else {
+            return ProduceResult.builder().topic(message.getMessage().getTopic())
+                .partitionId(message.getPartition().getPartitionId()).offset(-1L).isSuccess(false)
+                .message(message.getMessage()).build();
         }
     }
 
@@ -82,7 +76,7 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
             .address(address).message(message).build();
         final long timeoutMillis = messageWrapper.getTimeoutMillis();
 
-        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.PRODUCER_SEND_MESSAGE.getCode(),
+        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.PRODUCE_MESSAGE.getCode(),
             request, timeoutMillis);
     }
 }

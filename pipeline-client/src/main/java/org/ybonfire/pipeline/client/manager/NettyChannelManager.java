@@ -7,8 +7,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
+import org.ybonfire.pipeline.client.exception.ConnectFailedException;
+import org.ybonfire.pipeline.client.exception.ConnectTimeoutException;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.util.RemotingUtil;
 
 import io.netty.bootstrap.Bootstrap;
@@ -22,6 +24,7 @@ import io.netty.channel.ChannelFuture;
  * @date 2022-05-19 10:09
  */
 public class NettyChannelManager {
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final Lock lock = new ReentrantLock();
     private final Map<String, Channel> channelTable = new ConcurrentHashMap<>();
     private final Bootstrap bootstrap;
@@ -115,8 +118,8 @@ public class NettyChannelManager {
      */
     private void doCloseChannel(final Channel channel) {
         final String address = RemotingUtil.parseChannelAddress(channel);
-        channel.close().addListener(
-            future -> System.out.println("关闭连接. Address: [" + address + "]. result:" + future.isSuccess()));
+        channel.close()
+            .addListener(future -> LOGGER.info("关闭连接. Address: [" + address + "]. result:" + future.isSuccess()));
     }
 
     /**
@@ -133,11 +136,13 @@ public class NettyChannelManager {
                 return channel;
             } else {
                 // connect failed
-                throw ExceptionUtil.exception(ExceptionTypeEnum.CONNECT_FAILED);
+                LOGGER.error("远程连接失败");
+                throw new ConnectFailedException();
             }
         } else {
             // connect timeout
-            throw ExceptionUtil.exception(ExceptionTypeEnum.CONNECT_TIMEOUT);
+            LOGGER.error("远程连接超时");
+            throw new ConnectTimeoutException();
         }
     }
 }

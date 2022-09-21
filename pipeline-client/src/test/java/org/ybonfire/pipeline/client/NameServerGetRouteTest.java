@@ -2,11 +2,11 @@ package org.ybonfire.pipeline.client;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.protocol.RemotingRequest;
-import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class NameServerGetRouteTest extends NettyRemotingClient {
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final ExecutorService handlerExecutor = ThreadPoolUtil.getResponseHandlerExecutorService();
+    private static final ExecutorService handlerExecutor = Executors.newFixedThreadPool(1);
 
     public NameServerGetRouteTest(NettyClientConfig config) {
         super(config);

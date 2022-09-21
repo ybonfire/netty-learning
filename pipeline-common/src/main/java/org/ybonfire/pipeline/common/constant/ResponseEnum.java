@@ -1,7 +1,5 @@
 package org.ybonfire.pipeline.common.constant;
 
-import java.util.Optional;
-
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 
@@ -12,30 +10,41 @@ import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
  * @date 2022-05-18 16:49
  */
 public enum ResponseEnum {
+    // #################### Common #################### //
+
     /**
      * 成功
      */
     SUCCESS(0, IRemotingResponseBody.class),
     /**
-     * 不支持的请求码
+     * 不支持的请求类型
      */
-    REQUEST_CODE_NOT_SUPPORTED(-1, DefaultResponse.class),
+    REQUEST_TYPE_NOT_SUPPORTED(-1, DefaultResponse.class),
     /**
-     * 系统内部异常
+     * 异常参数请求
      */
-    INTERNAL_SYSTEM_ERROR(-2, DefaultResponse.class),
+    BAD_REQUEST(-2, DefaultResponse.class),
     /**
-     * 服务未响应
+     * 未知异常
      */
-    SERVER_NOT_RESPONSE(-3, DefaultResponse.class),
+    UNKNOWN_ERROR(-100, DefaultResponse.class),
+
+    // #################### Broker #################### //
+
     /**
-     * 请求超时
+     * 服务器角色不支持当前请求
      */
-    REQUEST_TIMEOUT(-4, DefaultResponse.class),
+    SERVER_ROLE_NOT_SUPPORTED(-200, DefaultResponse.class),
     /**
-     * 请求失败
+     * 消息文件创建失败
      */
-    REQUEST_FAILED(-5, DefaultResponse.class);
+    MESSAGE_FILE_CREATE_FAILED(-201, DefaultResponse.class),
+    /**
+     * 消息文件没有足够空间
+     */
+    MESSAGE_FILE_NOT_ENOUGH_SPACE(-202, DefaultResponse.class)
+
+    ;
 
     private final int code;
     private final Class<? extends IRemotingResponseBody> clazz;
@@ -49,11 +58,11 @@ public enum ResponseEnum {
         return code;
     }
 
-    public Optional<Class<? extends IRemotingResponseBody>> getClazz() {
-        return Optional.ofNullable(clazz);
+    public Class<? extends IRemotingResponseBody> getClazz() {
+        return clazz;
     }
 
-    public static ResponseEnum code(final int code) {
+    public static ResponseEnum of(final int code) {
         for (final ResponseEnum request : ResponseEnum.values()) {
             if (request.code == code) {
                 return request;

@@ -1,7 +1,9 @@
 package org.ybonfire.pipeline.common.codec.request.serializer;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.ybonfire.pipeline.common.protocol.RemotingRequest;
 
 /**
@@ -17,7 +19,7 @@ public interface IRequestSerializer {
      * @return:
      * @date: 2022/05/25 12:32:22
      */
-    ByteBuffer encode(final RemotingRequest src);
+    ByteBuffer encode(final RemotingRequest src) throws JsonProcessingException;
 
     /**
      * @description: 反序列化
@@ -25,5 +27,5 @@ public interface IRequestSerializer {
      * @return:
      * @date: 2022/05/25 12:32:27
      */
-    RemotingRequest decode(final ByteBuffer src);
+    RemotingRequest decode(final ByteBuffer src) throws IOException;
 }

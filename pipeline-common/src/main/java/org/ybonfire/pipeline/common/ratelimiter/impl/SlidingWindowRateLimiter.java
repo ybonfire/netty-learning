@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.ratelimiter.IRateLimiter;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
 
 import lombok.Builder;
 
@@ -20,21 +18,21 @@ public final class SlidingWindowRateLimiter implements IRateLimiter {
     private static final int WINDOW_COUNT = 10;
     private final List<Window> windows = new ArrayList<>();
     private final long intervalMillisPerWindow;
-    private final long acquiresPerWindow;
+    private final long capacityPerWindow;
 
-    public SlidingWindowRateLimiter(final long intervalMillis, final long acquires) {
+    public SlidingWindowRateLimiter(final long intervalMillis, final long capacity) {
         if (intervalMillis < 1000L) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+            throw new IllegalArgumentException("internalMillis must be more than 1000");
         }
-        if (acquires < 0) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+        if (capacity < 0) {
+            throw new IllegalArgumentException("capacity must be more than 0");
         }
 
         this.intervalMillisPerWindow = intervalMillis / WINDOW_COUNT;
-        this.acquiresPerWindow = acquires / WINDOW_COUNT;
+        this.capacityPerWindow = capacity / WINDOW_COUNT;
 
         for (int i = 0; i < WINDOW_COUNT; ++i) {
-            windows.add(Window.builder().intervalMillis(intervalMillisPerWindow).acquires(acquiresPerWindow).build());
+            windows.add(Window.builder().intervalMillis(intervalMillisPerWindow).capacity(capacityPerWindow).build());
         }
     }
 
@@ -47,7 +45,7 @@ public final class SlidingWindowRateLimiter implements IRateLimiter {
     @Override
     public synchronized boolean acquire(final int acquires) {
         if (acquires < 0) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+            throw new IllegalArgumentException("acquires must be more than 0");
         }
         return currentWindow().acquire(acquires);
     }
@@ -71,7 +69,7 @@ public final class SlidingWindowRateLimiter implements IRateLimiter {
     @Builder
     private static class Window {
         private final long intervalMillis;
-        private final long acquires;
+        private final long capacity;
         private volatile long startTime;
         private final AtomicLong counter = new AtomicLong(0L);
 
@@ -83,7 +81,7 @@ public final class SlidingWindowRateLimiter implements IRateLimiter {
          */
         public synchronized boolean acquire(final long acquires) {
             tryRefresh();
-            return counter.getAndAdd(acquires) <= this.acquires;
+            return counter.getAndAdd(acquires) <= this.capacity;
         }
 
         /**

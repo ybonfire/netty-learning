@@ -1,14 +1,20 @@
 package org.ybonfire.pipeline.common.util;
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.SocketAddress;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Enumeration;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 
 /**
  * 远程调用工具类
@@ -18,6 +24,8 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RemotingUtil {
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
+
     /**
      * @description: 将ip:port结构的字符串转换为InetSocketAddress对象
      * @param:
@@ -56,6 +64,12 @@ public final class RemotingUtil {
         return "";
     }
 
+    /**
+     * 套接字地址解析地址
+     *
+     * @param socketAddress 套接字地址
+     * @return {@link String}
+     */
     public static String parseSocketAddressAddress(SocketAddress socketAddress) {
         if (socketAddress != null) {
             final String addr = socketAddress.toString();
@@ -65,5 +79,108 @@ public final class RemotingUtil {
             }
         }
         return "";
+    }
+
+    /**
+     * 解析远程地址
+     *
+     * @param channel 通道
+     * @return {@link String}
+     */
+    public static String parseChannelRemoteAddr(final Channel channel) {
+        if (null == channel) {
+            return "";
+        }
+        SocketAddress remote = channel.remoteAddress();
+        final String addr = remote != null ? remote.toString() : "";
+
+        if (addr.length() > 0) {
+            int index = addr.lastIndexOf("/");
+            if (index >= 0) {
+                return addr.substring(index + 1);
+            }
+
+            return addr;
+        }
+
+        return "";
+    }
+
+    /**
+     * 关闭通道
+     *
+     * @param channel 通道
+     */
+    public static void closeChannel(final Channel channel) {
+        final String addrRemote = parseChannelRemoteAddr(channel);
+        channel.close().addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                LOGGER.info("closeChannel: close the connection to remote address: " + addrRemote + "result: "
+                    + future.isSuccess());
+            }
+        });
+    }
+
+    /**
+     * 获取本地地址
+     *
+     * @return {@link String}
+     */
+    public static String getLocalAddress() {
+        try {
+            // Traversal Network interface to get the first non-loopback and non-private address
+            Enumeration<NetworkInterface> enumeration = NetworkInterface.getNetworkInterfaces();
+            ArrayList<String> ipv4Result = new ArrayList<>();
+            ArrayList<String> ipv6Result = new ArrayList<>();
+            while (enumeration.hasMoreElements()) {
+                final NetworkInterface networkInterface = enumeration.nextElement();
+                final Enumeration<InetAddress> en = networkInterface.getInetAddresses();
+                while (en.hasMoreElements()) {
+                    final InetAddress address = en.nextElement();
+                    if (!address.isLoopbackAddress()) {
+                        if (address instanceof Inet6Address) {
+                            ipv6Result.add(normalizeHostAddress(address));
+                        } else {
+                            ipv4Result.add(normalizeHostAddress(address));
+                        }
+                    }
+                }
+            }
+
+            // prefer ipv4
+            if (!ipv4Result.isEmpty()) {
+                for (String ip : ipv4Result) {
+                    if (ip.startsWith("127.0") || ip.startsWith("192.168")) {
+                        continue;
+                    }
+
+                    return ip;
+                }
+
+                return ipv4Result.get(ipv4Result.size() - 1);
+            } else if (!ipv6Result.isEmpty()) {
+                return ipv6Result.get(0);
+            }
+            //If failed to find,fall back to localhost
+            final InetAddress localHost = InetAddress.getLocalHost();
+            return normalizeHostAddress(localHost);
+        } catch (Exception e) {
+            LOGGER.error("Failed to obtain local address", e);
+        }
+
+        return null;
+    }
+
+    public static String normalizeHostAddress(final InetAddress localHost) {
+        if (localHost instanceof Inet6Address) {
+            return "[" + localHost.getHostAddress() + "]";
+        } else {
+            return localHost.getHostAddress();
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(getLocalAddress());
     }
 }

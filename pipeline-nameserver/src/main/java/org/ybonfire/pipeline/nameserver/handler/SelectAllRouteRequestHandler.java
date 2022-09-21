@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.ybonfire.pipeline.common.constant.ResponseStatusEnum;
+import org.ybonfire.pipeline.common.constant.ResponseEnum;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
@@ -22,8 +24,8 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @author Bo.Yuan5
  * @date 2022-07-11 14:04
  */
-public final class SelectAllRouteRequestHandler
-    extends AbstractNettyRemotingRequestHandler<RouteSelectAllRequest, RouteSelectResponse> {
+public final class SelectAllRouteRequestHandler extends AbstractNettyRemotingRequestHandler<RouteSelectAllRequest> {
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final RouteManageService routeManageService;
     private final TopicInfoConverter topicInfoConverter;
 
@@ -51,21 +53,10 @@ public final class SelectAllRouteRequestHandler
      * @date: 2022/07/11 14:23:13
      */
     @Override
-    protected RemotingResponse<RouteSelectResponse> fire(final IRemotingRequest<RouteSelectAllRequest> request) {
+    protected RemotingResponse fire(final IRemotingRequest<RouteSelectAllRequest> request) {
         final List<TopicInfo> result = this.routeManageService.selectAll();
-        return success(request, result);
-    }
-
-    /**
-     * @description: 异常处理
-     * @param:
-     * @return:
-     * @date: 2022/07/11 14:23:18
-     */
-    @Override
-    protected RemotingResponse<RouteSelectResponse> onException(final IRemotingRequest<RouteSelectAllRequest> request,
-        final Exception ex) {
-        return exception(request, ex);
+        return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
+            convert(result));
     }
 
     /**
@@ -77,31 +68,6 @@ public final class SelectAllRouteRequestHandler
     @Override
     protected void onComplete(final IRemotingRequest<RouteSelectAllRequest> request) {
 
-    }
-
-    /**
-     * @description: 构造处理成功响应体
-     * @param:
-     * @return:
-     * @date: 2022/07/13 18:37:24
-     */
-    private RemotingResponse<RouteSelectResponse> success(final IRemotingRequest<RouteSelectAllRequest> request,
-        final List<TopicInfo> topicInfos) {
-        return RemotingResponse.create(request.getId(), request.getCode(), ResponseStatusEnum.SUCCESS.getCode(),
-            convert(topicInfos));
-    }
-
-    /**
-     * @description: 构造处理异常响应体
-     * @param:
-     * @return:
-     * @date: 2022/07/28 20:11:11
-     */
-    private RemotingResponse<RouteSelectResponse> exception(final IRemotingRequest<RouteSelectAllRequest> request,
-        final Exception ex) {
-        // TODO 不同Exception对应不同Status
-        return RemotingResponse.create(request.getId(), request.getCode(),
-            ResponseStatusEnum.INTERNAL_SYSTEM_ERROR.getCode());
     }
 
     /**

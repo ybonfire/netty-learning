@@ -1,13 +1,11 @@
 package org.ybonfire.pipeline.producer.metadata;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.ybonfire.pipeline.common.exception.BaseException;
-import org.ybonfire.pipeline.common.exception.ExceptionTypeEnum;
 import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.util.ExceptionUtil;
 import org.ybonfire.pipeline.producer.client.impl.NameServerClientImpl;
 
 /**
@@ -50,20 +48,15 @@ public class NameServers {
      */
     public List<TopicInfo> selectAllTopicInfo(final long timeoutMillis) {
         if (nameServerAddressList.isEmpty()) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+            throw new IllegalArgumentException();
         }
 
-        BaseException e = null;
-        try {
-            for (int i = 0; i < nameServerAddressList.size(); ++i) {
-                final String address = nameServerAddressList.get(i);
-                return nameServerClient.selectAllTopicInfo(address, timeoutMillis);
-            }
-        } catch (BaseException ex) {
-            e = ex;
+        for (int i = 0; i < nameServerAddressList.size(); ++i) {
+            final String address = nameServerAddressList.get(i);
+            return nameServerClient.selectAllTopicInfo(address, timeoutMillis);
         }
 
-        throw e == null ? ExceptionUtil.exception(ExceptionTypeEnum.UNKNOWN) : e;
+        return Collections.emptyList();
     }
 
     /**
@@ -74,19 +67,14 @@ public class NameServers {
      */
     public Optional<TopicInfo> selectTopicInfo(final String topic, final long timeoutMillis) {
         if (nameServerAddressList.isEmpty()) {
-            throw ExceptionUtil.exception(ExceptionTypeEnum.ILLEGAL_ARGUMENT);
+            throw new IllegalArgumentException();
         }
 
-        BaseException e = null;
-        try {
-            for (int i = 0; i < nameServerAddressList.size(); ++i) {
-                final String address = nameServerAddressList.get(i);
-                return nameServerClient.selectTopicInfo(topic, address, timeoutMillis);
-            }
-        } catch (BaseException ex) {
-            e = ex;
+        for (int i = 0; i < nameServerAddressList.size(); ++i) {
+            final String address = nameServerAddressList.get(i);
+            return nameServerClient.selectTopicInfo(topic, address, timeoutMillis);
         }
 
-        throw e == null ? ExceptionUtil.exception(ExceptionTypeEnum.UNKNOWN) : e;
+        return Optional.empty();
     }
 }

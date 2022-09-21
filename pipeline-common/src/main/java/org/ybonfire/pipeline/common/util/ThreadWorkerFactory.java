@@ -4,10 +4,10 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 线程工厂
+ * 线程worker工厂
  *
- * @author Bo.Yuan5
- * @date 2022-07-04 10:03
+ * @author yuanbo
+ * @date 2022/09/08 17:39:19
  */
 public class ThreadWorkerFactory implements ThreadFactory {
     private final AtomicInteger counter = new AtomicInteger(0);
@@ -19,12 +19,6 @@ public class ThreadWorkerFactory implements ThreadFactory {
         this.isDaemon = isDaemon;
     }
 
-    /**
-     * @description: 构造线程
-     * @param:
-     * @return:
-     * @date: 2022/07/04 10:07:41
-     */
     @Override
     public Thread newThread(final Runnable r) {
         final Thread thread =

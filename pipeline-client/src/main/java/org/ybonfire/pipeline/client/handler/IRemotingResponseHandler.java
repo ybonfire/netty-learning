@@ -1,6 +1,5 @@
 package org.ybonfire.pipeline.client.handler;
 
-import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
 /**
@@ -10,7 +9,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
  * @date 2022-05-18 10:29
  */
 @FunctionalInterface
-public interface IRemotingResponseHandler<T extends IRemotingResponseBody> {
+public interface IRemotingResponseHandler {
 
     /**
      * @description: 处理远程调用响应
@@ -18,5 +17,5 @@ public interface IRemotingResponseHandler<T extends IRemotingResponseBody> {
      * @return:
      * @date: 2022/07/19 19:08:47
      */
-    void handle(final RemotingResponse<T> response);
+    void handle(final RemotingResponse response);
 }

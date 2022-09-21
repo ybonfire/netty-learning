@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.server.callback;
 
+import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -13,10 +14,18 @@ import io.netty.channel.ChannelHandlerContext;
 public interface IResponseCallback {
 
     /**
-     * @description: 回调流程
+     * @description: 成功响应回调流程
      * @param:
      * @return:
      * @date: 2022/05/18 18:07:46
      */
-    void callback(final IRemotingResponse response, final ChannelHandlerContext context);
+    void onSuccess(final IRemotingResponse response, final ChannelHandlerContext context);
+
+    /**
+     * @description: 异常响应回调流程
+     * @param:
+     * @return:
+     * @date: 2022/09/09 14:31:01
+     */
+    void onException(final IRemotingRequest request, final Exception ex, final ChannelHandlerContext context);
 }

@@ -3,13 +3,18 @@ package org.ybonfire.pipeline.client;
 import java.net.SocketAddress;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.client.dispatcher.IRemotingResponseDispatcher;
 import org.ybonfire.pipeline.client.dispatcher.impl.NettyRemotingResponseDispatcher;
+import org.ybonfire.pipeline.client.exception.ConnectFailedException;
+import org.ybonfire.pipeline.client.exception.InvokeInterruptedException;
+import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
 import org.ybonfire.pipeline.client.handler.IRemotingResponseHandler;
 import org.ybonfire.pipeline.client.manager.InflightRequestManager;
 import org.ybonfire.pipeline.client.manager.NettyChannelManager;
@@ -19,17 +24,17 @@ import org.ybonfire.pipeline.client.thread.ClientChannelEventHandleThreadService
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
 import org.ybonfire.pipeline.common.codec.request.RequestEncoder;
 import org.ybonfire.pipeline.common.codec.response.ResponseDecoder;
-import org.ybonfire.pipeline.common.constant.ResponseEnum;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.model.NettyChannelEvent;
 import org.ybonfire.pipeline.common.model.NettyChannelEventTypeEnum;
 import org.ybonfire.pipeline.common.model.Pair;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.common.util.AssertUtils;
 import org.ybonfire.pipeline.common.util.RemotingUtil;
-import org.ybonfire.pipeline.common.util.ThreadPoolUtil;
+import org.ybonfire.pipeline.common.util.ThreadWorkerFactory;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -53,20 +58,21 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
  * @date 2022-05-18 15:28
  */
 public abstract class NettyRemotingClient implements IRemotingClient<IRemotingResponseHandler> {
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final Bootstrap bootstrap = new Bootstrap();
-    private final NettyClientConfig config;
-    private final EventLoopGroup clientEventLoopGroup;
-    private final DefaultEventExecutorGroup defaultEventExecutorGroup;
     private final NettyChannelManager channelManager = new NettyChannelManager(bootstrap);
     private final ClientChannelEventHandleThreadService channelEventHandleThreadService =
         new ClientChannelEventHandleThreadService(channelManager);
     private final IRemotingResponseDispatcher<IRemotingResponseHandler> dispatcher =
         new NettyRemotingResponseDispatcher();
     private final InflightRequestManager inflightRequestManager = new InflightRequestManager();
-    private final ExecutorService defaultHandler = ThreadPoolUtil.getResponseHandlerExecutorService();
+    private final NettyClientConfig config;
+    private final EventLoopGroup clientEventLoopGroup;
+    private final DefaultEventExecutorGroup defaultEventExecutorGroup;
+    private final ExecutorService defaultHandler;
 
-    public NettyRemotingClient(final NettyClientConfig config) {
+    protected NettyRemotingClient(final NettyClientConfig config) {
         this.config = config;
 
         // eventLoopGroup
@@ -90,6 +96,9 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
                 return new Thread(r, String.format("EventExecutor_%d", this.threadIndex.incrementAndGet()));
             }
         });
+
+        // defaultHandler
+        this.defaultHandler = Executors.newFixedThreadPool(4, new ThreadWorkerFactory("client_default_", true));
     }
 
     /**
@@ -155,10 +164,14 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @date: 2022/05/19 10:07:08
      */
     @Override
-    public IRemotingResponse request(final String address, final IRemotingRequest request, final long timeoutMillis)
-        throws InterruptedException {
+    public IRemotingResponse request(final String address, final IRemotingRequest request, final long timeoutMillis) {
         acquireOK();
-        return doRequest(address, request, null, timeoutMillis, RequestTypeEnum.SYNC);
+        try {
+            return doRequest(address, request, null, timeoutMillis, RequestTypeEnum.SYNC);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new InvokeInterruptedException(ex);
+        }
     }
 
     /**
@@ -313,11 +326,9 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
             final IRemotingResponse response = future.get(timeoutMillis);
             if (response == null) {
                 if (future.isRequestSuccess()) { // 请求成功，未在指定时间内获得响应
-                    return RemotingResponse.create(future.getRequest().getId(), future.getRequest().getCode(),
-                        ResponseEnum.REQUEST_TIMEOUT.getCode(), DefaultResponse.create("请求超时"));
+                    throw new ReadTimeoutException();
                 } else { // 请求失败
-                    return RemotingResponse.create(future.getRequest().getId(), future.getRequest().getCode(),
-                        ResponseEnum.REQUEST_FAILED.getCode(), DefaultResponse.create("请求失败"));
+                    throw new ConnectFailedException();
                 }
             }
 
@@ -367,17 +378,21 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @date: 2022/05/23 23:58:06
      */
     private void handleResponseCommand(final RemotingResponse response) {
+        if (response == null) {
+            return;
+        }
+
         final Optional<Pair<IRemotingResponseHandler, ExecutorService>> pairOptional =
             this.dispatcher.dispatch(response);
         if (pairOptional.isPresent()) {
             final Pair<IRemotingResponseHandler, ExecutorService> pair = pairOptional.get();
             final IRemotingResponseHandler handler = pair.getKey();
-            final ExecutorService executorService = pair.getValue() == null ? defaultHandler : pair.getValue();
+            final ExecutorService executorService = ObjectUtils.defaultIfNull(pair.getValue(), defaultHandler);
 
             executorService.submit(() -> handler.handle(response));
         } else {
-            String error = "response type " + response.getCode() + " not supported";
-            System.err.println(error);
+            String message = "response type " + response.getCode() + " not supported";
+            LOGGER.error(message);
         }
     }
 
