@@ -1,20 +1,23 @@
 package org.ybonfire.pipeline.broker.handler;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.broker.exception.BrokerNotPartitionLeaderException;
+import org.ybonfire.pipeline.broker.model.PartitionConfig;
 import org.ybonfire.pipeline.broker.model.Role;
+import org.ybonfire.pipeline.broker.model.TopicConfig;
 import org.ybonfire.pipeline.broker.role.RoleManager;
 import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
-import org.ybonfire.pipeline.broker.topic.TopicManager;
+import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreService;
+import org.ybonfire.pipeline.broker.topic.TopicConfigManager;
+import org.ybonfire.pipeline.broker.topic.provider.TopicConfigManagerProvider;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
-import org.ybonfire.pipeline.common.model.PartitionInfo;
-import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
@@ -31,13 +34,10 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  */
 public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHandler<MessageProduceRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final TopicManager topicManager;
-    private final IMessageStoreService messageStoreService;
+    private final IMessageStoreService messageStoreService = new DefaultMessageStoreService();
+    private final TopicConfigManager topicConfigManager = TopicConfigManagerProvider.getInstance();
 
-    public ProduceMessageRequestHandler(final TopicManager topicManager,
-        final IMessageStoreService messageStoreService) {
-        this.topicManager = topicManager;
-        this.messageStoreService = messageStoreService;
+    public ProduceMessageRequestHandler() {
         this.messageStoreService.start();
     }
 
@@ -60,7 +60,7 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
         }
 
         // 校验请求参数
-        if (!isMessageProduceRequestValid(request.getBody())) {
+        if (!isRequestValid(request.getBody())) {
             throw new BadRequestException();
         }
     }
@@ -91,7 +91,7 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
     }
 
     /**
-     * 判断生产消息请求
+     * 判断是否为MessageProduceRequest
      *
      * @param request 请求
      * @return boolean
@@ -117,16 +117,10 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
      * @return:
      * @date: 2022/09/14 15:22:31
      */
-    private boolean isMessageProduceRequestValid(final MessageProduceRequest request) {
+    private boolean isRequestValid(final MessageProduceRequest request) {
         // check request
         if (request == null) {
             LOGGER.error("produce message request is null");
-            return false;
-        }
-
-        // check address
-        if (StringUtils.equals(request.getAddress(), RemotingUtil.getLocalAddress())) {
-            LOGGER.error("produce message request[address] is null");
             return false;
         }
 
@@ -143,14 +137,14 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
         }
 
         // check topic
-        if (request.getTopic() == null) {
-            LOGGER.error("produce message request[topic] is null");
+        if (StringUtils.isBlank(request.getTopic())) {
+            LOGGER.error("produce message request[topic] is blank");
             return false;
         }
 
-        final TopicInfo topicInfo = topicManager.selectTopicInfo(request.getTopic()).orElse(null);
-        if (topicInfo == null) {
-            LOGGER.error("produce message request topic info not found");
+        final Optional<TopicConfig> topicConfigOptional = topicConfigManager.selectTopicConfig(request.getTopic());
+        if (!topicConfigOptional.isPresent()) {
+            LOGGER.error("produce message request topic config not found");
             return false;
         }
 
@@ -160,13 +154,13 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
             return false;
         }
 
-        final List<PartitionInfo> partitions = topicInfo.getPartitions();
+        final List<PartitionConfig> partitions = topicConfigOptional.get().getPartitions();
         if (CollectionUtils.isEmpty(partitions)) {
-            LOGGER.error("produce message request partition info not found");
+            LOGGER.error("produce message request partition config not found");
             return false;
         }
 
-        return partitions.stream().map(PartitionInfo::getPartitionId)
+        return partitions.stream().map(PartitionConfig::getPartitionId)
             .anyMatch(partitionId -> partitionId.equals(request.getPartitionId()));
     }
 }

@@ -1,5 +1,7 @@
 package org.ybonfire.pipeline.broker.role;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.broker.model.Role;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -10,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Bo.Yuan5
  * @date 2022-09-02 15:47
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RoleManager {
     private static final AtomicReference<Role> ROLE_HOLDER = new AtomicReference<>(Role.LEADER);
 

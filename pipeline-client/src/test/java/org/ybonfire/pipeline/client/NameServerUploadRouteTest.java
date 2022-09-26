@@ -34,11 +34,10 @@ public class NameServerUploadRouteTest extends NettyRemotingClient {
 
         client.start();
 
-        final RouteUploadRequest request = RouteUploadRequest.builder().brokerId("brokerId").address("address").role(1)
-            .topics(Collections.emptyList()).dataVersion(0L).build();
+        final RouteUploadRequest request =
+            RouteUploadRequest.builder().address("address").topics(Collections.emptyList()).build();
         client.request("0:0:0:0:0:0:0:0:4690",
-            RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.UPLOAD_ROUTE.getCode(), request, 15000L),
-            3 * 1000L);
+            RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.UPLOAD_ROUTE.getCode(), request));
         Thread.sleep(1000L);
     }
 

@@ -1,9 +1,9 @@
 package org.ybonfire.pipeline.producer.client;
 
-import org.ybonfire.pipeline.common.model.TopicInfo;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.ybonfire.pipeline.common.model.TopicInfo;
 
 /**
  * Nameserver远程调用客户端接口
@@ -19,7 +19,7 @@ public interface INameServerClient {
      * @return:
      * @date: 2022/06/29 17:11:02
      */
-    List<TopicInfo> selectAllTopicInfo(final String address, final long timeoutMillis);
+    List<TopicInfo> selectAllTopicInfo(final String address);
 
     /**
      * @description: 发送查询指定TopicInfo请求
@@ -27,5 +27,5 @@ public interface INameServerClient {
      * @return:
      * @date: 2022/06/29 17:11:04
      */
-    Optional<TopicInfo> selectTopicInfo(final String topic, final String address, final long timeoutMillis);
+    Optional<TopicInfo> selectTopicInfo(final String topic, final String address);
 }

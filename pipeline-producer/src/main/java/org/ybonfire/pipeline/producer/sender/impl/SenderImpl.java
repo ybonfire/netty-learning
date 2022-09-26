@@ -8,17 +8,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.ybonfire.pipeline.common.model.Node;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
-import org.ybonfire.pipeline.producer.client.IBrokerClient;
 import org.ybonfire.pipeline.producer.client.impl.BrokerClientImpl;
 import org.ybonfire.pipeline.producer.exception.PartitionLeaderNotFoundException;
-import org.ybonfire.pipeline.producer.exception.ProduceTimeoutException;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 import org.ybonfire.pipeline.producer.model.ProduceTypeEnum;
 import org.ybonfire.pipeline.producer.sender.ISender;
+import org.ybonfire.pipeline.producer.util.ThreadPoolUtil;
 
 import lombok.Getter;
-import org.ybonfire.pipeline.producer.util.ThreadPoolUtil;
 
 /**
  * 发送器实现
@@ -66,24 +64,18 @@ public class SenderImpl implements ISender {
 
         final long startTime = System.currentTimeMillis();
         final long timeoutMillis = message.getTimeoutMillis();
-        if (timeoutMillis <= 0L) {
-            throw new ProduceTimeoutException();
-        }
 
         final MessageSendThreadTask task = buildMessageSendThreadTask(message);
         produceMessageExecutor.submit(task);
-        if (isSyncMessage(message) && timeoutMillis - (System.currentTimeMillis() - startTime) > 0L) {
+        final long remainingMillis = timeoutMillis - (System.currentTimeMillis() - startTime);
+        if (isSyncMessage(message) && remainingMillis > 0L) {
             try {
-                task.getLatch().await(timeoutMillis, TimeUnit.MILLISECONDS);
+                task.getLatch().await(remainingMillis, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 // ignore
             }
         }
-    }
-
-    IBrokerClient getBrokerClient() {
-        return brokerClient;
     }
 
     /**
@@ -132,10 +124,8 @@ public class SenderImpl implements ISender {
 
             try {
                 // 消息投递
-                final String address = partition.tryToFindPartitionLeaderNode().map(Node::getAddress)
-                    .orElseThrow(PartitionLeaderNotFoundException::new);
-                final ProduceResult result =
-                    SenderImpl.this.getBrokerClient().produce(message, address, message.getTimeoutMillis());
+                final String address = partition.getAddress();
+                final ProduceResult result = brokerClient.produce(message, address);
                 message.setResult(result);
 
                 // 执行回调

@@ -1,15 +1,13 @@
 package org.ybonfire.pipeline.nameserver.model;
 
-import lombok.Getter;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
-import org.ybonfire.pipeline.common.model.Node;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import lombok.Getter;
 
 /**
  * TopicInfo包装类
@@ -34,10 +32,7 @@ public class TopicInfoWrapper {
      * @date: 2022/07/09 16:00:56
      */
     public void merge(final TopicInfo anOther) {
-        if (anOther == null) {
-            return;
-        }
-        if (!StringUtils.equals(anOther.getTopic(), this.topicInfo.getTopic())) {
+        if (anOther == null || !StringUtils.equals(anOther.getTopic(), this.topicInfo.getTopic())) {
             return;
         }
 
@@ -45,13 +40,7 @@ public class TopicInfoWrapper {
             .collect(Collectors.toMap(PartitionInfo::getPartitionId, partitionInfo -> partitionInfo));
         for (final PartitionInfo partition : anOther.getPartitions()) {
             final int partitionId = partition.getPartitionId();
-            final PartitionInfo prev = partitionGroupByPartitionId.putIfAbsent(partitionId, partition);
-            if (prev != null) {
-                final List<Node> nodes = Stream.concat(prev.getNodes().stream(), partition.getNodes().stream())
-                    .distinct().collect(Collectors.toList());
-                prev.getNodes().clear();
-                prev.getNodes().addAll(nodes);
-            }
+            partitionGroupByPartitionId.put(partitionId, partition);
         }
 
         this.lastUploadTimestamp = System.currentTimeMillis();

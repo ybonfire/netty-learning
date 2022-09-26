@@ -132,7 +132,7 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
             try {
                 ChannelFuture future = this.serverBootstrap.bind(this.config.getPort()).sync();
                 System.out.println(future.channel().localAddress());
-                future.channel().closeFuture().sync();
+//                future.channel().closeFuture().sync();
             } catch (InterruptedException e1) {
                 throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
             }

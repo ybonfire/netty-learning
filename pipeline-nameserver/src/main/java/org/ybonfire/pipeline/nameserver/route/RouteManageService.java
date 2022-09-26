@@ -7,16 +7,12 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.ybonfire.pipeline.common.model.Node;
-import org.ybonfire.pipeline.common.model.NodeRole;
+import org.ybonfire.pipeline.common.model.PartitionConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
+import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.model.PartitionInfoRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
-import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 import org.ybonfire.pipeline.nameserver.constant.NameServerConstant;
 
 /**
@@ -85,15 +81,15 @@ public class RouteManageService {
             return Collections.emptyList();
         }
 
-        final Node node = Node.builder().address(data.getAddress()).role(NodeRole.of(data.getRole())).build();
-        final List<TopicInfoRemotingEntity> topics = data.getTopics();
+        final String address = data.getAddress();
+        final List<TopicConfigRemotingEntity> topics = data.getTopics();
         final List<TopicInfo> results = new ArrayList<>(data.getTopics().size());
-        for (final TopicInfoRemotingEntity topic : topics) {
+        for (final TopicConfigRemotingEntity topic : topics) {
             final String topicName = topic.getTopic();
             final List<PartitionInfo> partitionInfos = new ArrayList<>(topic.getPartitions().size());
-            for (PartitionInfoRemotingEntity partition : topic.getPartitions()) {
-                partitionInfos.add(PartitionInfo.builder().partitionId(partition.getPartitionId())
-                    .nodes(Stream.of(node).collect(Collectors.toList())).build());
+            for (final PartitionConfigRemotingEntity partition : topic.getPartitions()) {
+                partitionInfos
+                    .add(PartitionInfo.builder().partitionId(partition.getPartitionId()).address(address).build());
             }
 
             results.add(TopicInfo.builder().topic(topicName).partitions(partitionInfos).build());

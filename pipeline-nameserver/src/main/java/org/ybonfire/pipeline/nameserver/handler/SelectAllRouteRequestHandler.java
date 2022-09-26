@@ -5,17 +5,19 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.RouteSelectAllRequest;
 import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
 import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
+import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
 /**
@@ -27,12 +29,9 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 public final class SelectAllRouteRequestHandler extends AbstractNettyRemotingRequestHandler<RouteSelectAllRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final RouteManageService routeManageService;
-    private final TopicInfoConverter topicInfoConverter;
 
-    public SelectAllRouteRequestHandler(final RouteManageService routeManageService,
-        final TopicInfoConverter topicInfoConverter) {
+    public SelectAllRouteRequestHandler(final RouteManageService routeManageService) {
         this.routeManageService = routeManageService;
-        this.topicInfoConverter = topicInfoConverter;
     }
 
     /**
@@ -43,7 +42,9 @@ public final class SelectAllRouteRequestHandler extends AbstractNettyRemotingReq
      */
     @Override
     protected void check(final IRemotingRequest<RouteSelectAllRequest> request) {
-
+        if (!isRouteSelectAllRequest(request)) {
+            throw new RequestTypeNotSupportException();
+        }
     }
 
     /**
@@ -77,9 +78,21 @@ public final class SelectAllRouteRequestHandler extends AbstractNettyRemotingReq
      * @date: 2022/07/28 19:43:59
      */
     private RouteSelectResponse convert(final List<TopicInfo> topicInfos) {
-        final Map<String, TopicInfoRemotingEntity> result =
-            topicInfos.stream().map(topicInfoConverter::convert).filter(Objects::nonNull).collect(Collectors
-                .toMap(TopicInfoRemotingEntity::getTopic, topicInfoRemotingEntity -> topicInfoRemotingEntity));
+        final Map<String,
+            TopicConfigRemotingEntity> result = topicInfos.stream().map(TopicInfoConverter.getInstance()::convert)
+                .filter(Objects::nonNull).collect(Collectors.toMap(TopicConfigRemotingEntity::getTopic,
+                    topicInfoRemotingEntity -> topicInfoRemotingEntity));
         return RouteSelectResponse.builder().result(result).build();
+    }
+
+    /**
+     * 判断是否为RouteSelectAllRequest
+     *
+     * @param request 请求
+     * @return boolean
+     */
+    private boolean isRouteSelectAllRequest(final IRemotingRequest<RouteSelectAllRequest> request) {
+        final Integer code = request.getCode();
+        return code != null && RequestEnum.code(code) == RequestEnum.SELECT_ALL_ROUTE;
     }
 }

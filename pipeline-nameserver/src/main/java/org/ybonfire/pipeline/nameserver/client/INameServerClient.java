@@ -16,5 +16,5 @@ public interface INameServerClient {
      * @return:
      * @date: 2022/08/13 10:59:36
      */
-    void uploadRoute(final String address, final IRemotingRequest request, final long timeoutMillis);
+    void uploadRoute(final IRemotingRequest request, final String address);
 }

@@ -22,8 +22,7 @@ public interface IRemotingClient<Handler extends IRemotingResponseHandler> exten
      * @return:
      * @date: 2022/05/18 18:20:45
      */
-    IRemotingResponse request(final String address, final IRemotingRequest request, final long timeoutMillis)
-        throws InterruptedException;
+    IRemotingResponse request(final String address, final IRemotingRequest request) throws InterruptedException;
 
     /**
      * @description: 异步调用
@@ -31,8 +30,8 @@ public interface IRemotingClient<Handler extends IRemotingResponseHandler> exten
      * @return:
      * @date: 2022/05/18 18:20:53
      */
-    void requestAsync(final String address, final IRemotingRequest request, final IRequestCallback callback,
-        final long timeoutMillis) throws InterruptedException;
+    void requestAsync(final String address, final IRemotingRequest request, final IRequestCallback callback)
+        throws InterruptedException;
 
     /**
      * @description: 单向调用
@@ -40,8 +39,7 @@ public interface IRemotingClient<Handler extends IRemotingResponseHandler> exten
      * @return:
      * @date: 2022/05/18 18:21:02
      */
-    void requestOneWay(final String address, final IRemotingRequest request, final long timeoutMillis)
-        throws InterruptedException;
+    void requestOneWay(final String address, final IRemotingRequest request) throws InterruptedException;
 
     /**
      * @description: 注册响应处理器

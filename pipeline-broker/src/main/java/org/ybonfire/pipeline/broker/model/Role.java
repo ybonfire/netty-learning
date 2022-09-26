@@ -24,6 +24,10 @@ public enum Role {
         this.description = description;
     }
 
+    public int getCode() {
+        return code;
+    }
+
     public static Role of(final int code) {
         for (final Role role : Role.values()) {
             if (role.code == code) {

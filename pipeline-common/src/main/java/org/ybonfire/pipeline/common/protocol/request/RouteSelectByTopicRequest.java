@@ -1,7 +1,9 @@
 package org.ybonfire.pipeline.common.protocol.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 
 /**
@@ -11,7 +13,9 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
  * @date 2022-07-13 15:30
  */
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class RouteSelectByTopicRequest implements IRemotingRequestBody {
-    private final String topic;
+    private String topic;
 }

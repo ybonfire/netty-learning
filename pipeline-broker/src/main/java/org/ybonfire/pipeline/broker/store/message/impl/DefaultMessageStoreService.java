@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.exception.MessageFileCreateException;
 import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
 import org.ybonfire.pipeline.broker.store.message.file.MappedFile;
@@ -18,8 +19,7 @@ import org.ybonfire.pipeline.common.thread.service.AbstractThreadService;
  * @date 2022-09-14 18:30
  */
 public class DefaultMessageStoreService implements IMessageStoreService {
-    private static final String MESSAGE_STORE_BASE_PATH =
-        System.getProperty("user.home") + File.separator + "pipeline" + File.separator + "message";
+    private static final String MESSAGE_STORE_BASE_PATH = BrokerConstant.BROKER_STORE_BASE_PATH + "message";
     private final Map<String, Map<Integer, MappedFile>> mappedFileTable = new HashMap<>();
     private final MessageFileFlushThreadService messageFileFlushThreadService = new MessageFileFlushThreadService();
     private final AtomicBoolean started = new AtomicBoolean(false);

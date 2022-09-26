@@ -1,14 +1,23 @@
 package org.ybonfire.pipeline.nameserver.handler;
 
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.common.model.PartitionConfigRemotingEntity;
+import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.replica.publish.RouteUploadRequestPublisher;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
+import org.ybonfire.pipeline.server.exception.BadRequestException;
+import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
 /**
@@ -26,6 +35,7 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
         final RouteUploadRequestPublisher uploadRouteRequestPublisher) {
         this.routeManageService = routeManageService;
         this.uploadRouteRequestPublisher = uploadRouteRequestPublisher;
+        this.uploadRouteRequestPublisher.start();
     }
 
     /**
@@ -36,7 +46,13 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
      */
     @Override
     protected void check(final IRemotingRequest<RouteUploadRequest> request) {
+        if (!isRouteUploadRequest(request)) {
+            throw new RequestTypeNotSupportException();
+        }
 
+        if (!isRequestValid(request.getBody())) {
+            throw new BadRequestException();
+        }
     }
 
     /**
@@ -64,4 +80,75 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
     protected void onComplete(IRemotingRequest<RouteUploadRequest> request) {
 
     }
+
+    /**
+     * 判断是否为RouteUploadRequest
+     *
+     * @param request 请求
+     * @return boolean
+     */
+    private boolean isRouteUploadRequest(final IRemotingRequest<RouteUploadRequest> request) {
+        final Integer code = request.getCode();
+        return code != null && RequestEnum.code(code) == RequestEnum.UPLOAD_ROUTE;
+    }
+
+    /**
+     * @description: 判断请求参数是否合法
+     * @param:
+     * @return:
+     * @date: 2022/09/14 15:22:31
+     */
+    private boolean isRequestValid(final RouteUploadRequest request) {
+        // check request
+        if (request == null) {
+            LOGGER.error("upload route request is null");
+            return false;
+        }
+
+        // check address
+        if (StringUtils.isBlank(request.getAddress())) {
+            LOGGER.error("upload route request[address] is invalid");
+            return false;
+        }
+
+        // check topic
+        if (CollectionUtils.isNotEmpty(request.getTopics())) {
+            final List<TopicConfigRemotingEntity> topics = request.getTopics();
+            for (final TopicConfigRemotingEntity topic : topics) {
+                if (topic == null) {
+                    LOGGER.error("upload route request[topics] is null");
+                    return false;
+                }
+
+                if (StringUtils.isBlank(topic.getTopic())) {
+                    LOGGER.error("upload route request[topics[topic]] is blank");
+                    return false;
+                }
+
+                // check partition
+                final List<PartitionConfigRemotingEntity> partitions = topic.getPartitions();
+                if (CollectionUtils.isNotEmpty(topic.getPartitions())) {
+                    for (final PartitionConfigRemotingEntity partition : partitions) {
+                        if (partition == null) {
+                            LOGGER.error("upload route request[topics[partitions[partition]]] is null");
+                            return false;
+                        }
+
+                        if (partition.getPartitionId() == null) {
+                            LOGGER.error("upload route request[topics[partitions[partition[partitionId]]]] is null");
+                            return false;
+                        }
+
+                        if (StringUtils.isBlank(partition.getAddress())) {
+                            LOGGER.error("upload route request[topics[partitions[partition[address]]]] is blank");
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
 }

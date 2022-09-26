@@ -42,12 +42,28 @@ public final class ThreadPoolUtil {
         buildThreadPool(CONSUME_MESSAGE_HANDLER_THREAD_NUMS_MIN, CONSUME_MESSAGE_HANDLER_THREAD_NUMS_MAX,
             CONSUME_MESSAGE_TASK_QUEUE_CAPACITY, CONSUME_MESSAGE_HANDLER_THREAD_FACTORY);
 
+    // Register Broker Task Thread Pool
+    private static final int REGISTER_BROKER_TASK_THREAD_NUMS_MIN =
+        Math.max(4, Runtime.getRuntime().availableProcessors());
+    private static final int REGISTER_BROKER_TASK_THREAD_NUMS_MAX =
+        Math.max(4, Runtime.getRuntime().availableProcessors());
+    private static final int REGISTER_BROKER_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final ThreadFactory REGISTER_BROKER_TASK_THREAD_FACTORY =
+        new ThreadWorkerFactory("register_broker_task_", true);
+    private static final ExecutorService REGISTER_BROKER_TASK_EXECUTOR_SERVICE =
+        buildThreadPool(REGISTER_BROKER_TASK_THREAD_NUMS_MIN, REGISTER_BROKER_TASK_THREAD_NUMS_MAX,
+            REGISTER_BROKER_TASK_QUEUE_CAPACITY, REGISTER_BROKER_TASK_THREAD_FACTORY);
+
     public static ExecutorService getProduceMessageHandlerExecutorService() {
         return PRODUCE_MESSAGE_HANDLER_EXECUTOR_SERVICE;
     }
 
     public static ExecutorService getConsumeMessageHandlerExecutorService() {
         return CONSUME_MESSAGE_HANDLER_EXECUTOR_SERVICE;
+    }
+
+    public static ExecutorService getRegisterBrokerTaskExecutorService() {
+        return REGISTER_BROKER_TASK_EXECUTOR_SERVICE;
     }
 
     /**

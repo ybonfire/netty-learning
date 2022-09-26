@@ -53,7 +53,7 @@ public class NameServers {
 
         for (int i = 0; i < nameServerAddressList.size(); ++i) {
             final String address = nameServerAddressList.get(i);
-            return nameServerClient.selectAllTopicInfo(address, timeoutMillis);
+            return nameServerClient.selectAllTopicInfo(address);
         }
 
         return Collections.emptyList();
@@ -72,7 +72,7 @@ public class NameServers {
 
         for (int i = 0; i < nameServerAddressList.size(); ++i) {
             final String address = nameServerAddressList.get(i);
-            return nameServerClient.selectTopicInfo(topic, address, timeoutMillis);
+            return nameServerClient.selectTopicInfo(topic, address);
         }
 
         return Optional.empty();

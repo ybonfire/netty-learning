@@ -16,61 +16,61 @@ public class SimpleInternalLogger implements IInternalLogger {
 
     @Override
     public void trace(String message) {
-        System.out.println(message);
+        OUT_PRINTER.println(message);
     }
 
     @Override
     public void trace(String message, Throwable ex) {
-        System.out.println(message);
+        OUT_PRINTER.println(message);
     }
 
     @Override
     public void debug(String message) {
-        System.out.println(message);
+        OUT_PRINTER.println(message);
     }
 
     @Override
     public void debug(String message, Throwable ex) {
-        System.out.println(message);
+        OUT_PRINTER.println(message);
     }
 
     @Override
     public void info(String message) {
-        System.out.println(message);
+        OUT_PRINTER.println(message);
     }
 
     @Override
     public void info(String message, Throwable ex) {
-        System.out.println(message);
+        OUT_PRINTER.println(message);
     }
 
     @Override
     public void warn(String message) {
-        System.out.println(message);
+        ERR_PRINTER.println(message);
     }
 
     @Override
     public void warn(String message, Throwable ex) {
-        System.out.println(message);
+        ERR_PRINTER.println(message);
     }
 
     @Override
     public void error(String message) {
-        System.out.println(message);
+        ERR_PRINTER.println(message);
     }
 
     @Override
     public void error(String message, Throwable ex) {
-        System.out.println(message);
+        ERR_PRINTER.println(message);
     }
 
     @Override
     public void fatal(String message) {
-        System.out.println(message);
+        ERR_PRINTER.println(message);
     }
 
     @Override
     public void fatal(String message, Throwable ex) {
-        System.out.println(message);
+        ERR_PRINTER.println(message);
     }
 }

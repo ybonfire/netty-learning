@@ -1,6 +1,5 @@
 package org.ybonfire.pipeline.nameserver.handler.provider;
 
-import org.ybonfire.pipeline.nameserver.converter.provider.TopicInfoConverterProvider;
 import org.ybonfire.pipeline.nameserver.handler.JoinClusterRequestHandler;
 import org.ybonfire.pipeline.nameserver.handler.SelectAllRouteRequestHandler;
 import org.ybonfire.pipeline.nameserver.handler.SelectByTopicNameRequestHandler;
@@ -27,9 +26,9 @@ public final class NameServerRequestHandlerProvider {
     private static final IRemotingRequestHandler UPLOAD_ROUTE_REQUEST_HANDLER =
         new UploadRouteRequestHandler(ROUTE_MANAGE_SERVICE, UPLOAD_ROUTE_REQUEST_PUBLISHER);
     private static final IRemotingRequestHandler SELECT_ALL_ROUTE_REQUEST_HANDLER =
-        new SelectAllRouteRequestHandler(ROUTE_MANAGE_SERVICE, TopicInfoConverterProvider.getInstance());
+        new SelectAllRouteRequestHandler(ROUTE_MANAGE_SERVICE);
     private static final IRemotingRequestHandler SELECT_BY_TOPIC_NAME_REQUEST_HANDLER =
-        new SelectByTopicNameRequestHandler(ROUTE_MANAGE_SERVICE, TopicInfoConverterProvider.getInstance());
+        new SelectByTopicNameRequestHandler(ROUTE_MANAGE_SERVICE);
     private static final IRemotingRequestHandler JOIN_CLUSTER_REQUEST_HANDLER = new JoinClusterRequestHandler();
 
     /**

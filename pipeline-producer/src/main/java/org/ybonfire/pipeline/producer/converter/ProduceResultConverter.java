@@ -12,6 +12,13 @@ import org.ybonfire.pipeline.producer.model.ProduceResult;
  * @date 2022-06-30 16:32
  */
 public final class ProduceResultConverter implements IConverter<MessageProduceResponse, ProduceResult> {
+    private static final ProduceResultConverter INSTANCE = new ProduceResultConverter();
+
+    public static ProduceResultConverter getINSTANCE() {
+        return INSTANCE;
+    }
+
+    private ProduceResultConverter() {}
 
     /**
      * @description: 参数转换

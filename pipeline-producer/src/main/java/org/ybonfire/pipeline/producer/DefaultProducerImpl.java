@@ -10,6 +10,7 @@ import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.producer.callback.IMessageProduceCallback;
 import org.ybonfire.pipeline.producer.constant.ProducerConstant;
 import org.ybonfire.pipeline.producer.exception.IllegalMessageException;
+import org.ybonfire.pipeline.producer.exception.ProduceTimeoutException;
 import org.ybonfire.pipeline.producer.exception.RouteNotFoundException;
 import org.ybonfire.pipeline.producer.metadata.NameServers;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
@@ -164,7 +165,7 @@ public final class DefaultProducerImpl implements IProducer {
             return wrapper.getResult();
         }
 
-        throw new ReadTimeoutException();
+        throw new ProduceTimeoutException();
     }
 
     /**
