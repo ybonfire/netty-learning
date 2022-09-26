@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
+import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
@@ -23,7 +24,6 @@ import org.ybonfire.pipeline.producer.model.ProduceResult;
  * @date 2022-07-14 14:01
  */
 public final class BrokerClientImpl extends NettyRemotingClient implements IBrokerClient {
-    private final ProduceResultConverter produceResultConverter = new ProduceResultConverter();
 
     public BrokerClientImpl() {
         this(new NettyClientConfig());
@@ -49,11 +49,11 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
      * @date: 2022/06/30 10:44:03
      */
     @Override
-    public ProduceResult produce(final MessageWrapper message, final String address, final long timeoutMillis) {
-        final IRemotingResponse<MessageProduceResponse> response =
-            request(address, buildProduceMessageRequest(message, address), timeoutMillis);
-        if (response.getStatus() == 0) {
-            return produceResultConverter.convert(response.getBody());
+    public ProduceResult produce(final MessageWrapper message, final String address) {
+        final IRemotingResponse response = request(address, buildProduceMessageRequest(message));
+        if (response.getStatus() == ResponseEnum.SUCCESS.getCode()) {
+            final MessageProduceResponse data = (MessageProduceResponse)response.getBody();
+            return ProduceResultConverter.getINSTANCE().convert(data);
         } else {
             return ProduceResult.builder().topic(message.getMessage().getTopic())
                 .partitionId(message.getPartition().getPartitionId()).offset(-1L).isSuccess(false)
@@ -67,16 +67,13 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
      * @return:
      * @date: 2022/06/30 10:45:21
      */
-    private IRemotingRequest<MessageProduceRequest> buildProduceMessageRequest(final MessageWrapper messageWrapper,
-        final String address) {
+    private IRemotingRequest<MessageProduceRequest> buildProduceMessageRequest(final MessageWrapper messageWrapper) {
         final String topic = messageWrapper.getMessage().getTopic();
         final int partitionId = messageWrapper.getPartition().getPartitionId();
         final Message message = messageWrapper.getMessage();
-        final MessageProduceRequest request = MessageProduceRequest.builder().topic(topic).partitionId(partitionId)
-            .address(address).message(message).build();
-        final long timeoutMillis = messageWrapper.getTimeoutMillis();
+        final MessageProduceRequest request =
+            MessageProduceRequest.builder().topic(topic).partitionId(partitionId).message(message).build();
 
-        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.PRODUCE_MESSAGE.getCode(),
-            request, timeoutMillis);
+        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.PRODUCE_MESSAGE.getCode(), request);
     }
 }

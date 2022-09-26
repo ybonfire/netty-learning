@@ -1,7 +1,8 @@
 package org.ybonfire.pipeline.common.protocol;
 
-import lombok.Data;
 import org.ybonfire.pipeline.common.util.AssertUtils;
+
+import lombok.Data;
 
 /**
  * 远程调用请求
@@ -24,31 +25,24 @@ public class RemotingRequest<T extends IRemotingRequestBody> implements IRemotin
      */
     private final T body;
     /**
-     * 请求超时时长
-     */
-    private long timeoutMillis;
-    /**
      * 请求挂起时长
      */
     private long suspendMillis;
 
-    private RemotingRequest(final String id, final Integer code, final long timeoutMillis) {
-        this(id, code, null, timeoutMillis, -1L);
+    private RemotingRequest(final String id, final Integer code) {
+        this(id, code, null, -1L);
     }
 
-    private RemotingRequest(final String id, final Integer code, final T data, final long timeoutMillis) {
-        this(id, code, data, timeoutMillis, -1L);
+    private RemotingRequest(final String id, final Integer code, final T data) {
+        this(id, code, data, -1L);
     }
 
-    private RemotingRequest(final String id, final Integer code, final T body, final long timeoutMillis,
-        final long suspendMillis) {
+    private RemotingRequest(final String id, final Integer code, final T body, final long suspendMillis) {
         AssertUtils.notNull(id);
         AssertUtils.notNull(code);
-        AssertUtils.express(timeoutMillis > 0L, "Request TimeoutMillis must be greater than zero");
         this.id = id;
         this.code = code;
         this.body = body;
-        this.timeoutMillis = timeoutMillis;
         this.suspendMillis = suspendMillis;
     }
 
@@ -58,8 +52,8 @@ public class RemotingRequest<T extends IRemotingRequestBody> implements IRemotin
      * @return:
      * @date: 2022/07/19 16:51:43
      */
-    public static RemotingRequest create(final String id, final int code, final long timeoutMillis) {
-        return new RemotingRequest<>(id, code, timeoutMillis);
+    public static RemotingRequest create(final String id, final int code) {
+        return new RemotingRequest<>(id, code);
     }
 
     /**
@@ -68,8 +62,7 @@ public class RemotingRequest<T extends IRemotingRequestBody> implements IRemotin
      * @return:
      * @date: 2022/07/19 16:51:51
      */
-    public static RemotingRequest create(final String id, final int code, IRemotingRequestBody data,
-        final long timeoutMillis) {
-        return new RemotingRequest<>(id, code, data, timeoutMillis);
+    public static RemotingRequest create(final String id, final int code, IRemotingRequestBody data) {
+        return new RemotingRequest<>(id, code, data);
     }
 }

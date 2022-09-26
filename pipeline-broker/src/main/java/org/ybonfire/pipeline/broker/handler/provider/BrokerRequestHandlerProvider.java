@@ -1,8 +1,6 @@
 package org.ybonfire.pipeline.broker.handler.provider;
 
 import org.ybonfire.pipeline.broker.handler.ProduceMessageRequestHandler;
-import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreService;
-import org.ybonfire.pipeline.broker.topic.provider.TopicManagerProvider;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -15,10 +13,9 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class BrokerRequestHandlerProvider {
-    private static final ProduceMessageRequestHandler produceMessageRequestHandler =
-        new ProduceMessageRequestHandler(TopicManagerProvider.getInstance(), new DefaultMessageStoreService());
+    private static final ProduceMessageRequestHandler HANDLER = new ProduceMessageRequestHandler();
 
-    public static ProduceMessageRequestHandler getProduceMessageRequestHandler() {
-        return produceMessageRequestHandler;
+    public static ProduceMessageRequestHandler getHandler() {
+        return HANDLER;
     }
 }

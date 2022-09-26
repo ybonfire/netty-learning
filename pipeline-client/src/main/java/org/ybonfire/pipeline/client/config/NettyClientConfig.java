@@ -23,6 +23,10 @@ public final class NettyClientConfig {
      */
     private int connectTimeoutMillis = 3000;
     /**
+     * 响应超时与之
+     */
+    private int readTimeoutMillis = 15000;
+    /**
      * socket Send Buffer size;
      */
     private final int clientSocketSendBufferSize = 65535;

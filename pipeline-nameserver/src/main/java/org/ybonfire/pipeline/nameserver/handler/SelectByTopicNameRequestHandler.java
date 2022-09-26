@@ -3,17 +3,19 @@ package org.ybonfire.pipeline.nameserver.handler;
 import java.util.Collections;
 import java.util.Optional;
 
+import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
 import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
 import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
+import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
 /**
@@ -26,12 +28,9 @@ public final class SelectByTopicNameRequestHandler
     extends AbstractNettyRemotingRequestHandler<RouteSelectByTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final RouteManageService routeManageService;
-    private final TopicInfoConverter topicInfoConverter;
 
-    public SelectByTopicNameRequestHandler(final RouteManageService routeManageService,
-        final TopicInfoConverter topicInfoConverter) {
+    public SelectByTopicNameRequestHandler(final RouteManageService routeManageService) {
         this.routeManageService = routeManageService;
-        this.topicInfoConverter = topicInfoConverter;
     }
 
     /**
@@ -42,7 +41,9 @@ public final class SelectByTopicNameRequestHandler
      */
     @Override
     protected void check(final IRemotingRequest<RouteSelectByTopicRequest> request) {
-
+        if (!isRouteSelectByTopicRequest(request)) {
+            throw new RequestTypeNotSupportException();
+        }
     }
 
     /**
@@ -77,14 +78,26 @@ public final class SelectByTopicNameRequestHandler
      * @date: 2022/07/28 19:43:59
      */
     private RouteSelectResponse convert(final Optional<TopicInfo> topicInfoOptional) {
-        final Optional<TopicInfoRemotingEntity> topicInfoRemotingEntityOptional =
-            topicInfoOptional.map(topicInfoConverter::convert);
+        final Optional<TopicConfigRemotingEntity> topicInfoRemotingEntityOptional =
+            topicInfoOptional.map(TopicInfoConverter.getInstance()::convert);
         if (topicInfoRemotingEntityOptional.isPresent()) {
-            final TopicInfoRemotingEntity topicInfoRemotingEntity = topicInfoRemotingEntityOptional.get();
+            final TopicConfigRemotingEntity topicConfigRemotingEntity = topicInfoRemotingEntityOptional.get();
             return RouteSelectResponse.builder()
-                .result(Collections.singletonMap(topicInfoRemotingEntity.getTopic(), topicInfoRemotingEntity)).build();
+                .result(Collections.singletonMap(topicConfigRemotingEntity.getTopic(), topicConfigRemotingEntity))
+                .build();
         } else {
             return RouteSelectResponse.builder().result(Collections.emptyMap()).build();
         }
+    }
+
+    /**
+     * 判断是否为RouteSelectByTopicRequest
+     *
+     * @param request 请求
+     * @return boolean
+     */
+    private boolean isRouteSelectByTopicRequest(final IRemotingRequest<RouteSelectByTopicRequest> request) {
+        final Integer code = request.getCode();
+        return code != null && RequestEnum.code(code) == RequestEnum.SELECT_ROUTE;
     }
 }

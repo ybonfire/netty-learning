@@ -17,5 +17,5 @@ public interface IBrokerClient {
      * @return:
      * @date: 2022/06/30 10:44:03
      */
-    ProduceResult produce(final MessageWrapper message, final String address, final long timeoutMillis);
+    ProduceResult produce(final MessageWrapper message, final String address);
 }

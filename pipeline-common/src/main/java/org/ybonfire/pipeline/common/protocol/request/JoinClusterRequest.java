@@ -1,7 +1,9 @@
 package org.ybonfire.pipeline.common.protocol.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 
 /**
@@ -11,6 +13,8 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
  * @date 2022-08-05 18:07
  */
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class JoinClusterRequest implements IRemotingRequestBody {
     private String nodeId;

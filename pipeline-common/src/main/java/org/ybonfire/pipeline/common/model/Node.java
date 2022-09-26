@@ -1,8 +1,11 @@
 package org.ybonfire.pipeline.common.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 服务结点
@@ -12,14 +15,16 @@ import lombok.Getter;
  */
 @EqualsAndHashCode
 @Builder
-@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class Node {
     /**
      * 结点地址 Ip:port
      */
-    private final String address;
+    private String address;
     /**
      * 结点角色
      */
-    private final NodeRole role;
+    private NodeRole role;
 }

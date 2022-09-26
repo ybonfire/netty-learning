@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.nameserver.handler;
 
+import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
@@ -9,6 +10,7 @@ import org.ybonfire.pipeline.common.protocol.request.JoinClusterRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
 import org.ybonfire.pipeline.nameserver.replica.peer.PeerManagerProvider;
+import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
 /**
@@ -28,7 +30,9 @@ public class JoinClusterRequestHandler extends AbstractNettyRemotingRequestHandl
      */
     @Override
     protected void check(final IRemotingRequest<JoinClusterRequest> request) {
-
+        if (!isJoinClusterRequest(request)) {
+            throw new RequestTypeNotSupportException();
+        }
     }
 
     /**
@@ -55,5 +59,16 @@ public class JoinClusterRequestHandler extends AbstractNettyRemotingRequestHandl
     @Override
     protected void onComplete(final IRemotingRequest<JoinClusterRequest> request) {
 
+    }
+
+    /**
+     * 判断是否为JoinClusterRequest
+     *
+     * @param request 请求
+     * @return boolean
+     */
+    private boolean isJoinClusterRequest(final IRemotingRequest<JoinClusterRequest> request) {
+        final Integer code = request.getCode();
+        return code != null && RequestEnum.code(code) == RequestEnum.JOIN_CLUSTER;
     }
 }

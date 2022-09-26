@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
-import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
+import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 
 /**
  * 路由查询接口响应体
@@ -20,5 +20,5 @@ import org.ybonfire.pipeline.common.model.TopicInfoRemotingEntity;
 @NoArgsConstructor
 @Data
 public class RouteSelectResponse implements IRemotingResponseBody {
-    private Map<String, TopicInfoRemotingEntity> result;
+    private Map<String, TopicConfigRemotingEntity> result;
 }

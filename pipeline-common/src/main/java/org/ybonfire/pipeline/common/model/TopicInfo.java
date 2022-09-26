@@ -2,9 +2,11 @@ package org.ybonfire.pipeline.common.model;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * Topic信息
@@ -14,8 +16,10 @@ import lombok.Getter;
  */
 @EqualsAndHashCode
 @Builder
-@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public final class TopicInfo {
-    private final String topic;
-    private final List<PartitionInfo> partitions;
+    private String topic;
+    private List<PartitionInfo> partitions;
 }

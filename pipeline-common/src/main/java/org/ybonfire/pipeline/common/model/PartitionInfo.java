@@ -1,8 +1,11 @@
 package org.ybonfire.pipeline.common.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,18 +18,10 @@ import java.util.Optional;
  */
 @EqualsAndHashCode
 @Builder
-@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class PartitionInfo {
-    private final int partitionId;
-    private final List<Node> nodes;
-
-    /**
-     * @description: 尝试获取PartitionLeader的Node信息
-     * @param:
-     * @return:
-     * @date: 2022/06/27 22:02:53
-     */
-    public Optional<Node> tryToFindPartitionLeaderNode() {
-        return nodes.stream().filter(node -> node.getRole() == NodeRole.LEADER).findAny();
-    }
+    private int partitionId;
+    private String address;
 }

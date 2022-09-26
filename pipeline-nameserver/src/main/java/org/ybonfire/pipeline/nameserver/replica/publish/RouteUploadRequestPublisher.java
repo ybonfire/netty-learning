@@ -4,12 +4,14 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.nameserver.client.INameServerClient;
 import org.ybonfire.pipeline.nameserver.client.impl.NameServerClientImpl;
+import org.ybonfire.pipeline.nameserver.constant.NameServerConstant;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
 import org.ybonfire.pipeline.nameserver.replica.peer.PeerManagerProvider;
 import org.ybonfire.pipeline.nameserver.thread.RouteUploadRequestPublishThreadTask;
@@ -23,8 +25,33 @@ import org.ybonfire.pipeline.nameserver.util.ThreadPoolUtil;
  * @date 2022-08-12 22:05
  */
 public class RouteUploadRequestPublisher {
-    private final INameServerClient nameServerClient = new NameServerClientImpl(new NettyClientConfig());
+    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final NameServerClientImpl nameServerClient = new NameServerClientImpl(new NettyClientConfig());
     private final ExecutorService publishExecutors = ThreadPoolUtil.getRouteUploadRequestPublishExecutorService();
+
+    /**
+     * @description: 启动路由数据广播其
+     * @param:
+     * @return:
+     * @date: 2022/09/26 16:15:12
+     */
+    public void start() {
+        if (started.compareAndSet(false, true)) {
+            nameServerClient.start();
+        }
+    }
+
+    /**
+     * @description: 关闭路由数据广播器
+     * @param:
+     * @return:
+     * @date: 2022/09/26 16:15:21
+     */
+    public void shutdown() {
+        if (started.compareAndSet(true, false)) {
+            nameServerClient.shutdown();
+        }
+    }
 
     /**
      * @description: 广播路由上报请求
@@ -43,7 +70,7 @@ public class RouteUploadRequestPublisher {
             publishExecutors.submit(task);
         }
         try {
-            latch.await(request.getTimeoutMillis(), TimeUnit.MILLISECONDS);
+            latch.await(NameServerConstant.ROUTE_UPLOAD_PUBLISH_TIME_OUT_MILLIS, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             // ignored

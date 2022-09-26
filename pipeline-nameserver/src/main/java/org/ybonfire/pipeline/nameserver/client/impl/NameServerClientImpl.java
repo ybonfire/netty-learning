@@ -25,9 +25,9 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      * @date: 2022/08/13 11:00:26
      */
     @Override
-    public void uploadRoute(final String address, final IRemotingRequest request, final long timeoutMillis) {
+    public void uploadRoute(final IRemotingRequest request, final String address) {
         try {
-            requestOneWay(address, request, timeoutMillis);
+            requestOneWay(address, request);
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new InvokeInterruptedException(e);

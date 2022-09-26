@@ -1,5 +1,12 @@
 package org.ybonfire.pipeline.broker;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.ybonfire.pipeline.broker.config.BrokerConfig;
+import org.ybonfire.pipeline.broker.server.Broker;
+
 /**
  * Broker启动器
  *
@@ -8,7 +15,18 @@ package org.ybonfire.pipeline.broker;
  */
 public class BrokerStartup {
 
+    /**
+     * @description: 启动Broker
+     * @param:
+     * @return:
+     * @date: 2022/09/22 10:08:35
+     */
     public static void main(String[] args) {
+        final List<String> nameServerAddressList = Stream.of("0:0:0:0:0:0:0:0:14690").collect(Collectors.toList());
+        final Broker server = new Broker(new BrokerConfig(), nameServerAddressList);
 
+        Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
+
+        server.start();
     }
 }

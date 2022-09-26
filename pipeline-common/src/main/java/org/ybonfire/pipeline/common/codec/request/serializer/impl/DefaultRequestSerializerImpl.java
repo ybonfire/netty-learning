@@ -49,8 +49,6 @@ public class DefaultRequestSerializerImpl implements IRequestSerializer {
         // data
         final byte[] bodyBytes = Objects.isNull(src.getBody()) ? new byte[0] : MAPPER.writeValueAsBytes(src.getBody());
         final int bodyBytesLength = bodyBytes.length;
-        // timeout
-        final long timeoutMillis = src.getTimeoutMillis();
 
         final int totalLength =
             INT_BYTE_LENGTH/*code*/ + INT_BYTE_LENGTH/*idByteLength*/ + INT_BYTE_LENGTH/*bodyBytesLength*/
@@ -63,7 +61,6 @@ public class DefaultRequestSerializerImpl implements IRequestSerializer {
         result.put(idBytes);
         result.putInt(bodyBytesLength); // body
         result.put(bodyBytes);
-        result.putLong(timeoutMillis); // timeoutMillis
 
         result.flip();
         return result;
@@ -108,9 +105,6 @@ public class DefaultRequestSerializerImpl implements IRequestSerializer {
             }
         }
 
-        // timeoutMillis
-        final long timeoutMillis = src.getLong();
-
-        return RemotingRequest.create(id, code, data, timeoutMillis);
+        return RemotingRequest.create(id, code, data);
     }
 }
