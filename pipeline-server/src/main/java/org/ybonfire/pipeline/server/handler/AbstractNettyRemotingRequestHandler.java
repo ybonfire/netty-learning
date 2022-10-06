@@ -3,6 +3,7 @@ package org.ybonfire.pipeline.server.handler;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
+import org.ybonfire.pipeline.server.exception.ServerException;
 import org.ybonfire.pipeline.server.exception.handler.ServerExceptionHandler;
 
 /**
@@ -68,6 +69,7 @@ public abstract class AbstractNettyRemotingRequestHandler<T extends IRemotingReq
      * @date: 2022/07/01 18:22:46
      */
     private RemotingResponse onException(final IRemotingRequest<T> request, final Exception ex) {
-        return exceptionHandler.handle(request, ex);
+        return ex instanceof ServerException ? exceptionHandler.handle(request, (ServerException)ex)
+            : exceptionHandler.handle(request, ex);
     }
 }
