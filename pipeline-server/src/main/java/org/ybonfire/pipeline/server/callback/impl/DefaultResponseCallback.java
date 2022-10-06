@@ -4,6 +4,7 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
+import org.ybonfire.pipeline.server.exception.ServerException;
 import org.ybonfire.pipeline.server.exception.handler.ServerExceptionHandler;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -36,7 +37,8 @@ public class DefaultResponseCallback implements IResponseCallback {
      */
     @Override
     public void onException(final IRemotingRequest request, final Exception ex, final ChannelHandlerContext context) {
-        final RemotingResponse<?> response = exceptionHandler.handle(request, ex);
+        final RemotingResponse<?> response = ex instanceof ServerException
+            ? exceptionHandler.handle(request, (ServerException)ex) : exceptionHandler.handle(request, ex);
         context.writeAndFlush(response);
     }
 }
