@@ -1,7 +1,7 @@
 package org.ybonfire.pipeline.producer.model;
 
 /**
- * 这里添加类的注释【强制】
+ * 消息生产类型枚举
  *
  * @author Bo.Yuan5
  * @date 2022-07-15 10:13

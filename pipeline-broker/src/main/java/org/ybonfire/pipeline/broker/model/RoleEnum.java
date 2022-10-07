@@ -1,12 +1,12 @@
 package org.ybonfire.pipeline.broker.model;
 
 /**
- * 这里添加类的注释【强制】
+ * Broker角色枚举
  *
  * @author Bo.Yuan5
  * @date 2022-09-02 15:41
  */
-public enum Role {
+public enum RoleEnum {
     /**
      * Leader
      */
@@ -19,7 +19,7 @@ public enum Role {
     private int code;
     private String description;
 
-    Role(int code, String description) {
+    RoleEnum(int code, String description) {
         this.code = code;
         this.description = description;
     }
@@ -28,8 +28,8 @@ public enum Role {
         return code;
     }
 
-    public static Role of(final int code) {
-        for (final Role role : Role.values()) {
+    public static RoleEnum of(final int code) {
+        for (final RoleEnum role : RoleEnum.values()) {
             if (role.code == code) {
                 return role;
             }

@@ -1,10 +1,10 @@
 package org.ybonfire.pipeline.common.protocol.request;
 
-import lombok.AllArgsConstructor;
+import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 
 /**
  * 查询全部路由请求体

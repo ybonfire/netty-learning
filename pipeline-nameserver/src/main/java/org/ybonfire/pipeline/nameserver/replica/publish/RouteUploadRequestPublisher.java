@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
-import org.ybonfire.pipeline.nameserver.client.INameServerClient;
 import org.ybonfire.pipeline.nameserver.client.impl.NameServerClientImpl;
 import org.ybonfire.pipeline.nameserver.constant.NameServerConstant;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;

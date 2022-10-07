@@ -7,11 +7,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.broker.exception.BrokerNotPartitionLeaderException;
 import org.ybonfire.pipeline.broker.model.PartitionConfig;
-import org.ybonfire.pipeline.broker.model.Role;
+import org.ybonfire.pipeline.broker.model.RoleEnum;
 import org.ybonfire.pipeline.broker.model.TopicConfig;
 import org.ybonfire.pipeline.broker.role.RoleManager;
 import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
-import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreService;
+import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreServiceImpl;
 import org.ybonfire.pipeline.broker.topic.TopicConfigManager;
 import org.ybonfire.pipeline.broker.topic.provider.TopicConfigManagerProvider;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
@@ -21,7 +21,6 @@ import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
-import org.ybonfire.pipeline.common.util.RemotingUtil;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
@@ -34,7 +33,7 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  */
 public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHandler<MessageProduceRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final IMessageStoreService messageStoreService = new DefaultMessageStoreService();
+    private final IMessageStoreService messageStoreService = new DefaultMessageStoreServiceImpl();
     private final TopicConfigManager topicConfigManager = TopicConfigManagerProvider.getInstance();
 
     public ProduceMessageRequestHandler() {
@@ -108,7 +107,7 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
      * @date: 2022/09/05 16:06:47
      */
     private boolean isLeader() {
-        return RoleManager.get() == Role.LEADER;
+        return RoleManager.get() == RoleEnum.LEADER;
     }
 
     /**

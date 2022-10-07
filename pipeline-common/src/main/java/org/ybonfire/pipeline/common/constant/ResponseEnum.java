@@ -42,9 +42,15 @@ public enum ResponseEnum {
     /**
      * 消息文件没有足够空间
      */
-    MESSAGE_FILE_NOT_ENOUGH_SPACE(-202, DefaultResponse.class)
-
-    ;
+    MESSAGE_FILE_NOT_ENOUGH_SPACE(-202, DefaultResponse.class),
+    /**
+     * 消息写入失败
+     */
+    Message_WRITE_FAILED(-203, DefaultResponse.class),
+    /**
+     * 消息刷盘超时
+     */
+    MESSAGE_FLUSH_DISK_TIME_OUT(-204, DefaultResponse.class),;
 
     private final int code;
     private final Class<? extends IRemotingResponseBody> clazz;
