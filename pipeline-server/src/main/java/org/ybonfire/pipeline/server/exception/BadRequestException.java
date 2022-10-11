@@ -8,8 +8,8 @@ import org.ybonfire.pipeline.common.constant.ResponseEnum;
  * @author yuanbo
  * @date 2022-09-09 14:50
  */
-public class BadRequestException extends ServerException {
-    private final ResponseEnum responseType = ResponseEnum.BAD_REQUEST;
+public final class BadRequestException extends ServerException {
+    private static final ResponseEnum RESPONSE_TYPE = ResponseEnum.BAD_REQUEST;
 
     public BadRequestException() {}
 
@@ -27,6 +27,6 @@ public class BadRequestException extends ServerException {
 
     @Override
     public ResponseEnum getResponseType() {
-        return responseType;
+        return RESPONSE_TYPE;
     }
 }

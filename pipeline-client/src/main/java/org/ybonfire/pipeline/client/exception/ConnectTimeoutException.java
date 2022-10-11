@@ -6,7 +6,7 @@ package org.ybonfire.pipeline.client.exception;
  * @author yuanbo
  * @date 2022-09-09 16:26
  */
-public class ConnectTimeoutException extends ClientException {
+public final class ConnectTimeoutException extends ClientException {
 
     public ConnectTimeoutException() {}
 

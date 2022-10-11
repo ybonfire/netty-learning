@@ -6,7 +6,7 @@ package org.ybonfire.pipeline.client.exception;
  * @author yuanbo
  * @date 2022-09-09 17:19
  */
-public class InvokeInterruptedException extends ClientException {
+public final class InvokeInterruptedException extends ClientException {
 
     public InvokeInterruptedException() {}
 

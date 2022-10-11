@@ -9,8 +9,8 @@ import org.ybonfire.pipeline.server.exception.ServerException;
  * @author yuanbo
  * @date 2022-09-21 14:25
  */
-public class MessageFileCreateException extends ServerException {
-    private final ResponseEnum responseType = ResponseEnum.MESSAGE_FILE_CREATE_FAILED;
+public final class MessageFileCreateException extends ServerException {
+    private static final ResponseEnum RESPONSE_TYPE = ResponseEnum.MESSAGE_FILE_CREATE_FAILED;
 
     public MessageFileCreateException() {}
 
@@ -28,6 +28,6 @@ public class MessageFileCreateException extends ServerException {
 
     @Override
     public ResponseEnum getResponseType() {
-        return responseType;
+        return RESPONSE_TYPE;
     }
 }

@@ -9,8 +9,8 @@ import org.ybonfire.pipeline.server.exception.ServerException;
  * @author yuanbo
  * @date 2022-09-14 14:25
  */
-public class BrokerNotPartitionLeaderException extends ServerException {
-    private final ResponseEnum responseType = ResponseEnum.SERVER_ROLE_NOT_SUPPORTED;
+public final class BrokerNotPartitionLeaderException extends ServerException {
+    private static final ResponseEnum RESPONSE_TYPE = ResponseEnum.SERVER_ROLE_NOT_SUPPORTED;
 
     public BrokerNotPartitionLeaderException() {}
 
@@ -28,6 +28,6 @@ public class BrokerNotPartitionLeaderException extends ServerException {
 
     @Override
     public ResponseEnum getResponseType() {
-        return responseType;
+        return RESPONSE_TYPE;
     }
 }

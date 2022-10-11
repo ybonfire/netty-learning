@@ -103,7 +103,7 @@ public abstract class AbstractThreadService implements Runnable {
      * @date: 2021/8/25
      */
     @Override
-    public void run() {
+    public final void run() {
         while (!stopped) {
             // 休眠
             if (isPaused()) {
@@ -113,7 +113,7 @@ public abstract class AbstractThreadService implements Runnable {
             // 执行业务
             try {
                 execute();
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 if (callback != null) {
                     callback.onException(this, e);
                 } else {

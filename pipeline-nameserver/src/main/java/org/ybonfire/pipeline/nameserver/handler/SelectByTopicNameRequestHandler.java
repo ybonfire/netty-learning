@@ -15,6 +15,7 @@ import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
 import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
 import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
+import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
@@ -27,11 +28,10 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 public final class SelectByTopicNameRequestHandler
     extends AbstractNettyRemotingRequestHandler<RouteSelectByTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final RouteManageService routeManageService;
+    private static final SelectByTopicNameRequestHandler INSTANCE = new SelectByTopicNameRequestHandler();
+    private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
 
-    public SelectByTopicNameRequestHandler(final RouteManageService routeManageService) {
-        this.routeManageService = routeManageService;
-    }
+    private SelectByTopicNameRequestHandler() {}
 
     /**
      * @description: 参数校验
@@ -99,5 +99,14 @@ public final class SelectByTopicNameRequestHandler
     private boolean isRouteSelectByTopicRequest(final IRemotingRequest<RouteSelectByTopicRequest> request) {
         final Integer code = request.getCode();
         return code != null && RequestEnum.code(code) == RequestEnum.SELECT_ROUTE;
+    }
+
+    /**
+     * 获取SelectByTopicNameRequestHandler实例
+     *
+     * @return {@link SelectByTopicNameRequestHandler}
+     */
+    public static SelectByTopicNameRequestHandler getInstance() {
+        return INSTANCE;
     }
 }

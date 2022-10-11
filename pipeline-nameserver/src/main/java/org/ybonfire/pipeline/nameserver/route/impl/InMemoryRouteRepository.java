@@ -20,8 +20,11 @@ import org.ybonfire.pipeline.nameserver.route.IRouteRepository;
  * @date 2022-07-01 17:43
  */
 public final class InMemoryRouteRepository implements IRouteRepository {
+    private static final InMemoryRouteRepository INSTANCE = new InMemoryRouteRepository();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<String/*topic*/, TopicInfoWrapper> topicInfoTable = new ConcurrentHashMap<>();
+
+    private InMemoryRouteRepository() {}
 
     /**
      * @description: 更新路由信息
@@ -113,5 +116,14 @@ public final class InMemoryRouteRepository implements IRouteRepository {
      */
     private boolean isRouteExpired(final TopicInfoWrapper topicInfo, final long liveMillis) {
         return topicInfo.getLastUploadTimestamp() + liveMillis < System.currentTimeMillis();
+    }
+
+    /**
+     * 获取InMemoryRouteRepository实例
+     *
+     * @return {@link InMemoryRouteRepository}
+     */
+    public static InMemoryRouteRepository getInstance() {
+        return INSTANCE;
     }
 }

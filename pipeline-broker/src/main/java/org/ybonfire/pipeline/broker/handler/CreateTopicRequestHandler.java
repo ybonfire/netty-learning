@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.broker.converter.CreateTopicRequestConverter;
 import org.ybonfire.pipeline.broker.model.TopicConfig;
 import org.ybonfire.pipeline.broker.topic.TopicConfigManager;
-import org.ybonfire.pipeline.broker.topic.provider.TopicConfigManagerProvider;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
@@ -24,7 +23,9 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  */
 public class CreateTopicRequestHandler extends AbstractNettyRemotingRequestHandler<CreateTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final TopicConfigManager topicConfigManager = TopicConfigManagerProvider.getInstance();
+    private static final CreateTopicRequestHandler INSTANCE = new CreateTopicRequestHandler();
+
+    private CreateTopicRequestHandler() {}
 
     /**
      * @description: 参数校验
@@ -55,7 +56,7 @@ public class CreateTopicRequestHandler extends AbstractNettyRemotingRequestHandl
     protected RemotingResponse fire(final IRemotingRequest<CreateTopicRequest> request) {
         final CreateTopicRequest body = request.getBody();
         final TopicConfig topicConfig = CreateTopicRequestConverter.getInstance().convert(body);
-        topicConfigManager.updateTopicConfig(topicConfig);
+        TopicConfigManager.getInstance().updateTopicConfig(topicConfig);
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(), null);
     }
 
@@ -107,5 +108,14 @@ public class CreateTopicRequestHandler extends AbstractNettyRemotingRequestHandl
         }
 
         return true;
+    }
+
+    /**
+     * 获取CreateTopicRequestHandler实例
+     *
+     * @return {@link CreateTopicRequestHandler}
+     */
+    public static CreateTopicRequestHandler getInstance() {
+        return INSTANCE;
     }
 }

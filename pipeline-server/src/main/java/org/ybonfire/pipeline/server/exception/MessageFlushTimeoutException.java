@@ -9,7 +9,7 @@ import org.ybonfire.pipeline.common.constant.ResponseEnum;
  * @date 2022-10-06 17:36
  */
 public class MessageFlushTimeoutException extends ServerException {
-    private final ResponseEnum responseType = ResponseEnum.MESSAGE_FLUSH_DISK_TIME_OUT;
+    private static final ResponseEnum RESPONSE_TYPE = ResponseEnum.MESSAGE_FLUSH_DISK_TIME_OUT;
 
     public MessageFlushTimeoutException() {}
 
@@ -27,6 +27,6 @@ public class MessageFlushTimeoutException extends ServerException {
 
     @Override
     public ResponseEnum getResponseType() {
-        return responseType;
+        return RESPONSE_TYPE;
     }
 }

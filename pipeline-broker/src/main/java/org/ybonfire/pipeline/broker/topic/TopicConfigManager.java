@@ -27,13 +27,14 @@ import org.ybonfire.pipeline.common.util.JsonUtil;
  * @date 2022-09-14 15:34
  */
 public class TopicConfigManager {
-    private static final String TOPIC_CONFIG_STORE_PATH = BrokerConstant.BROKER_STORE_BASE_PATH + "topic";
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
+    private static final String TOPIC_CONFIG_STORE_PATH = BrokerConstant.BROKER_STORE_BASE_PATH + "topic";
+    private static final TopicConfigManager INSTANCE = new TopicConfigManager();
     private final Map<String, TopicConfig> topicConfigTable = new HashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
-    public TopicConfigManager() {
+    private TopicConfigManager() {
         reload();
         scheduledExecutorService.scheduleAtFixedRate(this::persist, 15 * 1000L, 30 * 1000L, TimeUnit.MILLISECONDS);
     }
@@ -130,7 +131,7 @@ public class TopicConfigManager {
      * 加载本地文件持久化的主题配置
      */
     public synchronized void reload() {
-        final Map<String, TopicConfig> topicConfigTable = new HashMap<>();
+        final Map<String, TopicConfig> configs = new HashMap<>();
 
         try {
             final String content = FileUtil.readFromFile(TOPIC_CONFIG_STORE_PATH);
@@ -140,14 +141,23 @@ public class TopicConfigManager {
                     final String topic = entry.getKey();
                     final String topicInfoJson = JsonUtil.encode(entry.getValue());
                     final TopicConfig topicConfig = JsonUtil.decode(topicInfoJson, TopicConfig.class);
-                    topicConfigTable.put(topic, topicConfig);
+                    configs.put(topic, topicConfig);
                 }
             }
         } catch (IOException ex) {
             LOGGER.error(ex.getMessage());
         } finally {
             this.topicConfigTable.clear();
-            this.topicConfigTable.putAll(topicConfigTable);
+            this.topicConfigTable.putAll(configs);
         }
+    }
+
+    /**
+     * 获取TopicConfigManager实例
+     *
+     * @return {@link TopicConfigManager}
+     */
+    public static TopicConfigManager getInstance() {
+        return INSTANCE;
     }
 }

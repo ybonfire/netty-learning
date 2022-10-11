@@ -30,8 +30,6 @@ import org.ybonfire.pipeline.common.util.RemotingUtil;
  * @date 2022-09-23 10:57
  */
 public class NameServerClientImpl extends NettyRemotingClient implements INameServerClient {
-    private final AtomicBoolean started = new AtomicBoolean(false);
-
     public NameServerClientImpl() {
         super(new NettyClientConfig());
     }
@@ -48,8 +46,7 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
 
     @Override
     public void uploadTopicConfig(final List<TopicConfig> topicConfigs, final String address) {
-        final IRemotingResponse<DefaultResponse> response =
-            request(address, buildRouteUploadRequest(RemotingUtil.getLocalAddress(), topicConfigs));
+        request(address, buildRouteUploadRequest(RemotingUtil.getLocalAddress(), topicConfigs));
     }
 
     /**

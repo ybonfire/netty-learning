@@ -9,7 +9,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.JoinClusterRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
-import org.ybonfire.pipeline.nameserver.replica.peer.PeerManagerProvider;
+import org.ybonfire.pipeline.nameserver.replica.peer.PeerManager;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
@@ -19,8 +19,11 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @author Bo.Yuan5
  * @date 2022-08-05 18:14
  */
-public class JoinClusterRequestHandler extends AbstractNettyRemotingRequestHandler<JoinClusterRequest> {
+public final class JoinClusterRequestHandler extends AbstractNettyRemotingRequestHandler<JoinClusterRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
+    private static final JoinClusterRequestHandler INSTANCE = new JoinClusterRequestHandler();
+
+    private JoinClusterRequestHandler() {}
 
     /**
      * @description: 参数校验
@@ -45,7 +48,7 @@ public class JoinClusterRequestHandler extends AbstractNettyRemotingRequestHandl
     protected RemotingResponse fire(final IRemotingRequest<JoinClusterRequest> request) {
         final PeerNode peerNode =
             PeerNode.builder().id(request.getBody().getNodeId()).address(request.getBody().getAddress()).build();
-        PeerManagerProvider.getInstance().add(peerNode);
+        PeerManager.getInstance().add(peerNode);
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
             DefaultResponse.create(ResponseEnum.SUCCESS.name()));
     }
@@ -70,5 +73,14 @@ public class JoinClusterRequestHandler extends AbstractNettyRemotingRequestHandl
     private boolean isJoinClusterRequest(final IRemotingRequest<JoinClusterRequest> request) {
         final Integer code = request.getCode();
         return code != null && RequestEnum.code(code) == RequestEnum.JOIN_CLUSTER;
+    }
+
+    /**
+     * 获取JoinClusterRequestHandler实例
+     *
+     * @return {@link JoinClusterRequestHandler}
+     */
+    public static JoinClusterRequestHandler getInstance() {
+        return INSTANCE;
     }
 }

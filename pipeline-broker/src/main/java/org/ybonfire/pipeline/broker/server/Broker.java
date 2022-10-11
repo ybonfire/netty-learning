@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.ybonfire.pipeline.broker.config.BrokerConfig;
-import org.ybonfire.pipeline.broker.handler.provider.BrokerRequestHandlerProvider;
+import org.ybonfire.pipeline.broker.handler.ProduceMessageRequestHandler;
 import org.ybonfire.pipeline.broker.model.RoleEnum;
 import org.ybonfire.pipeline.broker.register.IBrokerRegisterService;
 import org.ybonfire.pipeline.broker.register.impl.BrokerRegisterServiceImpl;
@@ -31,7 +31,7 @@ public final class Broker extends NettyRemotingServer {
 
     public Broker(final BrokerConfig config, final List<String> nameServerAddressList) {
         super(config);
-        RoleManager.set(RoleEnum.of(config.getRole()));
+        RoleManager.getInstance().set(RoleEnum.of(config.getRole()));
         this.nameServerAddressList = nameServerAddressList;
     }
 
@@ -42,7 +42,7 @@ public final class Broker extends NettyRemotingServer {
             brokerRegisterService.start();
 
             // 注册定时任务,定时向NameServer上报信息
-            if (RoleManager.get() == RoleEnum.LEADER) {
+            if (RoleManager.getInstance().get() == RoleEnum.LEADER) {
                 scheduledExecutorService.scheduleAtFixedRate(this::registerToNameServer, 5 * 1000L, 10 * 1000L,
                     TimeUnit.MILLISECONDS);
             }
@@ -56,7 +56,7 @@ public final class Broker extends NettyRemotingServer {
             brokerRegisterService.shutdown();
 
             // 注册定时任务,定时向NameServer上报信息
-            if (RoleManager.get() == RoleEnum.LEADER) {
+            if (RoleManager.getInstance().get() == RoleEnum.LEADER) {
                 scheduledExecutorService.shutdown();
             }
         }
@@ -83,7 +83,7 @@ public final class Broker extends NettyRemotingServer {
     private void registerProduceMessageRequestHandler() {
         final ExecutorService produceMessageRequestHandleExecutor =
             ThreadPoolUtil.getProduceMessageHandlerExecutorService();
-        registerHandler(RequestEnum.PRODUCE_MESSAGE.getCode(), BrokerRequestHandlerProvider.getHandler(),
+        registerHandler(RequestEnum.PRODUCE_MESSAGE.getCode(), ProduceMessageRequestHandler.getInstance(),
             produceMessageRequestHandleExecutor);
     }
 

@@ -6,7 +6,7 @@ package org.ybonfire.pipeline.client.exception;
  * @author yuanbo
  * @date 2022-09-09 16:38
  */
-public class ReadTimeoutException extends ClientException {
+public final class ReadTimeoutException extends ClientException {
 
     public ReadTimeoutException() {}
 

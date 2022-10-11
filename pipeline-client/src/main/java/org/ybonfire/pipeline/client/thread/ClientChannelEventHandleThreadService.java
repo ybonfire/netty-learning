@@ -18,7 +18,7 @@ import io.netty.channel.Channel;
  * @date 2022-05-24 18:10
  */
 public class ClientChannelEventHandleThreadService extends AbstractThreadService {
-    private final String name = "ClientChannelEventHandler";
+    private static final String NAME = "ClientChannelEventHandler";
     private final BlockingQueue<NettyChannelEvent> eventQueue = new LinkedBlockingQueue<>();
     private final INettyChannelEventListener listener;
 
@@ -29,7 +29,7 @@ public class ClientChannelEventHandleThreadService extends AbstractThreadService
 
     @Override
     protected String getName() {
-        return name;
+        return NAME;
     }
 
     /**

@@ -9,7 +9,7 @@ import org.ybonfire.pipeline.common.constant.ResponseEnum;
  * @date 2022-10-06 18:31
  */
 public class MessageWriteFailedException extends ServerException {
-    private final ResponseEnum responseType = ResponseEnum.Message_WRITE_FAILED;
+    private static final ResponseEnum RESPONSE_TYPE = ResponseEnum.MESSAGE_WRITE_FAILED;
 
     public MessageWriteFailedException() {}
 
@@ -27,6 +27,6 @@ public class MessageWriteFailedException extends ServerException {
 
     @Override
     public ResponseEnum getResponseType() {
-        return responseType;
+        return RESPONSE_TYPE;
     }
 }

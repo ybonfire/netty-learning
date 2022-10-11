@@ -54,6 +54,18 @@ public final class ThreadPoolUtil {
         buildThreadPool(REGISTER_BROKER_TASK_THREAD_NUMS_MIN, REGISTER_BROKER_TASK_THREAD_NUMS_MAX,
             REGISTER_BROKER_TASK_QUEUE_CAPACITY, REGISTER_BROKER_TASK_THREAD_FACTORY);
 
+    // MessageLog Listener Thread Pool
+    private static final int MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MIN =
+        Math.max(4, Runtime.getRuntime().availableProcessors());
+    private static final int MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MAX =
+        Math.max(4, Runtime.getRuntime().availableProcessors());
+    private static final int MESSAGE_LOG_LISTENER_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final ThreadFactory MESSAGE_LOG_LISTENER_TASK_THREAD_FACTORY =
+        new ThreadWorkerFactory("message_log_listener_task_", true);
+    private static final ExecutorService MESSAGE_LOG_LISTENER_TASK_EXECUTOR_SERVICE =
+        buildThreadPool(MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MIN, MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MAX,
+            MESSAGE_LOG_LISTENER_TASK_QUEUE_CAPACITY, MESSAGE_LOG_LISTENER_TASK_THREAD_FACTORY);
+
     public static ExecutorService getProduceMessageHandlerExecutorService() {
         return PRODUCE_MESSAGE_HANDLER_EXECUTOR_SERVICE;
     }
@@ -64,6 +76,10 @@ public final class ThreadPoolUtil {
 
     public static ExecutorService getRegisterBrokerTaskExecutorService() {
         return REGISTER_BROKER_TASK_EXECUTOR_SERVICE;
+    }
+
+    public static ExecutorService getMessageLogListenerTaskExecutorService() {
+        return MESSAGE_LOG_LISTENER_TASK_EXECUTOR_SERVICE;
     }
 
     /**

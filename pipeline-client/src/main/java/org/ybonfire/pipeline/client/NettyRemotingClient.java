@@ -472,7 +472,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
 
             final String local = localAddress == null ? "UNKNOWN" : localAddress.toString();
             final String remote = remoteAddress == null ? "UNKNOWN" : remoteAddress.toString();
-            System.out.println("NETTY CLIENT PIPELINE: CONNECT " + local + "->" + remote);
+            LOGGER.info("NETTY CLIENT PIPELINE: CONNECT " + local + "->" + remote);
 
             // 发布连接事件
             final NettyChannelEvent event =
@@ -492,7 +492,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
             super.disconnect(ctx, promise);
 
             final String remote = RemotingUtil.parseChannelAddress(ctx.channel());
-            System.out.println("NETTY CLIENT PIPELINE: DISCONNECT " + remote);
+            LOGGER.info("NETTY CLIENT PIPELINE: DISCONNECT " + remote);
 
             // 发布关闭事件
             final NettyChannelEvent event =
@@ -512,7 +512,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
             super.disconnect(ctx, promise);
 
             final String remote = RemotingUtil.parseChannelAddress(ctx.channel());
-            System.out.println("NETTY CLIENT PIPELINE: DISCONNECT " + remote);
+            LOGGER.info("NETTY CLIENT PIPELINE: DISCONNECT " + remote);
 
             // 发布关闭事件
             final NettyChannelEvent event =

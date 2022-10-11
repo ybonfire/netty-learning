@@ -1,10 +1,11 @@
 package org.ybonfire.pipeline.broker.model;
 
+import java.util.concurrent.CompletableFuture;
+
+import org.ybonfire.pipeline.broker.store.message.MessageLog;
+
 import lombok.Builder;
 import lombok.Data;
-import org.ybonfire.pipeline.broker.store.file.MappedFile;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 消息刷盘任务
@@ -14,10 +15,8 @@ import java.util.concurrent.CompletableFuture;
  */
 @Builder
 @Data
-public class MessageFlushJob {
-    private final MappedFile file;
-    private final int flushOffset;
-    private final int attemptTimes;
+public final class MessageLogFlushJob {
+    private final MessageLog messageLog;
     private final CompletableFuture<MessageFlushResultEnum> future = new CompletableFuture<>();
 
     public CompletableFuture<MessageFlushResultEnum> getFuture() {

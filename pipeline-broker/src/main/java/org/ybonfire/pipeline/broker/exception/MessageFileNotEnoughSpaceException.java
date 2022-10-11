@@ -9,8 +9,8 @@ import org.ybonfire.pipeline.server.exception.ServerException;
  * @author yuanbo
  * @date 2022-09-21 14:29
  */
-public class MessageFileNotEnoughSpaceException extends ServerException {
-    private final ResponseEnum responseType = ResponseEnum.MESSAGE_FILE_NOT_ENOUGH_SPACE;
+public final class MessageFileNotEnoughSpaceException extends ServerException {
+    private static final ResponseEnum RESPONSE_TYPE = ResponseEnum.MESSAGE_FILE_NOT_ENOUGH_SPACE;
 
     public MessageFileNotEnoughSpaceException() {}
 
@@ -28,6 +28,6 @@ public class MessageFileNotEnoughSpaceException extends ServerException {
 
     @Override
     public ResponseEnum getResponseType() {
-        return responseType;
+        return RESPONSE_TYPE;
     }
 }

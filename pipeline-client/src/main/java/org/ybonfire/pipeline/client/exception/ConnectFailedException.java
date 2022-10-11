@@ -6,7 +6,7 @@ package org.ybonfire.pipeline.client.exception;
  * @author yuanbo
  * @date 2022-09-09 16:29
  */
-public class ConnectFailedException extends ClientException {
+public final class ConnectFailedException extends ClientException {
 
     public ConnectFailedException() {}
 

@@ -1,5 +1,7 @@
 package org.ybonfire.pipeline.broker.store.message;
 
+import org.ybonfire.pipeline.common.model.Message;
+
 /**
  * 消息存储服务接口
  *
@@ -22,10 +24,18 @@ public interface IMessageStoreService {
      * @return:
      * @date: 2022/09/14 18:30:19
      */
-    void store(final String topic, final int partitionId, final byte[] data);
+    void store(final String topic, final int partitionId, final Message message);
 
     /**
-     * @description: 关闭消息存储服务
+     * @description: 重新加载文件数据
+     * @param:
+     * @return:
+     * @date: 2022/10/11 16:38:05
+     */
+    void reload();
+
+    /**
+     * @description: 停止消息存储服务
      * @param:
      * @return:
      * @date: 2022/09/21 14:47:17

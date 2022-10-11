@@ -1,10 +1,8 @@
 package org.ybonfire.pipeline.broker.role;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.ybonfire.pipeline.broker.model.RoleEnum;
-
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.ybonfire.pipeline.broker.model.RoleEnum;
 
 /**
  * Role管理器
@@ -12,9 +10,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Bo.Yuan5
  * @date 2022-09-02 15:47
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RoleManager {
     private static final AtomicReference<RoleEnum> ROLE_HOLDER = new AtomicReference<>(RoleEnum.LEADER);
+    private static final RoleManager INSTANCE = new RoleManager();
+
+    private RoleManager() {}
 
     /**
      * @description: 设置角色
@@ -22,7 +22,7 @@ public final class RoleManager {
      * @return:
      * @date: 2022/09/02 16:13:37
      */
-    public static void set(final RoleEnum role) {
+    public void set(final RoleEnum role) {
         ROLE_HOLDER.set(role);
     }
 
@@ -32,7 +32,16 @@ public final class RoleManager {
      * @return:
      * @date: 2022/09/02 16:13:45
      */
-    public static RoleEnum get() {
+    public RoleEnum get() {
         return ROLE_HOLDER.get();
+    }
+
+    /**
+     * 获取RoleManager实例
+     *
+     * @return {@link RoleManager}
+     */
+    public static RoleManager getInstance() {
+        return INSTANCE;
     }
 }

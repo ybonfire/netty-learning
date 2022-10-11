@@ -3,7 +3,10 @@ package org.ybonfire.pipeline.nameserver.server;
 import java.util.concurrent.ExecutorService;
 
 import org.ybonfire.pipeline.common.constant.RequestEnum;
-import org.ybonfire.pipeline.nameserver.handler.provider.NameServerRequestHandlerProvider;
+import org.ybonfire.pipeline.nameserver.handler.JoinClusterRequestHandler;
+import org.ybonfire.pipeline.nameserver.handler.SelectAllRouteRequestHandler;
+import org.ybonfire.pipeline.nameserver.handler.SelectByTopicNameRequestHandler;
+import org.ybonfire.pipeline.nameserver.handler.UploadRouteRequestHandler;
 import org.ybonfire.pipeline.nameserver.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.server.NettyRemotingServer;
 import org.ybonfire.pipeline.server.config.NettyServerConfig;
@@ -43,8 +46,7 @@ public final class NameServer extends NettyRemotingServer {
      */
     private void registerRouteUploadRequestHandler() {
         final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
-        registerHandler(RequestEnum.UPLOAD_ROUTE.getCode(),
-            NameServerRequestHandlerProvider.getUploadRouteRequestHandler(), handlerExecutor);
+        registerHandler(RequestEnum.UPLOAD_ROUTE.getCode(), UploadRouteRequestHandler.getInstance(), handlerExecutor);
     }
 
     /**
@@ -52,8 +54,8 @@ public final class NameServer extends NettyRemotingServer {
      */
     private void registerRouteSelectAllRequestHandler() {
         final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
-        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(),
-            NameServerRequestHandlerProvider.getSelectAllRouteRequestHandler(), handlerExecutor);
+        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(), SelectAllRouteRequestHandler.getInstance(),
+            handlerExecutor);
     }
 
     /**
@@ -61,8 +63,8 @@ public final class NameServer extends NettyRemotingServer {
      */
     private void registerRouteSelectRequestHandler() {
         final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
-        registerHandler(RequestEnum.SELECT_ROUTE.getCode(),
-            NameServerRequestHandlerProvider.getSelectByTopicNameRequestHandler(), handlerExecutor);
+        registerHandler(RequestEnum.SELECT_ROUTE.getCode(), SelectByTopicNameRequestHandler.getInstance(),
+            handlerExecutor);
     }
 
     /**
@@ -70,7 +72,6 @@ public final class NameServer extends NettyRemotingServer {
      */
     private void registerJoinClusterRequestHandler() {
         final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
-        registerHandler(RequestEnum.JOIN_CLUSTER.getCode(),
-            NameServerRequestHandlerProvider.getJoinClusterRequestHandler(), handlerExecutor);
+        registerHandler(RequestEnum.JOIN_CLUSTER.getCode(), JoinClusterRequestHandler.getInstance(), handlerExecutor);
     }
 }

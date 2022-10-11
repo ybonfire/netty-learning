@@ -1,6 +1,6 @@
 package org.ybonfire.pipeline.broker.store.index;
 
-import org.ybonfire.pipeline.broker.store.file.MappedFile;
+import org.ybonfire.pipeline.broker.store.message.MessageLog;
 
 /**
  * 消息索引创建服务接口
@@ -11,16 +11,26 @@ import org.ybonfire.pipeline.broker.store.file.MappedFile;
 public interface IMessageIndexConstructService {
 
     /**
-     * 注册消息文件对象
-     *
-     * @param file 文件
+     * @description: 启动消息索引构建服务
+     * @param:
+     * @return:
+     * @date: 2022/10/11 16:36:48
      */
-    void register(final MappedFile file);
+    void start();
 
     /**
-     * 取消注册消息文件对象
-     *
-     * @param file 文件
+     * @description: 注册消息文件对象
+     * @param:
+     * @return:
+     * @date: 2022/10/11 16:36:54
      */
-    void deregister(final MappedFile file);
+    void register(final MessageLog messageLog);
+
+    /**
+     * @description: 停止消息索引构建服务
+     * @param:
+     * @return:
+     * @date: 2022/10/11 16:37:01
+     */
+    void stop();
 }
