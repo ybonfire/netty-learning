@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class TopicConfig {
+public final class TopicConfig {
     private String topic;
     private List<PartitionConfig> partitions;
 }

@@ -12,7 +12,7 @@ import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.nameserver.client.impl.NameServerClientImpl;
 import org.ybonfire.pipeline.nameserver.constant.NameServerConstant;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
-import org.ybonfire.pipeline.nameserver.replica.peer.PeerManagerProvider;
+import org.ybonfire.pipeline.nameserver.replica.peer.PeerManager;
 import org.ybonfire.pipeline.nameserver.thread.RouteUploadRequestPublishThreadTask;
 import org.ybonfire.pipeline.nameserver.thread.RouteUploadRequestPublishThreadTaskBuilder;
 import org.ybonfire.pipeline.nameserver.util.ThreadPoolUtil;
@@ -24,9 +24,12 @@ import org.ybonfire.pipeline.nameserver.util.ThreadPoolUtil;
  * @date 2022-08-12 22:05
  */
 public class RouteUploadRequestPublisher {
+    private static final RouteUploadRequestPublisher INSTANCE = new RouteUploadRequestPublisher();
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final NameServerClientImpl nameServerClient = new NameServerClientImpl(new NettyClientConfig());
     private final ExecutorService publishExecutors = ThreadPoolUtil.getRouteUploadRequestPublishExecutorService();
+
+    private RouteUploadRequestPublisher() {}
 
     /**
      * @description: 启动路由数据广播其
@@ -59,7 +62,7 @@ public class RouteUploadRequestPublisher {
      * @date: 2022/08/12 22:09:10
      */
     public void publish(final IRemotingRequest<RouteUploadRequest> request) {
-        final Set<PeerNode> peers = PeerManagerProvider.getInstance().getPeers();
+        final Set<PeerNode> peers = PeerManager.getInstance().getPeers();
 
         final int quorum = peers.size() / 2 + 1;
         final CountDownLatch latch = new CountDownLatch(quorum);
@@ -85,5 +88,14 @@ public class RouteUploadRequestPublisher {
     private RouteUploadRequestPublishThreadTask buildRouteUploadRequestPublishThreadTask(
         final IRemotingRequest<RouteUploadRequest> request, final PeerNode peer, final CountDownLatch latch) {
         return RouteUploadRequestPublishThreadTaskBuilder.build(request, peer, latch, nameServerClient);
+    }
+
+    /**
+     * 获取RouteUploadRequestPublisher实例
+     *
+     * @return {@link RouteUploadRequestPublisher}
+     */
+    public static RouteUploadRequestPublisher getInstance() {
+        return INSTANCE;
     }
 }

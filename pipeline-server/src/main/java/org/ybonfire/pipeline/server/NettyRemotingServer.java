@@ -123,7 +123,7 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        System.out.println(ch.remoteAddress());
+                        LOGGER.info(ch.remoteAddress().toString());
                         ch.pipeline().addLast(defaultEventExecutorGroup, new ResponseEncoder(), new RequestDecoder(),
                             nettyServerHandler);
                     }
@@ -131,10 +131,11 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
 
             try {
                 ChannelFuture future = this.serverBootstrap.bind(this.config.getPort()).sync();
-                System.out.println(future.channel().localAddress());
-//                future.channel().closeFuture().sync();
-            } catch (InterruptedException e1) {
-                throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
+                LOGGER.info(future.channel().localAddress().toString());
+                // future.channel().closeFuture().sync();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e);
             }
         }
     }

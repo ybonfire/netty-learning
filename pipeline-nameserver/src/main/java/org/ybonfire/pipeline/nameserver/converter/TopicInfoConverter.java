@@ -51,6 +51,7 @@ public class TopicInfoConverter implements IConverter<TopicInfo, TopicConfigRemo
      * @return:
      * @date: 2022/07/28 20:31:40
      */
+    @Override
     public TopicInfo revert(final TopicConfigRemotingEntity src) {
         if (src == null) {
             return null;

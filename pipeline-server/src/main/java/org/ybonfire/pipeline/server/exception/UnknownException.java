@@ -9,7 +9,7 @@ import org.ybonfire.pipeline.common.constant.ResponseEnum;
  * @date 2022-09-09 14:38
  */
 public class UnknownException extends ServerException {
-    private final ResponseEnum responseType = ResponseEnum.UNKNOWN_ERROR;
+    private static final ResponseEnum RESPONSE_TYPE = ResponseEnum.UNKNOWN_ERROR;
 
     public UnknownException() {}
 
@@ -27,6 +27,6 @@ public class UnknownException extends ServerException {
 
     @Override
     public ResponseEnum getResponseType() {
-        return responseType;
+        return RESPONSE_TYPE;
     }
 }

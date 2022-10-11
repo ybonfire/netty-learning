@@ -10,7 +10,6 @@ import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.model.TopicConfig;
 import org.ybonfire.pipeline.broker.register.IBrokerRegisterService;
 import org.ybonfire.pipeline.broker.topic.TopicConfigManager;
-import org.ybonfire.pipeline.broker.topic.provider.TopicConfigManagerProvider;
 import org.ybonfire.pipeline.broker.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 
@@ -23,7 +22,6 @@ import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final NameServerClientImpl nameServerClient = new NameServerClientImpl();
-    private final TopicConfigManager topicConfigManager = TopicConfigManagerProvider.getInstance();
 
     /**
      * @description: 启动Broker注册服务
@@ -59,7 +57,7 @@ public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
         final CountDownLatch latch = new CountDownLatch(nameServerAddressList.size());
 
         // 向Broker上报TopicConfig信息
-        final List<TopicConfig> topicConfigs = topicConfigManager.selectAllTopicConfigs();
+        final List<TopicConfig> topicConfigs = TopicConfigManager.getInstance().selectAllTopicConfigs();
         for (final String nameServerAddress : nameServerAddressList) {
             final BrokerRegisterThreadTask task = new BrokerRegisterThreadTask(latch, topicConfigs, nameServerAddress);
             ThreadPoolUtil.getRegisterBrokerTaskExecutorService().submit(task);

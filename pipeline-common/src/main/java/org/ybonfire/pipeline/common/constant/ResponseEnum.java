@@ -46,7 +46,7 @@ public enum ResponseEnum {
     /**
      * 消息写入失败
      */
-    Message_WRITE_FAILED(-203, DefaultResponse.class),
+    MESSAGE_WRITE_FAILED(-203, DefaultResponse.class),
     /**
      * 消息刷盘超时
      */

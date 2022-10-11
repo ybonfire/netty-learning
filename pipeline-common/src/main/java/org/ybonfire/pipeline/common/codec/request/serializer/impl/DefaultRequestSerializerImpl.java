@@ -2,12 +2,11 @@ package org.ybonfire.pipeline.common.codec.request.serializer.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.ybonfire.pipeline.common.codec.request.serializer.IRequestSerializer;
+import org.ybonfire.pipeline.common.constant.CommonConstant;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
@@ -24,10 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @date 2022-06-01 16:42
  */
 public class DefaultRequestSerializerImpl implements IRequestSerializer {
-    private static final int INT_BYTE_LENGTH = 4;
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final Charset CHARSET_UTF8 = StandardCharsets.UTF_8;
 
     /**
      * @description: 序列化
@@ -42,7 +39,7 @@ public class DefaultRequestSerializerImpl implements IRequestSerializer {
         }
 
         // id
-        final byte[] idBytes = src.getId().getBytes(CHARSET_UTF8);
+        final byte[] idBytes = src.getId().getBytes(CommonConstant.CHARSET_UTF8);
         final int idByteLength = idBytes.length;
         // code
         final Integer code = src.getCode();
@@ -50,11 +47,11 @@ public class DefaultRequestSerializerImpl implements IRequestSerializer {
         final byte[] bodyBytes = Objects.isNull(src.getBody()) ? new byte[0] : MAPPER.writeValueAsBytes(src.getBody());
         final int bodyBytesLength = bodyBytes.length;
 
-        final int totalLength =
-            INT_BYTE_LENGTH/*code*/ + INT_BYTE_LENGTH/*idByteLength*/ + INT_BYTE_LENGTH/*bodyBytesLength*/
-                + idByteLength + bodyBytesLength;
+        final int totalLength = CommonConstant.INT_BYTE_LENGTH/*code*/ + CommonConstant.INT_BYTE_LENGTH/*idByteLength*/
+            + CommonConstant.INT_BYTE_LENGTH/*bodyBytesLength*/
+            + idByteLength + bodyBytesLength;
 
-        final ByteBuffer result = ByteBuffer.allocate(INT_BYTE_LENGTH + totalLength);
+        final ByteBuffer result = ByteBuffer.allocate(CommonConstant.INT_BYTE_LENGTH + totalLength);
         result.putInt(totalLength); // totalLength
         result.putInt(code); // code
         result.putInt(idByteLength); // id
@@ -90,7 +87,7 @@ public class DefaultRequestSerializerImpl implements IRequestSerializer {
         final int idLength = src.getInt();
         final byte[] idBytes = new byte[idLength];
         src.get(idBytes);
-        final String id = new String(idBytes, CHARSET_UTF8);
+        final String id = new String(idBytes, CommonConstant.CHARSET_UTF8);
 
         // body
         IRemotingRequestBody data = null;

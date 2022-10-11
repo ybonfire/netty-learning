@@ -16,6 +16,7 @@ import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.replica.publish.RouteUploadRequestPublisher;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
+import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
@@ -28,13 +29,11 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  */
 public final class UploadRouteRequestHandler extends AbstractNettyRemotingRequestHandler<RouteUploadRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final RouteManageService routeManageService;
-    private final RouteUploadRequestPublisher uploadRouteRequestPublisher;
+    private static final UploadRouteRequestHandler INSTANCE = new UploadRouteRequestHandler();
+    private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
+    private final RouteUploadRequestPublisher uploadRouteRequestPublisher = RouteUploadRequestPublisher.getInstance();
 
-    public UploadRouteRequestHandler(final RouteManageService routeManageService,
-        final RouteUploadRequestPublisher uploadRouteRequestPublisher) {
-        this.routeManageService = routeManageService;
-        this.uploadRouteRequestPublisher = uploadRouteRequestPublisher;
+    private UploadRouteRequestHandler() {
         this.uploadRouteRequestPublisher.start();
     }
 
@@ -151,4 +150,12 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
         return true;
     }
 
+    /**
+     * 获取UploadRouteRequestHandler实例
+     *
+     * @return {@link UploadRouteRequestHandler}
+     */
+    public static UploadRouteRequestHandler getInstance() {
+        return INSTANCE;
+    }
 }

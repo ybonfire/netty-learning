@@ -17,6 +17,7 @@ import org.ybonfire.pipeline.common.protocol.request.RouteSelectAllRequest;
 import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
 import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
+import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
 
@@ -27,12 +28,11 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @date 2022-07-11 14:04
  */
 public final class SelectAllRouteRequestHandler extends AbstractNettyRemotingRequestHandler<RouteSelectAllRequest> {
+    private static final SelectAllRouteRequestHandler INSTANCE = new SelectAllRouteRequestHandler();
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final RouteManageService routeManageService;
+    private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
 
-    public SelectAllRouteRequestHandler(final RouteManageService routeManageService) {
-        this.routeManageService = routeManageService;
-    }
+    private SelectAllRouteRequestHandler() {}
 
     /**
      * @description: 参数校验
@@ -94,5 +94,14 @@ public final class SelectAllRouteRequestHandler extends AbstractNettyRemotingReq
     private boolean isRouteSelectAllRequest(final IRemotingRequest<RouteSelectAllRequest> request) {
         final Integer code = request.getCode();
         return code != null && RequestEnum.code(code) == RequestEnum.SELECT_ALL_ROUTE;
+    }
+
+    /**
+     * 获取SelectAllRouteRequestHandler实例
+     *
+     * @return {@link SelectAllRouteRequestHandler}
+     */
+    public static SelectAllRouteRequestHandler getInstance() {
+        return INSTANCE;
     }
 }

@@ -1,11 +1,10 @@
 package org.ybonfire.pipeline.broker.store.message.impl;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -14,18 +13,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.exception.MessageFileCreateException;
-import org.ybonfire.pipeline.broker.model.MessageFlushJob;
 import org.ybonfire.pipeline.broker.model.MessageFlushPolicyEnum;
 import org.ybonfire.pipeline.broker.model.MessageFlushResultEnum;
+import org.ybonfire.pipeline.broker.model.MessageLogFlushJob;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
-import org.ybonfire.pipeline.broker.store.index.IMessageIndexConstructService;
 import org.ybonfire.pipeline.broker.store.index.impl.MessageIndexConstructServiceImpl;
 import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
+import org.ybonfire.pipeline.broker.store.message.MessageLog;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.thread.service.AbstractThreadService;
 import org.ybonfire.pipeline.server.exception.MessageFlushTimeoutException;
-import org.ybonfire.pipeline.server.exception.MessageWriteFailedException;
 
 /**
  * 消息存储服务
@@ -35,11 +34,13 @@ import org.ybonfire.pipeline.server.exception.MessageWriteFailedException;
  */
 public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private static final String MESSAGE_STORE_BASE_PATH = BrokerConstant.BROKER_STORE_BASE_PATH + "message";
-    private final Map<String/*topic*/, Map<Integer/*partitionId*/, MappedFile>> mappedFileTable = new HashMap<>();
-    private final IMessageIndexConstructService messageIndexConstructService = new MessageIndexConstructServiceImpl();
-    private final MessageFileFlushThreadService messageFileFlushThreadService = new MessageFileFlushThreadService();
+    private static final DefaultMessageStoreServiceImpl INSTANCE = new DefaultMessageStoreServiceImpl();
+    private final Map<String/*topic*/, Map<Integer/*partitionId*/, MessageLog>> messageLogTable =
+        new ConcurrentHashMap<>();
+    private final MessageLogFlushThreadService messageLogFlushThreadService = new MessageLogFlushThreadService();
     private final AtomicBoolean started = new AtomicBoolean(false);
+
+    private DefaultMessageStoreServiceImpl() {}
 
     /**
      * @description: 启动消息存储服务
@@ -50,7 +51,8 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     @Override
     public void start() {
         if (started.compareAndSet(false, true)) {
-            messageFileFlushThreadService.start();
+            reload();
+            messageLogFlushThreadService.start();
         }
     }
 
@@ -61,25 +63,39 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      * @date: 2022/09/14 18:30:19
      */
     @Override
-    public void store(final String topic, final int partitionId, final byte[] data) {
+    public void store(final String topic, final int partitionId, final Message message) {
+        // 确保服务已启动
+        acquireOK();
+
         // 确保文件已创建完毕
-        ensureMappedFileTableOK(topic, partitionId);
+        ensureMessageLogCreateOK(topic, partitionId);
 
         // 查询指定TopicPartition的消息文件
-        final Optional<MappedFile> mappedFileOptional = tryToFindMappedFileByTopicPartition(topic, partitionId);
-        if (mappedFileOptional.isPresent()) {
-            final MappedFile mappedFile = mappedFileOptional.get();
+        final Optional<MessageLog> messageLogOptional = tryToFindMessageLogByTopicPartition(topic, partitionId);
+        if (messageLogOptional.isPresent()) {
+            final MessageLog messageLog = messageLogOptional.get();
 
             // 写入数据
-            write(mappedFile, data);
+            write(messageLog, message);
 
             // 提交刷盘任务
-            submitMessageFlushJob(mappedFile);
+            submitMessageFlushJob(messageLog);
         }
     }
 
     /**
-     * @description: 关闭消息存储服务
+     * @description: 重新加载文件数据
+     * @param:
+     * @return:
+     * @date: 2022/10/11 16:38:05
+     */
+    @Override
+    public synchronized void reload() {
+        // TODO
+    }
+
+    /**
+     * @description: 停止消息存储服务
      * @param:
      * @return:
      * @date: 2022/09/21 14:47:17
@@ -87,25 +103,24 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     @Override
     public void stop() {
         if (started.compareAndSet(true, false)) {
-            messageFileFlushThreadService.stop();
+            messageLogFlushThreadService.stop();
         }
     }
 
     /**
-     * 确保MappedFile已创建好文件
+     * 确保MessageLog已创建好文件
      *
      * @param topic 主题
      * @param partitionId 分区id
      */
-    private synchronized void ensureMappedFileTableOK(final String topic, final int partitionId) {
-        final Map<Integer, MappedFile> mappedFileGroupByTopic =
-            mappedFileTable.computeIfAbsent(topic, k -> new HashMap<>());
-        if (mappedFileGroupByTopic.get(partitionId) == null) {
+    private synchronized void ensureMessageLogCreateOK(final String topic, final int partitionId) {
+        final Map<Integer, MessageLog> messageLogGroupByTopic =
+            messageLogTable.computeIfAbsent(topic, k -> new ConcurrentHashMap<>());
+        if (!messageLogGroupByTopic.containsKey(partitionId)) {
             try {
-                final String filename = buildMessageFilePath(topic, partitionId);
-                final MappedFile mappedFile = MappedFile.create(topic, partitionId, filename);
-                mappedFileGroupByTopic.put(partitionId, mappedFile);
-                messageIndexConstructService.register(mappedFile);
+                final MessageLog messageLog = MessageLog.create(topic, partitionId);
+                messageLogGroupByTopic.put(partitionId, messageLog);
+                MessageIndexConstructServiceImpl.getInstance().register(messageLog);
             } catch (IOException e) {
                 throw new MessageFileCreateException();
             }
@@ -113,39 +128,24 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     }
 
     /**
-     * 构建消息文件路径
-     *
-     * @param topic 主题
-     * @param partitionId 分区id
-     * @return {@link String}
-     */
-    private String buildMessageFilePath(final String topic, final int partitionId) {
-        return MESSAGE_STORE_BASE_PATH + File.separator + topic + File.separator + partitionId;
-    }
-
-    /**
      * 写入文件
      *
-     * @param file 文件
-     * @param data 数据
-     * @return boolean
+     * @param messageLog 消息文件
+     * @param message 消息
      */
-    private void write(final MappedFile file, final byte[] data) {
-        final boolean isWriteSuccess = file.put(data);
-        if (!isWriteSuccess) {
-            throw new MessageWriteFailedException();
-        }
+    private void write(final MessageLog messageLog, final Message message) {
+        messageLog.put(message);
     }
 
     /**
      * 提交消息刷盘任务
      *
-     * @param file 文件
+     * @param messageLog 消息文件
      */
-    private void submitMessageFlushJob(final MappedFile file) {
+    private void submitMessageFlushJob(final MessageLog messageLog) {
         // 提交刷盘任务
-        final MessageFlushJob job = buildMessageFlushJob(file);
-        this.messageFileFlushThreadService.submit(job);
+        final MessageLogFlushJob job = buildMessageFlushJob(messageLog);
+        this.messageLogFlushThreadService.submit(job);
 
         // 刷盘等待
         waitMessageFlushJobResultIfNecessary(job);
@@ -156,7 +156,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      *
      * @param job 工作
      */
-    private void waitMessageFlushJobResultIfNecessary(final MessageFlushJob job) {
+    private void waitMessageFlushJobResultIfNecessary(final MessageLogFlushJob job) {
         if (BrokerConstant.MESSAGE_FLUSH_POLICY == MessageFlushPolicyEnum.SYNC) {
             MessageFlushResultEnum result = MessageFlushResultEnum.FAILED;
             try {
@@ -166,7 +166,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
             }
 
             if (result != MessageFlushResultEnum.SUCCESS) {
-                LOGGER.warn("刷盘任务执行超时. filename:[" + job.getFile().getFilename() + "]");
+                LOGGER.warn("刷盘任务执行超时. filename:[" + job.getMessageLog().getFilename() + "]");
                 throw new MessageFlushTimeoutException();
             }
         }
@@ -175,34 +175,35 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     /**
      * 构建消息刷盘任务
      *
-     * @param file 文件
-     * @return {@link MessageFlushJob}
+     * @param messageLog 消息文件
+     * @return {@link MessageLogFlushJob}
      */
-    private MessageFlushJob buildMessageFlushJob(final MappedFile file) {
-        return MessageFlushJob.builder().file(file).flushOffset(file.getLastWritePosition())
-            .attemptTimes(BrokerConstant.MESSAGE_FLUSH_RETRY_TIMES).build();
+    private MessageLogFlushJob buildMessageFlushJob(final MessageLog messageLog) {
+        return MessageLogFlushJob.builder().messageLog(messageLog).build();
     }
 
     /**
-     * 文件刷盘
-     *
-     * @param file 文件
-     * @return boolean
-     */
-    private boolean flush(final MappedFile file) {
-        return file.flush();
-    }
-
-    /**
-     * 根据Topic和PartitionId查询对应的MappedFile
+     * 根据Topic和PartitionId查询对应的MessageLog
      *
      * @param topic 主题
      * @param partitionId 分区id
      * @return {@link Optional}<{@link MappedFile}>
      */
-    private Optional<MappedFile> tryToFindMappedFileByTopicPartition(final String topic, final int partitionId) {
-        return Optional.ofNullable(mappedFileTable.get(topic))
-            .map(mappedFileGroupByTopic -> mappedFileGroupByTopic.get(partitionId));
+    private Optional<MessageLog> tryToFindMessageLogByTopicPartition(final String topic, final int partitionId) {
+        return Optional.ofNullable(messageLogTable.get(topic))
+            .map(messageLogGroupByTopic -> messageLogGroupByTopic.get(partitionId));
+    }
+
+    /**
+     * @description: 判断服务是否启动
+     * @param:
+     * @return:
+     * @date: 2022/05/19 11:49:04
+     */
+    private void acquireOK() {
+        if (!this.started.get()) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**
@@ -211,11 +212,11 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      * @author yuanbo
      * @date 2022/09/21 14:45:36
      */
-    private class MessageFileFlushThreadService extends AbstractThreadService {
+    private static class MessageLogFlushThreadService extends AbstractThreadService {
         private static final String NAME = "messageFileFlushThreadService";
-        private final BlockingDeque<MessageFlushJob> jobs = new LinkedBlockingDeque<>();
+        private final BlockingDeque<MessageLogFlushJob> jobs = new LinkedBlockingDeque<>();
 
-        public MessageFileFlushThreadService() {
+        public MessageLogFlushThreadService() {
             super(10L);
         }
 
@@ -225,7 +226,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
          * @return:
          * @date: 2022/10/06 17:03:26
          */
-        public void submit(final MessageFlushJob job) {
+        public void submit(final MessageLogFlushJob job) {
             try {
                 jobs.putLast(job);
             } catch (InterruptedException e) {
@@ -242,12 +243,12 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
         @Override
         protected void execute() {
             try {
-                final MessageFlushJob job = jobs.takeFirst();
-                final MappedFile mappedFile = job.getFile();
+                final MessageLogFlushJob job = jobs.takeFirst();
+                final MessageLog messageLog = job.getMessageLog();
                 MessageFlushResultEnum result = MessageFlushResultEnum.FAILED;
-                for (int i = 0; i < job.getAttemptTimes(); ++i) {
+                for (int i = 0; i < BrokerConstant.MESSAGE_FLUSH_RETRY_TIMES; ++i) {
                     // 刷盘
-                    if (flush(mappedFile)) {
+                    if (messageLog.flush()) {
                         result = MessageFlushResultEnum.SUCCESS;
                         break;
                     }
@@ -259,5 +260,14 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
                 // ignore
             }
         }
+    }
+
+    /**
+     * 获取DefaultMessageStoreServiceImpl实例
+     *
+     * @return {@link DefaultMessageStoreServiceImpl}
+     */
+    public static DefaultMessageStoreServiceImpl getInstance() {
+        return INSTANCE;
     }
 }

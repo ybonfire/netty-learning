@@ -9,7 +9,7 @@ import org.ybonfire.pipeline.common.constant.ResponseEnum;
  * @date 2022-09-09 14:25
  */
 public class RequestTypeNotSupportException extends ServerException {
-    private final ResponseEnum responseType = ResponseEnum.REQUEST_TYPE_NOT_SUPPORTED;
+    private static final ResponseEnum RESPONSE_TYPE = ResponseEnum.REQUEST_TYPE_NOT_SUPPORTED;
 
     public RequestTypeNotSupportException() {}
 
@@ -27,6 +27,6 @@ public class RequestTypeNotSupportException extends ServerException {
 
     @Override
     public ResponseEnum getResponseType() {
-        return responseType;
+        return RESPONSE_TYPE;
     }
 }

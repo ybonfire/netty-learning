@@ -10,10 +10,8 @@ import org.ybonfire.pipeline.broker.model.PartitionConfig;
 import org.ybonfire.pipeline.broker.model.RoleEnum;
 import org.ybonfire.pipeline.broker.model.TopicConfig;
 import org.ybonfire.pipeline.broker.role.RoleManager;
-import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
 import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreServiceImpl;
 import org.ybonfire.pipeline.broker.topic.TopicConfigManager;
-import org.ybonfire.pipeline.broker.topic.provider.TopicConfigManagerProvider;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
@@ -33,11 +31,10 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  */
 public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHandler<MessageProduceRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final IMessageStoreService messageStoreService = new DefaultMessageStoreServiceImpl();
-    private final TopicConfigManager topicConfigManager = TopicConfigManagerProvider.getInstance();
+    private static final ProduceMessageRequestHandler INSTANCE = new ProduceMessageRequestHandler();
 
-    public ProduceMessageRequestHandler() {
-        this.messageStoreService.start();
+    private ProduceMessageRequestHandler() {
+        DefaultMessageStoreServiceImpl.getInstance().start();
     }
 
     /**
@@ -72,9 +69,8 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
      */
     @Override
     protected RemotingResponse fire(final IRemotingRequest<MessageProduceRequest> request) {
-        // TODO
         final MessageProduceRequest body = request.getBody();
-        messageStoreService.store(body.getTopic(), body.getPartitionId(), body.getMessage().getPayload());
+        DefaultMessageStoreServiceImpl.getInstance().store(body.getTopic(), body.getPartitionId(), body.getMessage());
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(), null);
     }
 
@@ -107,7 +103,7 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
      * @date: 2022/09/05 16:06:47
      */
     private boolean isLeader() {
-        return RoleManager.get() == RoleEnum.LEADER;
+        return RoleManager.getInstance().get() == RoleEnum.LEADER;
     }
 
     /**
@@ -141,7 +137,8 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
             return false;
         }
 
-        final Optional<TopicConfig> topicConfigOptional = topicConfigManager.selectTopicConfig(request.getTopic());
+        final Optional<TopicConfig> topicConfigOptional =
+            TopicConfigManager.getInstance().selectTopicConfig(request.getTopic());
         if (!topicConfigOptional.isPresent()) {
             LOGGER.error("produce message request topic config not found");
             return false;
@@ -161,5 +158,14 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
 
         return partitions.stream().map(PartitionConfig::getPartitionId)
             .anyMatch(partitionId -> partitionId.equals(request.getPartitionId()));
+    }
+
+    /**
+     * 获取ProduceMessageRequestHandler实例
+     *
+     * @return {@link ProduceMessageRequestHandler}
+     */
+    public static ProduceMessageRequestHandler getInstance() {
+        return INSTANCE;
     }
 }

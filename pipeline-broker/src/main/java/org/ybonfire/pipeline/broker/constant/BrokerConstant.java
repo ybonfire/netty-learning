@@ -34,7 +34,7 @@ public final class BrokerConstant {
     /**
      * Broker消息文件刷盘策略
      */
-    public static final MessageFlushPolicyEnum MESSAGE_FLUSH_POLICY = MessageFlushPolicyEnum.ASYNC;
+    public static final MessageFlushPolicyEnum MESSAGE_FLUSH_POLICY = MessageFlushPolicyEnum.SYNC;
 
     /**
      * 消息刷盘重试次数
