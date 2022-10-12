@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.nameserver.handler;
+package org.ybonfire.pipeline.nameserver.processor;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -17,7 +17,7 @@ import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
+import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
 /**
  * SelectByTopicName请求处理器
@@ -25,13 +25,13 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @author Bo.Yuan5
  * @date 2022-07-11 14:04
  */
-public final class SelectByTopicNameRequestHandler
-    extends AbstractNettyRemotingRequestHandler<RouteSelectByTopicRequest> {
+public final class SelectByTopicNameRequestProcessor
+    extends AbstractNettyRemotingRequestProcessor<RouteSelectByTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private static final SelectByTopicNameRequestHandler INSTANCE = new SelectByTopicNameRequestHandler();
+    private static final SelectByTopicNameRequestProcessor INSTANCE = new SelectByTopicNameRequestProcessor();
     private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
 
-    private SelectByTopicNameRequestHandler() {}
+    private SelectByTopicNameRequestProcessor() {}
 
     /**
      * @description: 参数校验
@@ -102,11 +102,11 @@ public final class SelectByTopicNameRequestHandler
     }
 
     /**
-     * 获取SelectByTopicNameRequestHandler实例
+     * 获取SelectByTopicNameRequestProcessor实例
      *
-     * @return {@link SelectByTopicNameRequestHandler}
+     * @return {@link SelectByTopicNameRequestProcessor}
      */
-    public static SelectByTopicNameRequestHandler getInstance() {
+    public static SelectByTopicNameRequestProcessor getInstance() {
         return INSTANCE;
     }
 }

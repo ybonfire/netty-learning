@@ -19,17 +19,17 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ThreadPoolUtil {
-    // NameServer Handler Thread Pool
-    private static final int NAMESERVER_HANDLER_THREAD_NUMS_MIN =
+    // NameServer Processor Thread Pool
+    private static final int NAMESERVER_PROCESSOR_THREAD_NUMS_MIN =
         Math.max(4, Runtime.getRuntime().availableProcessors());
-    private static final int NAMESERVER_HANDLER_THREAD_NUMS_MAX =
+    private static final int NAMESERVER_PROCESSOR_THREAD_NUMS_MAX =
         Math.max(4, Runtime.getRuntime().availableProcessors());
-    private static final int NAMESERVER_HANDLER_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final ThreadFactory NAMESERVER_HANDLER_THREAD_FACTORY =
-        new ThreadWorkerFactory("namesrv_handler_", true);
-    private static final ExecutorService NAMESERVER_HANDLER_EXECUTOR_SERVICE =
-        buildThreadPool(NAMESERVER_HANDLER_THREAD_NUMS_MIN, NAMESERVER_HANDLER_THREAD_NUMS_MAX,
-            NAMESERVER_HANDLER_TASK_QUEUE_CAPACITY, NAMESERVER_HANDLER_THREAD_FACTORY);
+    private static final int NAMESERVER_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final ThreadFactory NAMESERVER_PROCESSOR_THREAD_FACTORY =
+        new ThreadWorkerFactory("namesrv_processor_", true);
+    private static final ExecutorService NAMESERVER_PROCESSOR_EXECUTOR_SERVICE =
+        buildThreadPool(NAMESERVER_PROCESSOR_THREAD_NUMS_MIN, NAMESERVER_PROCESSOR_THREAD_NUMS_MAX,
+            NAMESERVER_TASK_QUEUE_CAPACITY, NAMESERVER_PROCESSOR_THREAD_FACTORY);
     // RouteUploadRequestPublish Thread Pool
     private static final int ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_NUMS_MIN =
         Math.max(4, Runtime.getRuntime().availableProcessors());
@@ -42,8 +42,8 @@ public final class ThreadPoolUtil {
         buildThreadPool(ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_NUMS_MIN, ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_NUMS_MAX,
             ROUTE_UPLOAD_REQUEST_PUBLISH_TASK_QUEUE_CAPACITY, ROUTE_UPLOAD_REQUEST_PUBLISH_THREAD_FACTORY);
 
-    public static ExecutorService getNameserverHandlerExecutorService() {
-        return NAMESERVER_HANDLER_EXECUTOR_SERVICE;
+    public static ExecutorService getNameserverProcessorExecutorService() {
+        return NAMESERVER_PROCESSOR_EXECUTOR_SERVICE;
     }
 
     public static ExecutorService getRouteUploadRequestPublishExecutorService() {

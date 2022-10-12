@@ -12,9 +12,11 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.model.TopicInfo;
+import org.ybonfire.pipeline.producer.constant.ProducerConstant;
 import org.ybonfire.pipeline.producer.metadata.NameServers;
 
 /**
@@ -23,9 +25,9 @@ import org.ybonfire.pipeline.producer.metadata.NameServers;
  * @author Bo.Yuan5
  * @date 2022-06-27 18:47
  */
-public final class RouteManager {
+public final class RouteManager implements ILifeCycle {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<String, TopicInfo> topicInfoTable = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -35,15 +37,40 @@ public final class RouteManager {
         this.nameServers = nameServers;
     }
 
+    /**
+     * @description: 启动路由管理器
+     * @param:
+     * @return:
+     * @date: 2022/10/12 13:52:21
+     */
+    @Override
     public void start() {
-        if (started.compareAndSet(false, true)) {
+        if (isStarted.compareAndSet(false, true)) {
             nameServers.start();
             scheduler.scheduleAtFixedRate(this::updateRouteInfo, 0L, 15 * 1000L, TimeUnit.MILLISECONDS);
         }
     }
 
-    public void stop() {
-        if (started.compareAndSet(true, false)) {
+    /**
+     * @description: 判断路由管理器是否启动
+     * @param:
+     * @return:
+     * @date: 2022/10/12 13:53:07
+     */
+    @Override
+    public boolean isStarted() {
+        return isStarted.get();
+    }
+
+    /**
+     * @description: 关闭路由管理器
+     * @param:
+     * @return:
+     * @date: 2022/10/12 13:52:21
+     */
+    @Override
+    public void shutdown() {
+        if (isStarted.compareAndSet(true, false)) {
             nameServers.stop();
             scheduler.shutdown();
         }
@@ -74,7 +101,8 @@ public final class RouteManager {
     private void updateRouteInfo() {
         lock.writeLock().lock();
         try {
-            final List<TopicInfo> result = nameServers.selectAllTopicInfo(15 * 1000L);
+            final List<TopicInfo> result =
+                nameServers.selectAllTopicInfo(ProducerConstant.TIMEOUT_MILLIS_IN_UPDATE_ROUTE);
             topicInfoTable.clear();
             topicInfoTable
                 .putAll(result.stream().collect(Collectors.toMap(TopicInfo::getTopic, topicInfo -> topicInfo)));

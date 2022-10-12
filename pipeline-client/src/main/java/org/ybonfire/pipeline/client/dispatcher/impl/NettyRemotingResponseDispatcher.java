@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 import org.ybonfire.pipeline.client.dispatcher.IRemotingResponseDispatcher;
-import org.ybonfire.pipeline.client.handler.IRemotingResponseHandler;
+import org.ybonfire.pipeline.client.processor.IRemotingResponseProcessor;
 import org.ybonfire.pipeline.common.model.Pair;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
@@ -16,9 +16,12 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
  * @author Bo.Yuan5
  * @date 2022-05-24 00:00
  */
-public class NettyRemotingResponseDispatcher implements IRemotingResponseDispatcher<IRemotingResponseHandler> {
-    private final Map<Integer, Pair<IRemotingResponseHandler, ExecutorService>> handlerTable =
+public class NettyRemotingResponseDispatcher implements IRemotingResponseDispatcher<IRemotingResponseProcessor> {
+    private static final NettyRemotingResponseDispatcher INSTANCE = new NettyRemotingResponseDispatcher();
+    private final Map<Integer, Pair<IRemotingResponseProcessor, ExecutorService>> processorTable =
         new ConcurrentHashMap<>();
+
+    private NettyRemotingResponseDispatcher() {}
 
     /**
      * @description: 响应分发
@@ -27,8 +30,8 @@ public class NettyRemotingResponseDispatcher implements IRemotingResponseDispatc
      * @date: 2022/05/24 00:08:13
      */
     @Override
-    public Optional<Pair<IRemotingResponseHandler, ExecutorService>> dispatch(final RemotingResponse response) {
-        return Optional.ofNullable(handlerTable.get(response.getCode()));
+    public Optional<Pair<IRemotingResponseProcessor, ExecutorService>> dispatch(final RemotingResponse response) {
+        return Optional.ofNullable(processorTable.get(response.getCode()));
     }
 
     /**
@@ -38,12 +41,21 @@ public class NettyRemotingResponseDispatcher implements IRemotingResponseDispatc
      * @date: 2022/05/24 00:08:16
      */
     @Override
-    public void registerRemotingRequestHandler(final int responseCode, final IRemotingResponseHandler handler,
+    public void registerRemotingRequestProcessor(final int responseCode, final IRemotingResponseProcessor processor,
         ExecutorService executor) {
-        if (handler == null || executor == null) {
+        if (processor == null || executor == null) {
             throw new IllegalArgumentException();
         }
 
-        handlerTable.put(responseCode, new Pair<>(handler, executor));
+        processorTable.put(responseCode, new Pair<>(processor, executor));
+    }
+
+    /**
+     * 获取NettyRemotingResponseDispatcher实例
+     *
+     * @return {@link NettyRemotingResponseDispatcher}
+     */
+    public static NettyRemotingResponseDispatcher getInstance() {
+        return INSTANCE;
     }
 }

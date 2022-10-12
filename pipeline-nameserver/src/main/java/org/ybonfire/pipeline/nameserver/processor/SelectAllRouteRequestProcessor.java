@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.nameserver.handler;
+package org.ybonfire.pipeline.nameserver.processor;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
+import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
 /**
  * SelectAllRoute请求处理器
@@ -27,12 +27,12 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @author Bo.Yuan5
  * @date 2022-07-11 14:04
  */
-public final class SelectAllRouteRequestHandler extends AbstractNettyRemotingRequestHandler<RouteSelectAllRequest> {
-    private static final SelectAllRouteRequestHandler INSTANCE = new SelectAllRouteRequestHandler();
+public final class SelectAllRouteRequestProcessor extends AbstractNettyRemotingRequestProcessor<RouteSelectAllRequest> {
+    private static final SelectAllRouteRequestProcessor INSTANCE = new SelectAllRouteRequestProcessor();
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
 
-    private SelectAllRouteRequestHandler() {}
+    private SelectAllRouteRequestProcessor() {}
 
     /**
      * @description: 参数校验
@@ -97,11 +97,11 @@ public final class SelectAllRouteRequestHandler extends AbstractNettyRemotingReq
     }
 
     /**
-     * 获取SelectAllRouteRequestHandler实例
+     * 获取SelectAllRouteRequestProcessor实例
      *
-     * @return {@link SelectAllRouteRequestHandler}
+     * @return {@link SelectAllRouteRequestProcessor}
      */
-    public static SelectAllRouteRequestHandler getInstance() {
+    public static SelectAllRouteRequestProcessor getInstance() {
         return INSTANCE;
     }
 }

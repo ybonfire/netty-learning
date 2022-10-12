@@ -3,10 +3,10 @@ package org.ybonfire.pipeline.nameserver.server;
 import java.util.concurrent.ExecutorService;
 
 import org.ybonfire.pipeline.common.constant.RequestEnum;
-import org.ybonfire.pipeline.nameserver.handler.JoinClusterRequestHandler;
-import org.ybonfire.pipeline.nameserver.handler.SelectAllRouteRequestHandler;
-import org.ybonfire.pipeline.nameserver.handler.SelectByTopicNameRequestHandler;
-import org.ybonfire.pipeline.nameserver.handler.UploadRouteRequestHandler;
+import org.ybonfire.pipeline.nameserver.processor.JoinClusterRequestProcessor;
+import org.ybonfire.pipeline.nameserver.processor.SelectAllRouteRequestProcessor;
+import org.ybonfire.pipeline.nameserver.processor.SelectByTopicNameRequestProcessor;
+import org.ybonfire.pipeline.nameserver.processor.UploadRouteRequestProcessor;
 import org.ybonfire.pipeline.nameserver.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.server.NettyRemotingServer;
 import org.ybonfire.pipeline.server.config.NettyServerConfig;
@@ -30,48 +30,50 @@ public final class NameServer extends NettyRemotingServer {
      * @date: 2022/07/01 17:41:03
      */
     @Override
-    protected void registerRequestHandlers() {
-        // RouteUploadRequestHandler
-        registerRouteUploadRequestHandler();
-        // RouteSelectAllRequestHandler
-        registerRouteSelectAllRequestHandler();
-        // RouteSelectRequestHandler
-        registerRouteSelectRequestHandler();
-        // JoinClusterRequestHandler
-        registerJoinClusterRequestHandler();
+    protected void registerRequestProcessor() {
+        // RouteUploadRequestProcessor
+        registerRouteUploadRequestProcessor();
+        // RouteSelectAllRequestProcessor
+        registerRouteSelectAllRequestProcessor();
+        // RouteSelectRequestProcessor
+        registerRouteSelectRequestProcessor();
+        // JoinClusterRequestProcessor
+        registerJoinClusterRequestProcessor();
     }
 
     /**
      * 注册上报路由请求处理器
      */
-    private void registerRouteUploadRequestHandler() {
-        final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
-        registerHandler(RequestEnum.UPLOAD_ROUTE.getCode(), UploadRouteRequestHandler.getInstance(), handlerExecutor);
+    private void registerRouteUploadRequestProcessor() {
+        final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();
+        registerRequestProcessor(RequestEnum.UPLOAD_ROUTE.getCode(), UploadRouteRequestProcessor.getInstance(),
+            processorExecutor);
     }
 
     /**
      * 注册查询全部路由请求处理器
      */
-    private void registerRouteSelectAllRequestHandler() {
-        final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
-        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(), SelectAllRouteRequestHandler.getInstance(),
-            handlerExecutor);
+    private void registerRouteSelectAllRequestProcessor() {
+        final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();
+        registerRequestProcessor(RequestEnum.SELECT_ALL_ROUTE.getCode(), SelectAllRouteRequestProcessor.getInstance(),
+            processorExecutor);
     }
 
     /**
      * 注册路线查询请求处理器
      */
-    private void registerRouteSelectRequestHandler() {
-        final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
-        registerHandler(RequestEnum.SELECT_ROUTE.getCode(), SelectByTopicNameRequestHandler.getInstance(),
-            handlerExecutor);
+    private void registerRouteSelectRequestProcessor() {
+        final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();
+        registerRequestProcessor(RequestEnum.SELECT_ROUTE.getCode(), SelectByTopicNameRequestProcessor.getInstance(),
+            processorExecutor);
     }
 
     /**
      * 注册加入集群请求处理器
      */
-    private void registerJoinClusterRequestHandler() {
-        final ExecutorService handlerExecutor = ThreadPoolUtil.getNameserverHandlerExecutorService();
-        registerHandler(RequestEnum.JOIN_CLUSTER.getCode(), JoinClusterRequestHandler.getInstance(), handlerExecutor);
+    private void registerJoinClusterRequestProcessor() {
+        final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();
+        registerRequestProcessor(RequestEnum.JOIN_CLUSTER.getCode(), JoinClusterRequestProcessor.getInstance(),
+            processorExecutor);
     }
 }

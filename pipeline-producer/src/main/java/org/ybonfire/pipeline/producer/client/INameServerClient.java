@@ -19,7 +19,7 @@ public interface INameServerClient {
      * @return:
      * @date: 2022/06/29 17:11:02
      */
-    List<TopicInfo> selectAllTopicInfo(final String address);
+    List<TopicInfo> selectAllTopicInfo(final String address, final long timeoutMillis);
 
     /**
      * @description: 发送查询指定TopicInfo请求
@@ -27,5 +27,5 @@ public interface INameServerClient {
      * @return:
      * @date: 2022/06/29 17:11:04
      */
-    Optional<TopicInfo> selectTopicInfo(final String topic, final String address);
+    Optional<TopicInfo> selectTopicInfo(final String topic, final String address, final long timeoutMillis);
 }

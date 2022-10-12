@@ -9,12 +9,20 @@ import org.ybonfire.pipeline.producer.model.ProduceResult;
  * @date 2022-06-30 10:17
  */
 public interface IMessageProduceCallback {
-    
+
     /**
-     * @description: 消息投递完成回调
+     * @description: 消息投递成功回调
      * @param:
      * @return:
      * @date: 2022/06/30 18:17:49
      */
     void onComplete(final ProduceResult result);
+
+    /**
+     * @description: 消息投递异常回调
+     * @param:
+     * @return:
+     * @date: 2022/06/30 18:17:49
+     */
+    void onException(final Throwable ex);
 }

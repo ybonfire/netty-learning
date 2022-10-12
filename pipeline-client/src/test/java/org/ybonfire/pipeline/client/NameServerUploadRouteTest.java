@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class NameServerUploadRouteTest extends NettyRemotingClient {
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final ExecutorService handlerExecutor = Executors.newFixedThreadPool(1);
+    private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(1);
 
     public NameServerUploadRouteTest(NettyClientConfig config) {
         super(config);
@@ -37,14 +37,15 @@ public class NameServerUploadRouteTest extends NettyRemotingClient {
         final RouteUploadRequest request =
             RouteUploadRequest.builder().address("address").topics(Collections.emptyList()).build();
         client.request("0:0:0:0:0:0:0:0:4690",
-            RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.UPLOAD_ROUTE.getCode(), request));
+            RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.UPLOAD_ROUTE.getCode(), request),
+            10 * 1000L);
         Thread.sleep(1000L);
     }
 
     @Override
-    protected void registerResponseHandlers() {
-        // RouteUploadRequestHandler
-        registerHandler(RequestEnum.UPLOAD_ROUTE.getCode(), response -> System.out.println(response.getBody()),
-            handlerExecutor);
+    protected void registerResponseProcessors() {
+        // RouteUploadRequestProcessor
+        registerResponseProcessor(RequestEnum.UPLOAD_ROUTE.getCode(), response -> System.out.println(response.getBody()),
+            EXECUTOR);
     }
 }

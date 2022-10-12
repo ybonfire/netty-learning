@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class NameServerGetRouteTest extends NettyRemotingClient {
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final ExecutorService handlerExecutor = Executors.newFixedThreadPool(1);
+    private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(1);
 
     public NameServerGetRouteTest(NettyClientConfig config) {
         super(config);
@@ -34,17 +34,17 @@ public class NameServerGetRouteTest extends NettyRemotingClient {
 
         final RemotingRequest request =
             RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ALL_ROUTE.getCode());
-        client.request("0:0:0:0:0:0:0:0:14690", request);
+        client.request("0:0:0:0:0:0:0:0:14690", request, 10 * 1000L);
         Thread.sleep(1000L);
     }
 
     @Override
-    protected void registerResponseHandlers() {
-        // RouteSelectAllRequestHandler
-        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(), response -> System.out.println(response.getBody()),
-            handlerExecutor);
-        // RouteSelect
-        registerHandler(RequestEnum.SELECT_ROUTE.getCode(), response -> System.out.println(response.getBody()),
-            handlerExecutor);
+    protected void registerResponseProcessors() {
+        // RouteSelectAllRequestProcessor
+        registerResponseProcessor(RequestEnum.SELECT_ALL_ROUTE.getCode(),
+            response -> System.out.println(response.getBody()), EXECUTOR);
+        // RouteSelectRequestProcessor
+        registerResponseProcessor(RequestEnum.SELECT_ROUTE.getCode(),
+            response -> System.out.println(response.getBody()), EXECUTOR);
     }
 }

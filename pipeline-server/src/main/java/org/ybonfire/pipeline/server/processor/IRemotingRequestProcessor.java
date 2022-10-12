@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.server.handler;
+package org.ybonfire.pipeline.server.processor;
 
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
@@ -11,7 +11,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
  * @date 2022-05-18 10:29
  */
 @FunctionalInterface
-public interface IRemotingRequestHandler<T extends IRemotingRequestBody> {
+public interface IRemotingRequestProcessor<T extends IRemotingRequestBody> {
 
     /**
      * @description: 处理请求
@@ -19,5 +19,5 @@ public interface IRemotingRequestHandler<T extends IRemotingRequestBody> {
      * @return:
      * @date: 2022-05-18 10:29
      */
-    RemotingResponse handle(final IRemotingRequest<T> request);
+    RemotingResponse process(final IRemotingRequest<T> request);
 }

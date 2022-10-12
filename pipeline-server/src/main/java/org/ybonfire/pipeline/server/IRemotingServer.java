@@ -3,7 +3,7 @@ package org.ybonfire.pipeline.server;
 import java.util.concurrent.ExecutorService;
 
 import org.ybonfire.pipeline.common.remoting.IRemotingService;
-import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
+import org.ybonfire.pipeline.server.processor.IRemotingRequestProcessor;
 
 /**
  * 服务端接口
@@ -11,7 +11,7 @@ import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
  * @author Bo.Yuan5
  * @date 2022-05-18 10:14
  */
-public interface IRemotingServer<Handler extends IRemotingRequestHandler> extends IRemotingService {
+public interface IRemotingServer<Processor extends IRemotingRequestProcessor> extends IRemotingService {
 
     /**
      * @description: 注册请求处理器
@@ -19,5 +19,5 @@ public interface IRemotingServer<Handler extends IRemotingRequestHandler> extend
      * @return:
      * @date: 2022/05/18 10:26:30
      */
-    void registerHandler(final int requestCode, final Handler handler, final ExecutorService executor);
+    void registerRequestProcessor(final int requestCode, final Processor processor, final ExecutorService executor);
 }

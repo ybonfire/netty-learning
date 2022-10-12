@@ -8,7 +8,7 @@ import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 import org.ybonfire.pipeline.server.callback.IResponseCallback;
 import org.ybonfire.pipeline.server.exception.ServerException;
 import org.ybonfire.pipeline.server.exception.UnknownException;
-import org.ybonfire.pipeline.server.handler.IRemotingRequestHandler;
+import org.ybonfire.pipeline.server.processor.IRemotingRequestProcessor;
 
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
@@ -20,16 +20,16 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2022-05-18 17:15
  */
 @Slf4j
-public final class RequestHandleThreadTask extends AbstractThreadTask {
-    private final IRemotingRequestHandler handler;
+public final class RequestProcessThreadTask extends AbstractThreadTask {
+    private final IRemotingRequestProcessor processor;
     private final IRemotingRequest request;
     private final ChannelHandlerContext context;
     private final IResponseCallback callback;
 
-    RequestHandleThreadTask(final IRemotingRequestHandler handler, final IRemotingRequest request,
+    RequestProcessThreadTask(final IRemotingRequestProcessor processor, final IRemotingRequest request,
         final ChannelHandlerContext context, final IResponseCallback callback) {
         super(UUID.randomUUID().toString(), (task, ex) -> log.error("异步任务执行失败."));
-        this.handler = handler;
+        this.processor = processor;
         this.request = request;
         this.context = context;
         this.callback = callback;
@@ -44,7 +44,7 @@ public final class RequestHandleThreadTask extends AbstractThreadTask {
     @Override
     protected void execute() {
         try {
-            final RemotingResponse<?> response = handler.handle(this.request);
+            final RemotingResponse<?> response = processor.process(this.request);
             callback.onSuccess(response, this.context);
         } catch (Exception ex) {
             final String error = "请求处理异常";

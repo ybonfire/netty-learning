@@ -32,7 +32,7 @@ public class MessageWrapper {
         this.timeoutMillis = timeoutMillis;
     }
 
-    public void setResult(ProduceResult result) {
+    public void setResult(final ProduceResult result) {
         this.result = result;
     }
 

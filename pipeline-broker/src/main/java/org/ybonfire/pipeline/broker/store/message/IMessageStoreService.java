@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.broker.store.message;
 
+import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 import org.ybonfire.pipeline.common.model.Message;
 
 /**
@@ -8,15 +9,7 @@ import org.ybonfire.pipeline.common.model.Message;
  * @author yuanbo
  * @date 2022-09-14 18:29
  */
-public interface IMessageStoreService {
-
-    /**
-     * @description: 启动消息存储服务
-     * @param:
-     * @return:
-     * @date: 2022/09/21 14:47:02
-     */
-    void start();
+public interface IMessageStoreService extends ILifeCycle {
 
     /**
      * @description: 存储消息
@@ -33,12 +26,4 @@ public interface IMessageStoreService {
      * @date: 2022/10/11 16:38:05
      */
     void reload();
-
-    /**
-     * @description: 停止消息存储服务
-     * @param:
-     * @return:
-     * @date: 2022/09/21 14:47:17
-     */
-    void stop();
 }

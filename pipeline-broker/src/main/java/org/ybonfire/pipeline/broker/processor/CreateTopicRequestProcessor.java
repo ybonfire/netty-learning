@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.broker.handler;
+package org.ybonfire.pipeline.broker.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.broker.converter.CreateTopicRequestConverter;
@@ -13,7 +13,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.CreateTopicRequest;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
+import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
 /**
  * 管理请求处理器
@@ -21,11 +21,11 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @author yuanbo
  * @date 2022-09-21 14:50
  */
-public class CreateTopicRequestHandler extends AbstractNettyRemotingRequestHandler<CreateTopicRequest> {
+public class CreateTopicRequestProcessor extends AbstractNettyRemotingRequestProcessor<CreateTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private static final CreateTopicRequestHandler INSTANCE = new CreateTopicRequestHandler();
+    private static final CreateTopicRequestProcessor INSTANCE = new CreateTopicRequestProcessor();
 
-    private CreateTopicRequestHandler() {}
+    private CreateTopicRequestProcessor() {}
 
     /**
      * @description: 参数校验
@@ -111,11 +111,11 @@ public class CreateTopicRequestHandler extends AbstractNettyRemotingRequestHandl
     }
 
     /**
-     * 获取CreateTopicRequestHandler实例
+     * 获取CreateTopicRequestProcessor实例
      *
-     * @return {@link CreateTopicRequestHandler}
+     * @return {@link CreateTopicRequestProcessor}
      */
-    public static CreateTopicRequestHandler getInstance() {
+    public static CreateTopicRequestProcessor getInstance() {
         return INSTANCE;
     }
 }

@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.nameserver.handler;
+package org.ybonfire.pipeline.nameserver.processor;
 
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
@@ -11,7 +11,7 @@ import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
 import org.ybonfire.pipeline.nameserver.replica.peer.PeerManager;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
+import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
 /**
  * 加入集群请求处理器
@@ -19,11 +19,11 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @author Bo.Yuan5
  * @date 2022-08-05 18:14
  */
-public final class JoinClusterRequestHandler extends AbstractNettyRemotingRequestHandler<JoinClusterRequest> {
+public final class JoinClusterRequestProcessor extends AbstractNettyRemotingRequestProcessor<JoinClusterRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private static final JoinClusterRequestHandler INSTANCE = new JoinClusterRequestHandler();
+    private static final JoinClusterRequestProcessor INSTANCE = new JoinClusterRequestProcessor();
 
-    private JoinClusterRequestHandler() {}
+    private JoinClusterRequestProcessor() {}
 
     /**
      * @description: 参数校验
@@ -76,11 +76,11 @@ public final class JoinClusterRequestHandler extends AbstractNettyRemotingReques
     }
 
     /**
-     * 获取JoinClusterRequestHandler实例
+     * 获取JoinClusterRequestProcessor实例
      *
-     * @return {@link JoinClusterRequestHandler}
+     * @return {@link JoinClusterRequestProcessor}
      */
-    public static JoinClusterRequestHandler getInstance() {
+    public static JoinClusterRequestProcessor getInstance() {
         return INSTANCE;
     }
 }

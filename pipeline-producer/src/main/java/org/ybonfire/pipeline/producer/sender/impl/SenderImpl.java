@@ -5,11 +5,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.ybonfire.pipeline.common.model.Node;
-import org.ybonfire.pipeline.common.model.PartitionInfo;
+import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 import org.ybonfire.pipeline.producer.client.impl.BrokerClientImpl;
-import org.ybonfire.pipeline.producer.exception.PartitionLeaderNotFoundException;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 import org.ybonfire.pipeline.producer.model.ProduceTypeEnum;
@@ -25,28 +25,41 @@ import lombok.Getter;
  * @date 2022-06-28 13:44
  */
 public class SenderImpl implements ISender {
-    private final AtomicBoolean started = new AtomicBoolean(false);
-    private final BrokerClientImpl brokerClient;
-    private ExecutorService produceMessageExecutor;
+    private static final SenderImpl INSTANCE = new SenderImpl();
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
+    private final ExecutorService produceMessageExecutor = ThreadPoolUtil.getMessageProduceExecutorService();
+    private final BrokerClientImpl brokerClient = new BrokerClientImpl();
 
-    public SenderImpl() {
-        this.brokerClient = new BrokerClientImpl();
-    }
+    private SenderImpl() {}
 
+    /**
+     * @description: 启动发送器
+     * @param:
+     * @return:
+     * @date: 2022/10/12 13:51:00
+     */
     @Override
     public void start() {
-        if (started.compareAndSet(false, true)) {
-            brokerClient.start();
-            produceMessageExecutor = ThreadPoolUtil.getMessageProduceExecutorService();
+        if (isStarted.compareAndSet(false, true)) {
+            this.brokerClient.start();
         }
     }
 
+    /**
+     * @description: 判断发送器是否启动
+     * @param:
+     * @return:
+     * @date: 2022/10/12 13:51:08
+     */
     @Override
-    public void stop() {
-        if (started.compareAndSet(true, false)) {
-            if (produceMessageExecutor != null) {
-                produceMessageExecutor.shutdown();
-            }
+    public boolean isStarted() {
+        return isStarted.get();
+    }
+
+    @Override
+    public void shutdown() {
+        if (isStarted.compareAndSet(true, false)) {
+            this.produceMessageExecutor.shutdown();
         }
     }
 
@@ -62,15 +75,16 @@ public class SenderImpl implements ISender {
             return;
         }
 
-        final long startTime = System.currentTimeMillis();
         final long timeoutMillis = message.getTimeoutMillis();
 
+        // 构造消息发送异步任务
         final MessageSendThreadTask task = buildMessageSendThreadTask(message);
         produceMessageExecutor.submit(task);
-        final long remainingMillis = timeoutMillis - (System.currentTimeMillis() - startTime);
-        if (isSyncMessage(message) && remainingMillis > 0L) {
+
+        // 阻塞等待同步投递结果
+        if (isSyncMessage(message) && timeoutMillis > 0L) {
             try {
-                task.getLatch().await(remainingMillis, TimeUnit.MILLISECONDS);
+                task.getLatch().await(timeoutMillis, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 // ignore
@@ -99,13 +113,24 @@ public class SenderImpl implements ISender {
     }
 
     /**
+     * 获取SenderImpl实例
+     *
+     * @return {@link SenderImpl}
+     */
+    public static SenderImpl getInstance() {
+        return INSTANCE;
+    }
+
+    /**
      * @description: 消息发送任务
      * @author: Bo.Yuan5
      * @date: 2022/6/30
      */
     @Getter
     private class MessageSendThreadTask extends AbstractThreadTask {
+        private final IInternalLogger LOGGER = new SimpleInternalLogger();
         private final CountDownLatch latch = new CountDownLatch(1);
+        private final long startTime = System.currentTimeMillis();
         private final MessageWrapper message;
 
         private MessageSendThreadTask(final MessageWrapper message) {
@@ -120,21 +145,42 @@ public class SenderImpl implements ISender {
          */
         @Override
         protected void execute() {
-            final PartitionInfo partition = message.getPartition();
+            // 判断任务是否超时
+            if (isTaskExpired()) {
+                final Exception ex = new ReadTimeoutException();
+                LOGGER.error("消息投递超时. message:[" + message + "]" + " exception:[" + ex + "]");
+                message.getCallbackOptional().ifPresent(callback -> callback.onException(ex));
+                return;
+            }
 
+            // 消息投递
             try {
-                // 消息投递
-                final String address = partition.getAddress();
-                final ProduceResult result = brokerClient.produce(message, address);
-                message.setResult(result);
+                final String address = message.getPartition().getAddress();
+                final long remainingMillis = System.currentTimeMillis() - startTime;
+                final ProduceResult result = brokerClient.produce(message, address, remainingMillis);
 
-                // 执行回调
+                // 投递成功
+                message.setResult(result);
                 message.getCallbackOptional().ifPresent(callback -> callback.onComplete(result));
+            } catch (final Exception ex) {
+                // 投递失败
+                LOGGER.error("消息投递异常. message:[" + message + "]" + " exception:[" + ex + "]");
+                message.getCallbackOptional().ifPresent(callback -> callback.onException(ex));
             } finally {
+                // 执行完毕，唤醒外部阻塞
                 if (isSyncMessage(message)) {
                     latch.countDown();
                 }
             }
+        }
+
+        /**
+         * 判断任务是否过期
+         *
+         * @return boolean
+         */
+        private boolean isTaskExpired() {
+            return System.currentTimeMillis() - startTime > message.getTimeoutMillis();
         }
     }
 }

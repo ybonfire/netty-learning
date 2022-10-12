@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.producer.config;
 
+import lombok.Data;
 import lombok.Getter;
 
 /**
@@ -8,10 +9,15 @@ import lombok.Getter;
  * @author Bo.Yuan5
  * @date 2022-06-28 10:24
  */
-@Getter
+@Data
 public final class ProducerConfig {
+
     /**
      * 默认请求超时时间
      */
     private final long requestTimeoutMillis = 15 * 1000L;
+
+    private ProducerConfig() {}
+
+
 }

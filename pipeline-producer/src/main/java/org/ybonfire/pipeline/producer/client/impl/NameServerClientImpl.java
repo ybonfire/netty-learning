@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.MapUtils;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
-import org.ybonfire.pipeline.client.handler.IRemotingResponseHandler;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.TopicInfo;
@@ -21,8 +20,8 @@ import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
 import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
 import org.ybonfire.pipeline.producer.client.INameServerClient;
 import org.ybonfire.pipeline.producer.converter.TopicInfoConverter;
-import org.ybonfire.pipeline.producer.handler.SelectAllRouteResponseHandler;
-import org.ybonfire.pipeline.producer.handler.SelectRouteResponseHandler;
+import org.ybonfire.pipeline.producer.processor.SelectAllRouteResponseProcessor;
+import org.ybonfire.pipeline.producer.processor.SelectRouteResponseProcessor;
 
 /**
  * Nameserver远程调用
@@ -31,10 +30,6 @@ import org.ybonfire.pipeline.producer.handler.SelectRouteResponseHandler;
  * @date 2022-08-04 17:56
  */
 public class NameServerClientImpl extends NettyRemotingClient implements INameServerClient {
-    private final IRemotingResponseHandler selectAllRouteResponseHandler =
-        new SelectAllRouteResponseHandler(getInflightRequestManager());
-    private final IRemotingResponseHandler selectRouteSelectResponseHandler =
-        new SelectRouteResponseHandler(getInflightRequestManager());
 
     public NameServerClientImpl() {
         this(new NettyClientConfig());
@@ -51,11 +46,11 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      * @date: 2022/08/04 18:12:08
      */
     @Override
-    protected void registerResponseHandlers() {
-        // SelectAllResponseHandler
-        registerHandler(RequestEnum.SELECT_ALL_ROUTE.getCode(), selectAllRouteResponseHandler, null);
-        // SelectRouteResponseHandler
-        registerHandler(RequestEnum.SELECT_ROUTE.getCode(), selectRouteSelectResponseHandler, null);
+    protected void registerResponseProcessors() {
+        // SelectAllRouteResponseProcessor
+        registerSelectAllRouteResponseProcessor();
+        // SelectRouteResponseProcessor
+        registerSelectRouteResponseProcessor();
     }
 
     /**
@@ -65,8 +60,8 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      * @date: 2022/06/29 17:11:02
      */
     @Override
-    public List<TopicInfo> selectAllTopicInfo(final String address) {
-        final IRemotingResponse response = request(address, buildSelectAllTopicInfoRequest());
+    public List<TopicInfo> selectAllTopicInfo(final String address, final long timeoutMillis) {
+        final IRemotingResponse response = super.request(address, buildSelectAllTopicInfoRequest(), timeoutMillis);
         if (response.getStatus() == ResponseEnum.SUCCESS.getCode()) {
             final RouteSelectResponse data = (RouteSelectResponse)response.getBody();
             return MapUtils.isEmpty(data.getResult()) ? Collections.emptyList() : data.getResult().values().stream()
@@ -84,8 +79,8 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      * @date: 2022/06/29 17:11:04
      */
     @Override
-    public Optional<TopicInfo> selectTopicInfo(final String topic, final String address) {
-        final IRemotingResponse response = request(address, buildSelectTopicInfoRequest(topic));
+    public Optional<TopicInfo> selectTopicInfo(final String topic, final String address, final long timeoutMillis) {
+        final IRemotingResponse response = super.request(address, buildSelectTopicInfoRequest(topic), timeoutMillis);
         if (response.getStatus() == ResponseEnum.SUCCESS.getCode()) {
             final RouteSelectResponse data = (RouteSelectResponse)response.getBody();
             return MapUtils.isEmpty(data.getResult()) ? Optional.empty()
@@ -115,5 +110,26 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
     private IRemotingRequest<RouteSelectByTopicRequest> buildSelectTopicInfoRequest(final String topic) {
         return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ROUTE.getCode(),
             RouteSelectByTopicRequest.builder().topic(topic).build());
+    }
+
+    /**
+     * @description: 注册SelectAllRoute响应处理器
+     * @param:
+     * @return:
+     * @date: 2022/10/12 17:14:55
+     */
+    private void registerSelectAllRouteResponseProcessor() {
+        registerResponseProcessor(RequestEnum.SELECT_ALL_ROUTE.getCode(), SelectAllRouteResponseProcessor.getInstance(),
+            null);
+    }
+
+    /**
+     * @description: 注册SelectRoute响应处理器
+     * @param:
+     * @return:
+     * @date: 2022/10/12 17:14:55
+     */
+    private void registerSelectRouteResponseProcessor() {
+        registerResponseProcessor(RequestEnum.SELECT_ROUTE.getCode(), SelectRouteResponseProcessor.getInstance(), null);
     }
 }

@@ -18,5 +18,5 @@ public final class NameServerConstant {
     /**
      * 路由上报广播超时尺长
      */
-    public static final long ROUTE_UPLOAD_PUBLISH_TIME_OUT_MILLIS = 10 * 1000L;
+    public static final long ROUTE_UPLOAD_PUBLISH_TIMEOUT_MILLIS = 10 * 1000L;
 }

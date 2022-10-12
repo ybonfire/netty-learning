@@ -17,5 +17,5 @@ public interface INameServerClient {
      *
      * @param topicConfigs 主题配置
      */
-    void uploadTopicConfig(final List<TopicConfig> topicConfigs, final String address);
+    void uploadTopicConfig(final List<TopicConfig> topicConfigs, final String address, final long timeoutMillis);
 }
