@@ -18,29 +18,29 @@ import java.util.concurrent.TimeUnit;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ThreadPoolUtil {
-    // Produce Message Handler Thread Pool
-    private static final int PRODUCE_MESSAGE_HANDLER_THREAD_NUMS_MIN =
+    // Produce Message Processor Thread Pool
+    private static final int PRODUCE_MESSAGE_PROCESSOR_THREAD_NUMS_MIN =
         Math.max(8, Runtime.getRuntime().availableProcessors());
-    private static final int PRODUCE_MESSAGE_HANDLER_THREAD_NUMS_MAX =
+    private static final int PRODUCE_MESSAGE_PROCESSOR_THREAD_NUMS_MAX =
         Math.max(8, Runtime.getRuntime().availableProcessors());
     private static final int PRODUCE_MESSAGE_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final ThreadFactory PRODUCE_MESSAGE_HANDLER_THREAD_FACTORY =
-        new ThreadWorkerFactory("produce_message_handler_", true);
-    private static final ExecutorService PRODUCE_MESSAGE_HANDLER_EXECUTOR_SERVICE =
-        buildThreadPool(PRODUCE_MESSAGE_HANDLER_THREAD_NUMS_MIN, PRODUCE_MESSAGE_HANDLER_THREAD_NUMS_MAX,
-            PRODUCE_MESSAGE_TASK_QUEUE_CAPACITY, PRODUCE_MESSAGE_HANDLER_THREAD_FACTORY);
+    private static final ThreadFactory PRODUCE_MESSAGE_PROCESSOR_THREAD_FACTORY =
+        new ThreadWorkerFactory("produce_message_processor_", true);
+    private static final ExecutorService PRODUCE_MESSAGE_PROCESSOR_EXECUTOR_SERVICE =
+        buildThreadPool(PRODUCE_MESSAGE_PROCESSOR_THREAD_NUMS_MIN, PRODUCE_MESSAGE_PROCESSOR_THREAD_NUMS_MAX,
+            PRODUCE_MESSAGE_TASK_QUEUE_CAPACITY, PRODUCE_MESSAGE_PROCESSOR_THREAD_FACTORY);
 
-    // Consume Message Handler Thread Pool
-    private static final int CONSUME_MESSAGE_HANDLER_THREAD_NUMS_MIN =
+    // Consume Message Processor Thread Pool
+    private static final int CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MIN =
         Math.max(8, Runtime.getRuntime().availableProcessors());
-    private static final int CONSUME_MESSAGE_HANDLER_THREAD_NUMS_MAX =
+    private static final int CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MAX =
         Math.max(8, Runtime.getRuntime().availableProcessors());
     private static final int CONSUME_MESSAGE_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final ThreadFactory CONSUME_MESSAGE_HANDLER_THREAD_FACTORY =
-        new ThreadWorkerFactory("consume_message_handler_", true);
-    private static final ExecutorService CONSUME_MESSAGE_HANDLER_EXECUTOR_SERVICE =
-        buildThreadPool(CONSUME_MESSAGE_HANDLER_THREAD_NUMS_MIN, CONSUME_MESSAGE_HANDLER_THREAD_NUMS_MAX,
-            CONSUME_MESSAGE_TASK_QUEUE_CAPACITY, CONSUME_MESSAGE_HANDLER_THREAD_FACTORY);
+    private static final ThreadFactory CONSUME_MESSAGE_PROCESSOR_THREAD_FACTORY =
+        new ThreadWorkerFactory("consume_message_processor_", true);
+    private static final ExecutorService CONSUME_MESSAGE_PROCESSOR_EXECUTOR_SERVICE =
+        buildThreadPool(CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MIN, CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MAX,
+            CONSUME_MESSAGE_TASK_QUEUE_CAPACITY, CONSUME_MESSAGE_PROCESSOR_THREAD_FACTORY);
 
     // Register Broker Task Thread Pool
     private static final int REGISTER_BROKER_TASK_THREAD_NUMS_MIN =
@@ -66,12 +66,12 @@ public final class ThreadPoolUtil {
         buildThreadPool(MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MIN, MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MAX,
             MESSAGE_LOG_LISTENER_TASK_QUEUE_CAPACITY, MESSAGE_LOG_LISTENER_TASK_THREAD_FACTORY);
 
-    public static ExecutorService getProduceMessageHandlerExecutorService() {
-        return PRODUCE_MESSAGE_HANDLER_EXECUTOR_SERVICE;
+    public static ExecutorService getProduceMessageProcessorExecutorService() {
+        return PRODUCE_MESSAGE_PROCESSOR_EXECUTOR_SERVICE;
     }
 
-    public static ExecutorService getConsumeMessageHandlerExecutorService() {
-        return CONSUME_MESSAGE_HANDLER_EXECUTOR_SERVICE;
+    public static ExecutorService getConsumeMessageProcessorExecutorService() {
+        return CONSUME_MESSAGE_PROCESSOR_EXECUTOR_SERVICE;
     }
 
     public static ExecutorService getRegisterBrokerTaskExecutorService() {

@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.producer.sender;
 
+import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 
 /**
@@ -8,23 +9,7 @@ import org.ybonfire.pipeline.producer.model.MessageWrapper;
  * @author Bo.Yuan5
  * @date 2022-06-28 09:56
  */
-public interface ISender {
-
-    /**
-     * @description: 启动发送器
-     * @param:
-     * @return:
-     * @date: 2022/07/01 13:28:54
-     */
-    void start();
-
-    /**
-     * @description: 关闭发送器
-     * @param:
-     * @return:
-     * @date: 2022/07/01 13:29:06
-     */
-    void stop();
+public interface ISender extends ILifeCycle {
 
     /**
      * @description: 发送消息

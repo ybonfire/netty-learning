@@ -20,6 +20,7 @@ import org.ybonfire.pipeline.broker.store.file.MappedFile;
 import org.ybonfire.pipeline.broker.store.index.impl.MessageIndexConstructServiceImpl;
 import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
 import org.ybonfire.pipeline.broker.store.message.MessageLog;
+import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.model.Message;
@@ -38,7 +39,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     private final Map<String/*topic*/, Map<Integer/*partitionId*/, MessageLog>> messageLogTable =
         new ConcurrentHashMap<>();
     private final MessageLogFlushThreadService messageLogFlushThreadService = new MessageLogFlushThreadService();
-    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
     private DefaultMessageStoreServiceImpl() {}
 
@@ -50,9 +51,33 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      */
     @Override
     public void start() {
-        if (started.compareAndSet(false, true)) {
+        if (isStarted.compareAndSet(false, true)) {
             reload();
             messageLogFlushThreadService.start();
+        }
+    }
+
+    /**
+     * @description: 判断消息存储服务是否启动
+     * @param:
+     * @return:
+     * @date: 2022/09/21 14:47:02
+     */
+    @Override
+    public boolean isStarted() {
+        return isStarted.get();
+    }
+
+    /**
+     * @description: 关闭消息存储服务
+     * @param:
+     * @return:
+     * @date: 2022/09/21 14:47:02
+     */
+    @Override
+    public void shutdown() {
+        if (isStarted.compareAndSet(false, true)) {
+            messageLogFlushThreadService.stop();
         }
     }
 
@@ -92,19 +117,6 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     @Override
     public synchronized void reload() {
         // TODO
-    }
-
-    /**
-     * @description: 停止消息存储服务
-     * @param:
-     * @return:
-     * @date: 2022/09/21 14:47:17
-     */
-    @Override
-    public void stop() {
-        if (started.compareAndSet(true, false)) {
-            messageLogFlushThreadService.stop();
-        }
     }
 
     /**
@@ -201,7 +213,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      * @date: 2022/05/19 11:49:04
      */
     private void acquireOK() {
-        if (!this.started.get()) {
+        if (!this.isStarted.get()) {
             throw new UnsupportedOperationException();
         }
     }

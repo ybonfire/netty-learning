@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.nameserver.handler;
+package org.ybonfire.pipeline.nameserver.processor;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
+import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
 /**
  * UploadRoute请求处理器
@@ -27,13 +27,13 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @author Bo.Yuan5
  * @date 2022-07-01 17:35
  */
-public final class UploadRouteRequestHandler extends AbstractNettyRemotingRequestHandler<RouteUploadRequest> {
+public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequestProcessor<RouteUploadRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private static final UploadRouteRequestHandler INSTANCE = new UploadRouteRequestHandler();
+    private static final UploadRouteRequestProcessor INSTANCE = new UploadRouteRequestProcessor();
     private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
     private final RouteUploadRequestPublisher uploadRouteRequestPublisher = RouteUploadRequestPublisher.getInstance();
 
-    private UploadRouteRequestHandler() {
+    private UploadRouteRequestProcessor() {
         this.uploadRouteRequestPublisher.start();
     }
 
@@ -151,11 +151,11 @@ public final class UploadRouteRequestHandler extends AbstractNettyRemotingReques
     }
 
     /**
-     * 获取UploadRouteRequestHandler实例
+     * 获取UploadRouteRequestProcessor实例
      *
-     * @return {@link UploadRouteRequestHandler}
+     * @return {@link UploadRouteRequestProcessor}
      */
-    public static UploadRouteRequestHandler getInstance() {
+    public static UploadRouteRequestProcessor getInstance() {
         return INSTANCE;
     }
 }

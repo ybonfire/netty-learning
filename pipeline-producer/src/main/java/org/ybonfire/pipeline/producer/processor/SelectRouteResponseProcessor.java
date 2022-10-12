@@ -1,8 +1,8 @@
-package org.ybonfire.pipeline.producer.handler;
+package org.ybonfire.pipeline.producer.processor;
 
 import java.util.Optional;
 
-import org.ybonfire.pipeline.client.handler.AbstractNettyRemotingResponseHandler;
+import org.ybonfire.pipeline.client.processor.AbstractNettyRemotingResponseProcessor;
 import org.ybonfire.pipeline.client.manager.InflightRequestManager;
 import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
 import org.ybonfire.pipeline.client.model.RemotingRequestFutureStateEnum;
@@ -11,18 +11,17 @@ import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
 /**
- * SelectAllRoute响应处理器
+ * SelectRoute响应处理器
  *
  * @author Bo.Yuan5
- * @date 2022-08-04 18:22
+ * @date 2022-08-04 18:23
  */
-public class SelectAllRouteResponseHandler extends AbstractNettyRemotingResponseHandler {
+public class SelectRouteResponseProcessor extends AbstractNettyRemotingResponseProcessor {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final InflightRequestManager inflightRequestManager;
+    private static final SelectRouteResponseProcessor INSTANCE = new SelectRouteResponseProcessor();
+    private final InflightRequestManager inflightRequestManager = InflightRequestManager.getInstance();
 
-    public SelectAllRouteResponseHandler(final InflightRequestManager inflightRequestManager) {
-        this.inflightRequestManager = inflightRequestManager;
-    }
+    private SelectRouteResponseProcessor() {}
 
     /**
      * @description: 参数校验
@@ -31,7 +30,9 @@ public class SelectAllRouteResponseHandler extends AbstractNettyRemotingResponse
      * @date: 2022/08/04 18:28:19
      */
     @Override
-    protected void check(final RemotingResponse response) {}
+    protected void check(final RemotingResponse response) {
+
+    }
 
     /**
      * @description: 业务处理
@@ -46,20 +47,13 @@ public class SelectAllRouteResponseHandler extends AbstractNettyRemotingResponse
         if (futureOptional.isPresent()) {
             final RemoteRequestFuture future = futureOptional.get();
 
-            // 校验并修改状态
-            if (future.getState() == RemotingRequestFutureStateEnum.FLIGHT) {
+            // 修改状态
+            if (future.getState() != RemotingRequestFutureStateEnum.FLIGHT) {
                 future.setState(RemotingRequestFutureStateEnum.RESPOND);
-            } else {
-                return;
             }
 
             // 填充响应
             future.complete(response);
-
-            // 异步回调
-            if (future.getCallback() != null) {
-                future.getCallback().onSuccess(response);
-            }
         } else {
             LOGGER.warn("未查询到对应id的在途请求");
         }
@@ -103,5 +97,14 @@ public class SelectAllRouteResponseHandler extends AbstractNettyRemotingResponse
     @Override
     protected void onComplete(final RemotingResponse response) {
         inflightRequestManager.remove(response.getId());
+    }
+
+    /**
+     * 获取SelectRouteResponseProcessor实例
+     *
+     * @return {@link SelectRouteResponseProcessor}
+     */
+    public static SelectRouteResponseProcessor getInstance() {
+        return INSTANCE;
     }
 }

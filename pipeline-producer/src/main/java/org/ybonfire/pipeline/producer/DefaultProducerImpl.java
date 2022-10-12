@@ -8,7 +8,6 @@ import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.producer.callback.IMessageProduceCallback;
-import org.ybonfire.pipeline.producer.constant.ProducerConstant;
 import org.ybonfire.pipeline.producer.exception.IllegalMessageException;
 import org.ybonfire.pipeline.producer.exception.ProduceTimeoutException;
 import org.ybonfire.pipeline.producer.exception.RouteNotFoundException;
@@ -29,7 +28,7 @@ import org.ybonfire.pipeline.producer.sender.impl.SenderImpl;
  * @date 2022-06-27 18:12
  */
 public final class DefaultProducerImpl implements IProducer {
-    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final RouteManager routeManager;
     private final IPartitionSelector partitionSelector;
     private final ISender sender;
@@ -37,14 +36,7 @@ public final class DefaultProducerImpl implements IProducer {
     public DefaultProducerImpl(final List<String> nameServerAddressList) {
         this.routeManager = new RouteManager(new NameServers(nameServerAddressList));
         this.partitionSelector = new RoundRobinPartitionSelector(this.routeManager);
-        this.sender = new SenderImpl();
-    }
-
-    public DefaultProducerImpl(final RouteManager routeManager, final IPartitionSelector partitionSelector,
-        final ISender sender) {
-        this.routeManager = routeManager;
-        this.partitionSelector = partitionSelector;
-        this.sender = sender;
+        this.sender = SenderImpl.getInstance();
     }
 
     /**
@@ -55,10 +47,21 @@ public final class DefaultProducerImpl implements IProducer {
      */
     @Override
     public void start() {
-        if (started.compareAndSet(false, true)) {
+        if (isStarted.compareAndSet(false, true)) {
             this.routeManager.start();
             this.sender.start();
         }
+    }
+
+    /**
+     * @description: 判断生产者是否启动
+     * @param:
+     * @return:
+     * @date: 2022/10/12 13:54:06
+     */
+    @Override
+    public boolean isStarted() {
+        return isStarted.get();
     }
 
     /**
@@ -69,9 +72,9 @@ public final class DefaultProducerImpl implements IProducer {
      */
     @Override
     public void shutdown() {
-        if (started.compareAndSet(true, false)) {
-            this.routeManager.stop();
-            this.sender.stop();
+        if (isStarted.compareAndSet(true, false)) {
+            this.routeManager.shutdown();
+            this.sender.shutdown();
         }
     }
 
@@ -114,8 +117,7 @@ public final class DefaultProducerImpl implements IProducer {
     public void produce(final Message message) {
         acquireOK();
         try {
-            doProduceMessage(message, null, ProducerConstant.DEFAULT_TIMEOUT_MILLIS_IN_PRODUCE_ONEWAY,
-                ProduceTypeEnum.ONEWAY);
+            doProduceMessage(message, null, -1L, ProduceTypeEnum.ONEWAY);
         } catch (Exception ignored) {
             // ignore
         }
@@ -158,10 +160,10 @@ public final class DefaultProducerImpl implements IProducer {
 
         // 消息发送
         final long remainingMillis = timeoutMillis - (System.currentTimeMillis() - startTime);
-        if (remainingMillis > 0L) {
+        if (produceType == ProduceTypeEnum.ONEWAY || remainingMillis > 0L) {
             final MessageWrapper wrapper =
                 MessageWrapper.wrap(message, produceType, partition, callback, remainingMillis);
-            send(wrapper); // 投递
+            send(wrapper); // 投递消息，如果投递类型为同步，sender会在内部进行阻塞等待响应
             return wrapper.getResult();
         }
 
@@ -196,7 +198,7 @@ public final class DefaultProducerImpl implements IProducer {
      * @date: 2022/07/14 14:37:04
      */
     private void acquireOK() {
-        if (!this.started.get()) {
+        if (!isStarted.get()) {
             throw new UnsupportedOperationException();
         }
     }

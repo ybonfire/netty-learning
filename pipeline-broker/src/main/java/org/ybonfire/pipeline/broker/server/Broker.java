@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.ybonfire.pipeline.broker.config.BrokerConfig;
-import org.ybonfire.pipeline.broker.handler.ProduceMessageRequestHandler;
+import org.ybonfire.pipeline.broker.processor.ProduceMessageRequestProcessor;
 import org.ybonfire.pipeline.broker.model.RoleEnum;
 import org.ybonfire.pipeline.broker.register.IBrokerRegisterService;
 import org.ybonfire.pipeline.broker.register.impl.BrokerRegisterServiceImpl;
@@ -63,11 +63,11 @@ public final class Broker extends NettyRemotingServer {
     }
 
     @Override
-    protected void registerRequestHandlers() {
-        // ProduceMessageRequestHandler
-        registerProduceMessageRequestHandler();
-        // ConsumeMessageRequestHandler
-        registerConsumeMessageRequestHandler();
+    protected void registerRequestProcessor() {
+        // ProduceMessageRequestProcessor
+        registerProduceMessageRequestProcessor();
+        // ConsumeMessageRequestProcessor
+        registerConsumeMessageRequestProcessor();
     }
 
     /**
@@ -80,18 +80,18 @@ public final class Broker extends NettyRemotingServer {
     /**
      * 注册ProduceMessage请求处理器
      */
-    private void registerProduceMessageRequestHandler() {
-        final ExecutorService produceMessageRequestHandleExecutor =
-            ThreadPoolUtil.getProduceMessageHandlerExecutorService();
-        registerHandler(RequestEnum.PRODUCE_MESSAGE.getCode(), ProduceMessageRequestHandler.getInstance(),
-            produceMessageRequestHandleExecutor);
+    private void registerProduceMessageRequestProcessor() {
+        final ExecutorService produceMessageRequestProcessorExecutor =
+            ThreadPoolUtil.getProduceMessageProcessorExecutorService();
+        registerRequestProcessor(RequestEnum.PRODUCE_MESSAGE.getCode(), ProduceMessageRequestProcessor.getInstance(),
+            produceMessageRequestProcessorExecutor);
     }
 
     /**
      * 注册ConsumeMessage请求处理器
      */
-    private void registerConsumeMessageRequestHandler() {
-        final ExecutorService consumeMessageRequestHandleExecutor =
-            ThreadPoolUtil.getConsumeMessageHandlerExecutorService();
+    private void registerConsumeMessageRequestProcessor() {
+        final ExecutorService consumeMessageRequestProcessorExecutor =
+            ThreadPoolUtil.getConsumeMessageProcessorExecutorService();
     }
 }

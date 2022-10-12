@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.server.handler;
+package org.ybonfire.pipeline.server.processor;
 
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
@@ -12,8 +12,8 @@ import org.ybonfire.pipeline.server.exception.handler.ServerExceptionHandler;
  * @author Bo.Yuan5
  * @date 2022-07-01 18:18
  */
-public abstract class AbstractNettyRemotingRequestHandler<T extends IRemotingRequestBody>
-    implements IRemotingRequestHandler<T> {
+public abstract class AbstractNettyRemotingRequestProcessor<T extends IRemotingRequestBody>
+    implements IRemotingRequestProcessor<T> {
     private final ServerExceptionHandler exceptionHandler = new ServerExceptionHandler();
 
     /**
@@ -23,7 +23,7 @@ public abstract class AbstractNettyRemotingRequestHandler<T extends IRemotingReq
      * @date: 2022/07/01 18:19:03
      */
     @Override
-    public final RemotingResponse handle(final IRemotingRequest<T> request) {
+    public final RemotingResponse process(final IRemotingRequest<T> request) {
         try {
             // 参数校验
             check(request);

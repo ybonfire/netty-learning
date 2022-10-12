@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.client.handler;
+package org.ybonfire.pipeline.client.processor;
 
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
@@ -8,7 +8,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
  * @author Bo.Yuan5
  * @date 2022-07-09 13:57
  */
-public abstract class AbstractNettyRemotingResponseHandler implements IRemotingResponseHandler {
+public abstract class AbstractNettyRemotingResponseProcessor implements IRemotingResponseProcessor {
 
     /**
      * @description: 处理响应
@@ -17,7 +17,7 @@ public abstract class AbstractNettyRemotingResponseHandler implements IRemotingR
      * @date: 2022/07/09 13:59:34
      */
     @Override
-    public final void handle(final RemotingResponse response) {
+    public final void process(final RemotingResponse response) {
         try {
             // 参数校验
             check(response);

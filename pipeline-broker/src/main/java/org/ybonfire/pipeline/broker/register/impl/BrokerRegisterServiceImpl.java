@@ -97,7 +97,8 @@ public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
         @Override
         protected void execute() {
             try {
-                nameServerClient.uploadTopicConfig(topicConfigs, address);
+                nameServerClient.uploadTopicConfig(topicConfigs, address,
+                    BrokerConstant.BROKER_REGISTER_TO_NAMESERVER_TIMEOUT_MILLIS);
             } finally {
                 latch.countDown();
             }

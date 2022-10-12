@@ -23,5 +23,5 @@ public interface IRequestCallback {
      * @return:
      * @date: 2022/06/20 21:43:23
      */
-    void onException(final Exception ex);
+    void onException(final Throwable ex);
 }

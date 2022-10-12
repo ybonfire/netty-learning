@@ -50,7 +50,7 @@ public enum ResponseEnum {
     /**
      * 消息刷盘超时
      */
-    MESSAGE_FLUSH_DISK_TIME_OUT(-204, DefaultResponse.class),;
+    MESSAGE_FLUSH_DISK_TIMEOUT(-204, DefaultResponse.class),;
 
     private final int code;
     private final Class<? extends IRemotingResponseBody> clazz;

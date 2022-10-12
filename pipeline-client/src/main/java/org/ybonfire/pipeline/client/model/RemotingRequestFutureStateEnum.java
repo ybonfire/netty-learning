@@ -14,12 +14,16 @@ public enum RemotingRequestFutureStateEnum {
     /**
      * 已响应
      */
-    RESPOND(1, "已回应");
+    RESPOND(1, "已回应"),
+    /**
+     * 失败
+     */
+    FAILED(2, "已失败");
 
-    private int code;
-    private String description;
+    private final int code;
+    private final String description;
 
-    RemotingRequestFutureStateEnum(int code, String description) {
+    RemotingRequestFutureStateEnum(final int code, final String description) {
         this.code = code;
         this.description = description;
     }

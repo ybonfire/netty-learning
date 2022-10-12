@@ -39,14 +39,15 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
     }
 
     /**
-     * 注册ResponseHandlers
+     * 注册ResponseProcessors
      */
     @Override
-    protected void registerResponseHandlers() {}
+    protected void registerResponseProcessors() {}
 
     @Override
-    public void uploadTopicConfig(final List<TopicConfig> topicConfigs, final String address) {
-        request(address, buildRouteUploadRequest(RemotingUtil.getLocalAddress(), topicConfigs));
+    public void uploadTopicConfig(final List<TopicConfig> topicConfigs, final String address,
+        final long timeoutMillis) {
+        super.request(address, buildRouteUploadRequest(RemotingUtil.getLocalAddress(), topicConfigs), timeoutMillis);
     }
 
     /**

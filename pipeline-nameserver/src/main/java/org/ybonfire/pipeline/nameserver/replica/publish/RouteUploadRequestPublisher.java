@@ -72,7 +72,7 @@ public class RouteUploadRequestPublisher {
             publishExecutors.submit(task);
         }
         try {
-            latch.await(NameServerConstant.ROUTE_UPLOAD_PUBLISH_TIME_OUT_MILLIS, TimeUnit.MILLISECONDS);
+            latch.await(NameServerConstant.ROUTE_UPLOAD_PUBLISH_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             // ignored

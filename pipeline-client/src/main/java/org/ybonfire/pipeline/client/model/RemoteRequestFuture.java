@@ -4,6 +4,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.ybonfire.pipeline.client.exception.InvokeExecuteException;
 import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
@@ -23,13 +24,13 @@ import io.netty.channel.Channel;
 public class RemoteRequestFuture {
     private final String address;
     private final Channel channel;
-    private final long startTimestamp = System.currentTimeMillis();
     private final IRemotingRequest request;
     private final IRequestCallback callback;
+    private final long startTimestamp = System.currentTimeMillis();
     private final long timeoutMillis;
     private final CompletableFuture<RemotingResponse> responseFuture = new CompletableFuture<>();
+    private final AtomicBoolean isCompleted = new AtomicBoolean(false);
     private volatile boolean isRequestSuccess = false;
-    private volatile boolean isCompleted = false;
     private volatile Throwable cause;
     private volatile RemotingRequestFutureStateEnum state = RemotingRequestFutureStateEnum.FLIGHT;
 
@@ -59,14 +60,35 @@ public class RemoteRequestFuture {
     }
 
     /**
-     * @description: 完成并唤醒远程调用请求等待
+     * @description: 异步请求成功
      * @param:
      * @return:
      * @date: 2022/06/02 09:56:54
      */
     public void complete(final RemotingResponse response) {
-        this.responseFuture.complete(response);
-        this.isCompleted = true;
+        if (isCompleted.compareAndSet(false, true)) {
+            this.responseFuture.complete(response);
+            this.state = RemotingRequestFutureStateEnum.RESPOND;
+            if (this.callback != null) {
+                this.callback.onSuccess(response);
+            }
+        }
+    }
+
+    /**
+     * @description: 异步请求超时
+     * @param:
+     * @return:
+     * @date: 2022/10/12 11:09:26
+     */
+    public void exception(final Throwable ex) {
+        if (isCompleted.compareAndSet(false, true)) {
+            this.cause = ex;
+            this.state = RemotingRequestFutureStateEnum.FAILED;
+            if (this.callback != null) {
+                this.callback.onException(this.cause);
+            }
+        }
     }
 
     public String getAddress() {
@@ -81,20 +103,12 @@ public class RemoteRequestFuture {
         return request;
     }
 
-    public CompletableFuture<RemotingResponse> getResponseFuture() {
-        return responseFuture;
-    }
-
     public boolean isRequestSuccess() {
         return isRequestSuccess;
     }
 
     public void setRequestSuccess(boolean requestSuccess) {
         isRequestSuccess = requestSuccess;
-    }
-
-    public boolean isCompleted() {
-        return isCompleted;
     }
 
     public Throwable getCause() {
@@ -105,10 +119,6 @@ public class RemoteRequestFuture {
         this.cause = cause;
     }
 
-    public long getStartTimestamp() {
-        return startTimestamp;
-    }
-
     public long getTimeoutMillis() {
         return timeoutMillis;
     }
@@ -117,6 +127,12 @@ public class RemoteRequestFuture {
         return callback;
     }
 
+    /**
+     * @description: 判断请求是否过期
+     * @param:
+     * @return:
+     * @date: 2022/10/12 10:56:24
+     */
     public boolean isExpired() {
         return System.currentTimeMillis() > startTimestamp + timeoutMillis;
     }

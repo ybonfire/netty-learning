@@ -1,8 +1,8 @@
-package org.ybonfire.pipeline.producer.handler;
+package org.ybonfire.pipeline.producer.processor;
 
 import java.util.Optional;
 
-import org.ybonfire.pipeline.client.handler.AbstractNettyRemotingResponseHandler;
+import org.ybonfire.pipeline.client.processor.AbstractNettyRemotingResponseProcessor;
 import org.ybonfire.pipeline.client.manager.InflightRequestManager;
 import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
 import org.ybonfire.pipeline.client.model.RemotingRequestFutureStateEnum;
@@ -16,11 +16,11 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
  * @author Bo.Yuan5
  * @date 2022-08-04 18:24
  */
-public class ProduceMessageResponseHandler extends AbstractNettyRemotingResponseHandler {
+public class ProduceMessageResponseProcessor extends AbstractNettyRemotingResponseProcessor {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final InflightRequestManager inflightRequestManager;
 
-    public ProduceMessageResponseHandler(final InflightRequestManager inflightRequestManager) {
+    public ProduceMessageResponseProcessor(final InflightRequestManager inflightRequestManager) {
         this.inflightRequestManager = inflightRequestManager;
     }
 
@@ -57,11 +57,6 @@ public class ProduceMessageResponseHandler extends AbstractNettyRemotingResponse
 
             // 填充响应
             future.complete(response);
-
-            // 异步回调
-            if (future.getCallback() != null) {
-                future.getCallback().onSuccess(response);
-            }
         } else {
             LOGGER.warn("未查询到对应id的在途请求");
         }

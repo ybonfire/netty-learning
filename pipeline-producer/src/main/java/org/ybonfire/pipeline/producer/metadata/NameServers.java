@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.producer.client.impl.NameServerClientImpl;
+import org.ybonfire.pipeline.producer.constant.ProducerConstant;
 
 /**
  * 元数据服务
@@ -53,7 +54,7 @@ public class NameServers {
 
         for (int i = 0; i < nameServerAddressList.size(); ++i) {
             final String address = nameServerAddressList.get(i);
-            return nameServerClient.selectAllTopicInfo(address);
+            return nameServerClient.selectAllTopicInfo(address, timeoutMillis);
         }
 
         return Collections.emptyList();
@@ -72,7 +73,7 @@ public class NameServers {
 
         for (int i = 0; i < nameServerAddressList.size(); ++i) {
             final String address = nameServerAddressList.get(i);
-            return nameServerClient.selectTopicInfo(topic, address);
+            return nameServerClient.selectTopicInfo(topic, address, timeoutMillis);
         }
 
         return Optional.empty();

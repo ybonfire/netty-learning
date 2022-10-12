@@ -23,7 +23,12 @@ public final class BrokerConstant {
     /**
      * Broker注册响应等待时长
      */
-    public static final long BROKER_REGISTER_WAITING_MILLIS = 10 * 1000L;
+    public static final long BROKER_REGISTER_WAITING_MILLIS = 15 * 1000L;
+
+    /**
+     * Broker注册超时响应时长
+     */
+    public static final long BROKER_REGISTER_TO_NAMESERVER_TIMEOUT_MILLIS = 10 * 1000L;
 
     /**
      * Broker存储基本路径

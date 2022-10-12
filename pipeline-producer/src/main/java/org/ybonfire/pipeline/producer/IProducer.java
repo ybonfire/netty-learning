@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.producer;
 
+import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.producer.callback.IMessageProduceCallback;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
@@ -10,23 +11,7 @@ import org.ybonfire.pipeline.producer.model.ProduceResult;
  * @author Bo.Yuan5
  * @date 2022-07-01 13:26
  */
-public interface IProducer {
-
-    /**
-     * @description: 启动生产者
-     * @param:
-     * @return:
-     * @date: 2022/07/01 13:26:59
-     */
-    void start();
-
-    /**
-     * @description: 关闭生产者
-     * @param:
-     * @return:
-     * @date: 2022/07/01 13:27:04
-     */
-    void shutdown();
+public interface IProducer extends ILifeCycle {
 
     /**
      * @description: 同步消息投递

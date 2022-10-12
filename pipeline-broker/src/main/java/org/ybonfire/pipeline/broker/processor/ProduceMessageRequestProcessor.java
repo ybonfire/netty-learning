@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.broker.handler;
+package org.ybonfire.pipeline.broker.processor;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +21,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
+import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
 /**
  * 消息生产请求处理器
@@ -29,11 +29,11 @@ import org.ybonfire.pipeline.server.handler.AbstractNettyRemotingRequestHandler;
  * @author Bo.Yuan5
  * @date 2022-09-02 15:37
  */
-public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHandler<MessageProduceRequest> {
+public class ProduceMessageRequestProcessor extends AbstractNettyRemotingRequestProcessor<MessageProduceRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private static final ProduceMessageRequestHandler INSTANCE = new ProduceMessageRequestHandler();
+    private static final ProduceMessageRequestProcessor INSTANCE = new ProduceMessageRequestProcessor();
 
-    private ProduceMessageRequestHandler() {
+    private ProduceMessageRequestProcessor() {
         DefaultMessageStoreServiceImpl.getInstance().start();
     }
 
@@ -161,11 +161,11 @@ public class ProduceMessageRequestHandler extends AbstractNettyRemotingRequestHa
     }
 
     /**
-     * 获取ProduceMessageRequestHandler实例
+     * 获取ProduceMessageRequestProcessor实例
      *
-     * @return {@link ProduceMessageRequestHandler}
+     * @return {@link ProduceMessageRequestProcessor}
      */
-    public static ProduceMessageRequestHandler getInstance() {
+    public static ProduceMessageRequestProcessor getInstance() {
         return INSTANCE;
     }
 }

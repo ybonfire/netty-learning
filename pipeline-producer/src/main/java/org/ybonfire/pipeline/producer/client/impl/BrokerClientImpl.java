@@ -13,6 +13,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingRequest;
 import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
 import org.ybonfire.pipeline.common.protocol.response.MessageProduceResponse;
 import org.ybonfire.pipeline.producer.client.IBrokerClient;
+import org.ybonfire.pipeline.producer.constant.ProducerConstant;
 import org.ybonfire.pipeline.producer.converter.ProduceResultConverter;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
@@ -40,7 +41,7 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
      * @date: 2022/07/14 14:02:24
      */
     @Override
-    protected void registerResponseHandlers() {}
+    protected void registerResponseProcessors() {}
 
     /**
      * @description: 投递消息
@@ -49,8 +50,8 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
      * @date: 2022/06/30 10:44:03
      */
     @Override
-    public ProduceResult produce(final MessageWrapper message, final String address) {
-        final IRemotingResponse response = request(address, buildProduceMessageRequest(message));
+    public ProduceResult produce(final MessageWrapper message, final String address, final long timeoutMillis) {
+        final IRemotingResponse response = super.request(address, buildProduceMessageRequest(message), timeoutMillis);
         if (response.getStatus() == ResponseEnum.SUCCESS.getCode()) {
             final MessageProduceResponse data = (MessageProduceResponse)response.getBody();
             return ProduceResultConverter.getINSTANCE().convert(data);

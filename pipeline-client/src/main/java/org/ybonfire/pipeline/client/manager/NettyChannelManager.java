@@ -55,9 +55,8 @@ public class NettyChannelManager {
      * @date: 2022/05/19 10:12:58
      */
     public Channel getOrCreateNettyChannel(final String address, final long timeoutMillis) {
+        lock.lock();
         try {
-            lock.lock();
-
             // get
             final Channel existedChannel = channelTable.get(address);
             if (existedChannel != null) {
