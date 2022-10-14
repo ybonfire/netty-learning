@@ -1,8 +1,5 @@
 package org.ybonfire.pipeline.nameserver.processor;
 
-import java.util.Collections;
-import java.util.Optional;
-
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
@@ -11,16 +8,19 @@ import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
-import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectByTopicRequest;
+import org.ybonfire.pipeline.common.protocol.response.nameserver.RouteSelectResponse;
 import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
+import java.util.Collections;
+import java.util.Optional;
+
 /**
- * SelectByTopicName请求处理器
+ * RouteSelectByTopicRequest请求处理器
  *
  * @author Bo.Yuan5
  * @date 2022-07-11 14:04

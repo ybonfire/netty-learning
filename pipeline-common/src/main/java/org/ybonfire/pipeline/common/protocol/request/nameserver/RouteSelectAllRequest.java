@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.common.protocol.request;
+package org.ybonfire.pipeline.common.protocol.request.nameserver;
 
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 

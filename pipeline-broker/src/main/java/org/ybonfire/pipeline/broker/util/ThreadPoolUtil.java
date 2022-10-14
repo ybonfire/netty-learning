@@ -54,17 +54,17 @@ public final class ThreadPoolUtil {
         buildThreadPool(REGISTER_BROKER_TASK_THREAD_NUMS_MIN, REGISTER_BROKER_TASK_THREAD_NUMS_MAX,
             REGISTER_BROKER_TASK_QUEUE_CAPACITY, REGISTER_BROKER_TASK_THREAD_FACTORY);
 
-    // MessageLog Listener Thread Pool
-    private static final int MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MIN =
+    // Broker Admin Thread Pool
+    private static final int BROKER_ADMIN_TASK_THREAD_NUMS_MIN =
         Math.max(4, Runtime.getRuntime().availableProcessors());
-    private static final int MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MAX =
+    private static final int BROKER_ADMIN_TASK_THREAD_NUMS_MAX =
         Math.max(4, Runtime.getRuntime().availableProcessors());
-    private static final int MESSAGE_LOG_LISTENER_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final ThreadFactory MESSAGE_LOG_LISTENER_TASK_THREAD_FACTORY =
-        new ThreadWorkerFactory("message_log_listener_task_", true);
-    private static final ExecutorService MESSAGE_LOG_LISTENER_TASK_EXECUTOR_SERVICE =
-        buildThreadPool(MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MIN, MESSAGE_LOG_LISTENER_TASK_THREAD_NUMS_MAX,
-            MESSAGE_LOG_LISTENER_TASK_QUEUE_CAPACITY, MESSAGE_LOG_LISTENER_TASK_THREAD_FACTORY);
+    private static final int BROKER_ADMIN_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final ThreadFactory BROKER_ADMIN_TASK_THREAD_FACTORY =
+        new ThreadWorkerFactory("broker_admin_task_", true);
+    private static final ExecutorService BROKER_ADMIN_EXECUTOR_SERVICE =
+        buildThreadPool(BROKER_ADMIN_TASK_THREAD_NUMS_MIN, BROKER_ADMIN_TASK_THREAD_NUMS_MAX,
+            BROKER_ADMIN_TASK_QUEUE_CAPACITY, BROKER_ADMIN_TASK_THREAD_FACTORY);
 
     public static ExecutorService getProduceMessageProcessorExecutorService() {
         return PRODUCE_MESSAGE_PROCESSOR_EXECUTOR_SERVICE;
@@ -78,8 +78,8 @@ public final class ThreadPoolUtil {
         return REGISTER_BROKER_TASK_EXECUTOR_SERVICE;
     }
 
-    public static ExecutorService getMessageLogListenerTaskExecutorService() {
-        return MESSAGE_LOG_LISTENER_TASK_EXECUTOR_SERVICE;
+    public static ExecutorService getBrokerAdminExecutorService() {
+        return BROKER_ADMIN_EXECUTOR_SERVICE;
     }
 
     /**

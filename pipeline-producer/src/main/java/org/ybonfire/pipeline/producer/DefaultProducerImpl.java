@@ -199,7 +199,7 @@ public final class DefaultProducerImpl implements IProducer {
      * @date: 2022/07/14 14:37:04
      */
     private void acquireOK() {
-        if (!isStarted.get()) {
+        if (!this.isStarted.get()) {
             throw new LifeCycleException();
         }
     }

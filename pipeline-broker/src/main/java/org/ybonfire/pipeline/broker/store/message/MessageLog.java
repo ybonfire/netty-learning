@@ -3,7 +3,7 @@ package org.ybonfire.pipeline.broker.store.message;
 import lombok.EqualsAndHashCode;
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.exception.FileLoadException;
-import org.ybonfire.pipeline.broker.model.SelectMappedFileDataResult;
+import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
 import org.ybonfire.pipeline.common.constant.CommonConstant;
 import org.ybonfire.pipeline.common.model.Message;

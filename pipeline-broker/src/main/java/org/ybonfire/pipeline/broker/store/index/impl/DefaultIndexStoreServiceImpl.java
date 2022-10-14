@@ -3,13 +3,14 @@ package org.ybonfire.pipeline.broker.store.index.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.broker.exception.FileLoadException;
 import org.ybonfire.pipeline.broker.exception.IndexFileCreateException;
-import org.ybonfire.pipeline.broker.model.Index;
-import org.ybonfire.pipeline.broker.model.SelectMappedFileDataResult;
+import org.ybonfire.pipeline.broker.model.store.Index;
+import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
 import org.ybonfire.pipeline.broker.store.index.IIndexStoreService;
 import org.ybonfire.pipeline.broker.store.index.IndexLog;
 import org.ybonfire.pipeline.broker.store.message.MessageLog;
 import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreServiceImpl;
 import org.ybonfire.pipeline.common.constant.CommonConstant;
+import org.ybonfire.pipeline.common.exception.LifeCycleException;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.thread.service.AbstractThreadService;
@@ -173,7 +174,7 @@ public final class DefaultIndexStoreServiceImpl implements IIndexStoreService {
      */
     private void acquireOK() {
         if (!this.isStarted.get()) {
-            throw new UnsupportedOperationException();
+            throw new LifeCycleException();
         }
     }
 

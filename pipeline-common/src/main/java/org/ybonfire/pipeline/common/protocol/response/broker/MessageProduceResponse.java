@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.common.protocol.response;
+package org.ybonfire.pipeline.common.protocol.response.broker;
 
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
 

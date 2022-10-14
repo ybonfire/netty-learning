@@ -3,6 +3,7 @@ package org.ybonfire.pipeline.nameserver.route;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -36,6 +37,14 @@ public interface IRouteRepository {
      * @date: 2022/07/10 09:46:28
      */
     Optional<TopicInfo> selectByTopicName(final String topicName);
+
+    /**
+     * @description: 批量查询指定名称的Topic信息
+     * @param:
+     * @return:
+     * @date: 2022/10/14 17:00:20
+     */
+    Map<String, TopicInfo> selectByTopicNames(final String... topicNames);
 
     /**
      * @description: 移除过期路由信息

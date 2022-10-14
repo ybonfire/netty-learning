@@ -2,8 +2,8 @@ package org.ybonfire.pipeline.broker.store.index;
 
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.exception.FileLoadException;
-import org.ybonfire.pipeline.broker.model.Index;
-import org.ybonfire.pipeline.broker.model.SelectMappedFileDataResult;
+import org.ybonfire.pipeline.broker.model.store.Index;
+import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
 import org.ybonfire.pipeline.broker.store.message.MessageLog;
 

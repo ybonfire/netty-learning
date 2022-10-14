@@ -8,10 +8,10 @@ import java.util.concurrent.Executors;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.protocol.RemotingRequest;
-import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 
 /**
  * NameServerUploadRoute测试
@@ -34,8 +34,8 @@ public class NameServerUploadRouteTest extends NettyRemotingClient {
 
         client.start();
 
-        final RouteUploadRequest request =
-            RouteUploadRequest.builder().address("address").topics(Collections.emptyList()).build();
+        final DefaultResponse.RouteUploadRequest request =
+            DefaultResponse.RouteUploadRequest.builder().address("address").topics(Collections.emptyList()).build();
         client.request("0:0:0:0:0:0:0:0:4690",
             RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.UPLOAD_ROUTE.getCode(), request),
             10 * 1000L);

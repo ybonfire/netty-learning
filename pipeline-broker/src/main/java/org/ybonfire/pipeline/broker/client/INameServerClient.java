@@ -1,6 +1,6 @@
 package org.ybonfire.pipeline.broker.client;
 
-import org.ybonfire.pipeline.broker.model.TopicConfig;
+import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
 
 import java.util.List;
 

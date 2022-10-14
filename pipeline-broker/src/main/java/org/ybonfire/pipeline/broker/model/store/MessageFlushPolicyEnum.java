@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.broker.model;
+package org.ybonfire.pipeline.broker.model.store;
 
 /**
  * 消息刷盘策略枚举

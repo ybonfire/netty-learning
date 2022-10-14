@@ -1,35 +1,35 @@
 package org.ybonfire.pipeline.broker.processor;
 
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.broker.exception.BrokerNotPartitionLeaderException;
-import org.ybonfire.pipeline.broker.model.PartitionConfig;
+import org.ybonfire.pipeline.broker.model.topic.PartitionConfig;
 import org.ybonfire.pipeline.broker.model.RoleEnum;
-import org.ybonfire.pipeline.broker.model.TopicConfig;
+import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
 import org.ybonfire.pipeline.broker.role.RoleManager;
 import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreServiceImpl;
-import org.ybonfire.pipeline.broker.topic.TopicConfigManager;
+import org.ybonfire.pipeline.broker.topic.impl.DefaultTopicConfigManager;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
+import org.ybonfire.pipeline.common.protocol.request.broker.MessageProduceRequest;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
- * 消息生产请求处理器
+ * MessageProduceRequest请求处理器
  *
  * @author Bo.Yuan5
  * @date 2022-09-02 15:37
  */
-public class ProduceMessageRequestProcessor extends AbstractNettyRemotingRequestProcessor<MessageProduceRequest> {
+public final class ProduceMessageRequestProcessor extends AbstractNettyRemotingRequestProcessor<MessageProduceRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final ProduceMessageRequestProcessor INSTANCE = new ProduceMessageRequestProcessor();
 
@@ -50,8 +50,8 @@ public class ProduceMessageRequestProcessor extends AbstractNettyRemotingRequest
             throw new RequestTypeNotSupportException();
         }
 
-        // 校验Broker角色
-        if (!isLeader()) {
+        // 校验Broker能否处理该请求
+        if (!isEnableProcess()) {
             throw new BrokerNotPartitionLeaderException();
         }
 
@@ -97,12 +97,12 @@ public class ProduceMessageRequestProcessor extends AbstractNettyRemotingRequest
     }
 
     /**
-     * @description: 判断Broker是否为Leader
+     * @description: 判断Broker是否能处理该请求
      * @param:
      * @return:
      * @date: 2022/09/05 16:06:47
      */
-    private boolean isLeader() {
+    private boolean isEnableProcess() {
         return RoleManager.getInstance().get() == RoleEnum.LEADER;
     }
 
@@ -138,7 +138,7 @@ public class ProduceMessageRequestProcessor extends AbstractNettyRemotingRequest
         }
 
         final Optional<TopicConfig> topicConfigOptional =
-            TopicConfigManager.getInstance().selectTopicConfig(request.getTopic());
+            DefaultTopicConfigManager.getInstance().selectTopicConfig(request.getTopic());
         if (!topicConfigOptional.isPresent()) {
             LOGGER.error("produce message request topic config not found");
             return false;

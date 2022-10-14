@@ -25,6 +25,10 @@ public enum ResponseEnum {
      */
     BAD_REQUEST(-2, DefaultResponse.class),
     /**
+     * 内部服务异常
+     */
+    INTERNAL_SERVER_ERROR(-3, DefaultResponse.class),
+    /**
      * 未知异常
      */
     UNKNOWN_ERROR(-100, DefaultResponse.class),
@@ -50,7 +54,15 @@ public enum ResponseEnum {
     /**
      * 消息刷盘超时
      */
-    MESSAGE_FLUSH_DISK_TIMEOUT(-204, DefaultResponse.class),;
+    MESSAGE_FLUSH_DISK_TIMEOUT(-204, DefaultResponse.class),
+    /**
+     * Topic重复创建
+     */
+    TOPIC_ALREADY_CREATED(-210, DefaultResponse.class),
+    /**
+     * 未知Topic
+     */
+    TOPIC_NOT_FOUND(-211, DefaultResponse.class),;
 
     private final int code;
     private final Class<? extends IRemotingResponseBody> clazz;

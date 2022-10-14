@@ -2,13 +2,16 @@ package org.ybonfire.pipeline.common.constant;
 
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
-import org.ybonfire.pipeline.common.protocol.request.JoinClusterRequest;
-import org.ybonfire.pipeline.common.protocol.request.MessageProduceRequest;
-import org.ybonfire.pipeline.common.protocol.request.RouteSelectAllRequest;
-import org.ybonfire.pipeline.common.protocol.request.RouteSelectByTopicRequest;
-import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
+import org.ybonfire.pipeline.common.protocol.request.broker.CreateTopicRequest;
+import org.ybonfire.pipeline.common.protocol.request.broker.DeleteTopicRequest;
+import org.ybonfire.pipeline.common.protocol.request.broker.UpdateTopicRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.JoinClusterRequest;
+import org.ybonfire.pipeline.common.protocol.request.broker.MessageProduceRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectAllRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectByTopicRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectByTopicsRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
-import org.ybonfire.pipeline.common.protocol.response.RouteSelectResponse;
+import org.ybonfire.pipeline.common.protocol.response.nameserver.RouteSelectResponse;
 
 import java.util.Optional;
 
@@ -26,7 +29,7 @@ public enum RequestEnum {
     /**
      * 上报路由请求
      */
-    UPLOAD_ROUTE(200, RouteUploadRequest.class, DefaultResponse.class),
+    UPLOAD_ROUTE(200, DefaultResponse.RouteUploadRequest.class, DefaultResponse.class),
     /**
      * 查询全部路由请求
      */
@@ -36,13 +39,29 @@ public enum RequestEnum {
      */
     SELECT_ROUTE(202, RouteSelectByTopicRequest.class, RouteSelectResponse.class),
     /**
+     * 批量查询指定路由请求
+     */
+    SELECT_ROUTES(203, RouteSelectByTopicsRequest.class, RouteSelectResponse.class),
+    /**
      * 加入集群请求
      */
-    JOIN_CLUSTER(203, JoinClusterRequest.class, DefaultResponse.class),
+    JOIN_CLUSTER(204, JoinClusterRequest.class, DefaultResponse.class),
     /**
      * 路由复制请求
      */
-    ROUTE_REPLICA(204, null, DefaultResponse.class);
+    ROUTE_REPLICA(205, null, DefaultResponse.class),
+    /**
+     * Topic创建请求
+     */
+    CREATE_TOPIC(300, CreateTopicRequest.class, DefaultResponse.class),
+    /**
+     * Topic更新请求
+     */
+    UPDATE_TOPIC(301, UpdateTopicRequest.class, DefaultResponse.class),
+    /**
+     * Topic删除请求
+     */
+    DELETE_TOPIC(302, DeleteTopicRequest.class, DefaultResponse.class);
 
     private final int code;
     private final Class<? extends IRemotingRequestBody> requestClazz;

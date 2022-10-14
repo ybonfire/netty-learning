@@ -1,7 +1,6 @@
 package org.ybonfire.pipeline.producer.config;
 
 import lombok.Data;
-import lombok.Getter;
 
 /**
  * 生产者配置
