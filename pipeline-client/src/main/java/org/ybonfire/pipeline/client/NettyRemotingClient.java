@@ -1,10 +1,14 @@
 package org.ybonfire.pipeline.client;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.client.dispatcher.impl.NettyRemotingResponseDispatcher;
 import org.ybonfire.pipeline.client.exception.InvokeExecuteException;
@@ -22,19 +26,15 @@ import org.ybonfire.pipeline.client.thread.ClientChannelEventHandleThreadService
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
 import org.ybonfire.pipeline.common.codec.request.RequestEncoder;
 import org.ybonfire.pipeline.common.codec.response.ResponseDecoder;
+import org.ybonfire.pipeline.common.exception.LifeCycleException;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.util.AssertUtils;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Netty远程调用客户端
@@ -238,14 +238,14 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
     }
 
     /**
-     * @description: 判断客户端是否启动
+     * @description: 确保服务已就绪
      * @param:
      * @return:
      * @date: 2022/05/19 11:49:04
      */
     private void acquireOK() {
         if (!this.isStarted.get()) {
-            throw new UnsupportedOperationException();
+            throw new LifeCycleException();
         }
     }
 

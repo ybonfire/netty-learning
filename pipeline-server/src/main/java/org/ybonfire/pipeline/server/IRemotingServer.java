@@ -2,7 +2,7 @@ package org.ybonfire.pipeline.server;
 
 import java.util.concurrent.ExecutorService;
 
-import org.ybonfire.pipeline.common.remoting.IRemotingService;
+import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 import org.ybonfire.pipeline.server.processor.IRemotingRequestProcessor;
 
 /**
@@ -11,7 +11,7 @@ import org.ybonfire.pipeline.server.processor.IRemotingRequestProcessor;
  * @author Bo.Yuan5
  * @date 2022-05-18 10:14
  */
-public interface IRemotingServer<Processor extends IRemotingRequestProcessor> extends IRemotingService {
+public interface IRemotingServer<Processor extends IRemotingRequestProcessor> extends ILifeCycle {
 
     /**
      * @description: 注册请求处理器

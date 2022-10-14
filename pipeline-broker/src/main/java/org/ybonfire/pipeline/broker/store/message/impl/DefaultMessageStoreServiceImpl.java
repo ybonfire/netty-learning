@@ -1,31 +1,33 @@
 package org.ybonfire.pipeline.broker.store.message.impl;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
+import org.ybonfire.pipeline.broker.exception.FileLoadException;
 import org.ybonfire.pipeline.broker.exception.MessageFileCreateException;
 import org.ybonfire.pipeline.broker.model.MessageFlushPolicyEnum;
 import org.ybonfire.pipeline.broker.model.MessageFlushResultEnum;
 import org.ybonfire.pipeline.broker.model.MessageLogFlushJob;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
-import org.ybonfire.pipeline.broker.store.index.impl.MessageIndexConstructServiceImpl;
+import org.ybonfire.pipeline.broker.store.index.impl.DefaultIndexStoreServiceImpl;
 import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
 import org.ybonfire.pipeline.broker.store.message.MessageLog;
-import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
+import org.ybonfire.pipeline.common.exception.LifeCycleException;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.thread.service.AbstractThreadService;
 import org.ybonfire.pipeline.server.exception.MessageFlushTimeoutException;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 消息存储服务
@@ -36,8 +38,7 @@ import org.ybonfire.pipeline.server.exception.MessageFlushTimeoutException;
 public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final DefaultMessageStoreServiceImpl INSTANCE = new DefaultMessageStoreServiceImpl();
-    private final Map<String/*topic*/, Map<Integer/*partitionId*/, MessageLog>> messageLogTable =
-        new ConcurrentHashMap<>();
+    private final Map<String/*topic*/, Map<Integer/*partitionId*/, MessageLog>> messageLogTable = new HashMap<>();
     private final MessageLogFlushThreadService messageLogFlushThreadService = new MessageLogFlushThreadService();
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
@@ -52,8 +53,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     @Override
     public void start() {
         if (isStarted.compareAndSet(false, true)) {
-            reload();
-            messageLogFlushThreadService.start();
+            onStart();
         }
     }
 
@@ -77,8 +77,21 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     @Override
     public void shutdown() {
         if (isStarted.compareAndSet(false, true)) {
-            messageLogFlushThreadService.stop();
+            onShutdown();
         }
+    }
+
+    /**
+     * 尝试根据Topic和PartitionId查询对应的MessageLog
+     *
+     * @param topic 主题
+     * @param partitionId 分区id
+     * @return {@link Optional}<{@link MappedFile}>
+     */
+    @Override
+    public Optional<MessageLog> tryToFindMessageLogByTopicPartition(final String topic, final int partitionId) {
+        return Optional.ofNullable(messageLogTable.get(topic))
+            .map(messageLogGroupByTopic -> messageLogGroupByTopic.get(partitionId));
     }
 
     /**
@@ -116,7 +129,25 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      */
     @Override
     public synchronized void reload() {
-        // TODO
+        try {
+            final List<MessageLog> messageLogs = MessageLog.reloadAll();
+            for (final MessageLog messageLog : messageLogs) {
+                final String topic = messageLog.getTopic();
+                final int partitionId = messageLog.getPartitionId();
+
+                if (!messageLogTable.containsKey(topic)) {
+                    messageLogTable.put(topic, new HashMap<>());
+                }
+
+                final Map<Integer, MessageLog> messageLogGroupByTopic = messageLogTable.get(topic);
+                if (!messageLogGroupByTopic.containsKey(partitionId)) {
+                    messageLogGroupByTopic.put(partitionId, messageLog);
+                    DefaultIndexStoreServiceImpl.getInstance().register(topic, partitionId);
+                }
+            }
+        } catch (IOException ex) {
+            throw new FileLoadException();
+        }
     }
 
     /**
@@ -126,13 +157,16 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      * @param partitionId 分区id
      */
     private synchronized void ensureMessageLogCreateOK(final String topic, final int partitionId) {
-        final Map<Integer, MessageLog> messageLogGroupByTopic =
-            messageLogTable.computeIfAbsent(topic, k -> new ConcurrentHashMap<>());
+        if (!messageLogTable.containsKey(topic)) {
+            messageLogTable.put(topic, new HashMap<>());
+        }
+
+        final Map<Integer, MessageLog> messageLogGroupByTopic = messageLogTable.get(topic);
         if (!messageLogGroupByTopic.containsKey(partitionId)) {
             try {
                 final MessageLog messageLog = MessageLog.create(topic, partitionId);
                 messageLogGroupByTopic.put(partitionId, messageLog);
-                MessageIndexConstructServiceImpl.getInstance().register(messageLog);
+                DefaultIndexStoreServiceImpl.getInstance().register(topic, partitionId);
             } catch (IOException e) {
                 throw new MessageFileCreateException();
             }
@@ -195,27 +229,50 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     }
 
     /**
-     * 根据Topic和PartitionId查询对应的MessageLog
-     *
-     * @param topic 主题
-     * @param partitionId 分区id
-     * @return {@link Optional}<{@link MappedFile}>
-     */
-    private Optional<MessageLog> tryToFindMessageLogByTopicPartition(final String topic, final int partitionId) {
-        return Optional.ofNullable(messageLogTable.get(topic))
-            .map(messageLogGroupByTopic -> messageLogGroupByTopic.get(partitionId));
-    }
-
-    /**
-     * @description: 判断服务是否启动
+     * @description: 确保服务已就绪
      * @param:
      * @return:
      * @date: 2022/05/19 11:49:04
      */
     private void acquireOK() {
         if (!this.isStarted.get()) {
-            throw new UnsupportedOperationException();
+            throw new LifeCycleException();
         }
+    }
+
+    /**
+     * @description: 服务启动流程
+     * @param:
+     * @return:
+     * @date: 2022/10/13 10:10:00
+     */
+    private void onStart() {
+        reload();
+        messageLogFlushThreadService.start();
+        DefaultIndexStoreServiceImpl.getInstance().start();
+    }
+
+    /**
+     * @description: 服务关闭流程
+     * @param:
+     * @return:
+     * @date: 2022/10/13 10:09:17
+     */
+    private void onShutdown() {
+        DefaultIndexStoreServiceImpl.getInstance().shutdown();
+        messageLogFlushThreadService.stop();
+        flushAll();
+    }
+
+    /**
+     * @description: 对所有消息文件进行刷盘
+     * @param:
+     * @return:
+     * @date: 2022/10/13 10:11:47
+     */
+    private void flushAll() {
+        messageLogTable.values().parallelStream().flatMap(logsGroupByTopic -> logsGroupByTopic.values().stream())
+            .forEach(MessageLog::flush);
     }
 
     /**
