@@ -1,21 +1,5 @@
 package org.ybonfire.pipeline.server;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.ybonfire.pipeline.common.codec.request.RequestDecoder;
-import org.ybonfire.pipeline.common.codec.response.ResponseEncoder;
-import org.ybonfire.pipeline.common.logger.IInternalLogger;
-import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
-import org.ybonfire.pipeline.server.config.NettyServerConfig;
-import org.ybonfire.pipeline.server.dispatcher.impl.NettyRemotingRequestDispatcher;
-import org.ybonfire.pipeline.server.exception.StartupException;
-import org.ybonfire.pipeline.server.handler.NettyServerHandler;
-import org.ybonfire.pipeline.server.processor.IRemotingRequestProcessor;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -27,6 +11,21 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import org.ybonfire.pipeline.common.codec.request.RequestDecoder;
+import org.ybonfire.pipeline.common.codec.response.ResponseEncoder;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.server.config.NettyServerConfig;
+import org.ybonfire.pipeline.server.dispatcher.impl.NettyRemotingRequestDispatcher;
+import org.ybonfire.pipeline.server.exception.StartupException;
+import org.ybonfire.pipeline.server.handler.NettyServerHandler;
+import org.ybonfire.pipeline.server.processor.IRemotingRequestProcessor;
+
+import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Netty远程调用服务器
@@ -36,7 +35,7 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
  */
 public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRequestProcessor> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final ServerBootstrap serverBootstrap = new ServerBootstrap();
     private final NettyServerConfig config;
     private final EventLoopGroup parentGroup;
@@ -88,7 +87,7 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
      */
     @Override
     public void start() {
-        if (started.compareAndSet(false, true)) {
+        if (isStarted.compareAndSet(false, true)) {
             // register processor
             registerRequestProcessor();
 
@@ -120,6 +119,17 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
     }
 
     /**
+     * @description: 判断是否启动
+     * @param:
+     * @return:
+     * @date: 2022/10/12 10:23:37
+     */
+    @Override
+    public boolean isStarted() {
+        return isStarted.get();
+    }
+
+    /**
      * @description: 关闭服务端
      * @param:
      * @return:
@@ -127,7 +137,7 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
      */
     @Override
     public void shutdown() {
-        if (started.compareAndSet(true, false)) {
+        if (isStarted.compareAndSet(true, false)) {
             // parentGroup
             if (this.parentGroup != null) {
                 this.parentGroup.shutdownGracefully();

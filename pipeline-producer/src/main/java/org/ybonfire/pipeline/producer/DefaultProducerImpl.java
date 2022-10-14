@@ -1,10 +1,8 @@
 package org.ybonfire.pipeline.producer;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
+import org.ybonfire.pipeline.common.exception.LifeCycleException;
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.producer.callback.IMessageProduceCallback;
@@ -20,6 +18,9 @@ import org.ybonfire.pipeline.producer.partition.impl.RoundRobinPartitionSelector
 import org.ybonfire.pipeline.producer.route.RouteManager;
 import org.ybonfire.pipeline.producer.sender.ISender;
 import org.ybonfire.pipeline.producer.sender.impl.SenderImpl;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 消息生产者
@@ -192,14 +193,14 @@ public final class DefaultProducerImpl implements IProducer {
     }
 
     /**
-     * @description: 判断生产者是否启动
+     * @description: 确保服务已就绪
      * @param:
      * @return:
      * @date: 2022/07/14 14:37:04
      */
     private void acquireOK() {
         if (!isStarted.get()) {
-            throw new UnsupportedOperationException();
+            throw new LifeCycleException();
         }
     }
 }

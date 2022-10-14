@@ -1,19 +1,22 @@
 package org.ybonfire.pipeline.broker.store.message;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
+import lombok.EqualsAndHashCode;
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
+import org.ybonfire.pipeline.broker.exception.FileLoadException;
 import org.ybonfire.pipeline.broker.model.SelectMappedFileDataResult;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
 import org.ybonfire.pipeline.common.constant.CommonConstant;
 import org.ybonfire.pipeline.common.model.Message;
 
-import lombok.EqualsAndHashCode;
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 消息文件
@@ -33,7 +36,20 @@ public final class MessageLog {
     private MessageLog(final String topic, final int partitionId) throws IOException {
         this.topic = topic;
         this.partitionId = partitionId;
-        this.file = MappedFile.create(buildMessageLogFilename(this.topic, this.partitionId), MESSAGE_LOG_SIZE);
+        this.file =
+            MappedFile.create(buildMessageLogFilenameByTopicPartition(this.topic, this.partitionId), MESSAGE_LOG_SIZE);
+    }
+
+    private MessageLog(final File file) throws IOException {
+        final String[] parseResult = parseTopicPartitionByFilename(file.getName());
+        final String topic = parseResult[0];
+        final int partitionId = Integer.parseInt(parseResult[1]);
+
+        final MappedFile mappedFile = MappedFile.from(file);
+
+        this.topic = topic;
+        this.partitionId = partitionId;
+        this.file = mappedFile;
     }
 
     /**
@@ -167,14 +183,35 @@ public final class MessageLog {
     }
 
     /**
-     * 构建消息文件路径
+     * 根据Topic、Partition构建消息文件路径
      *
      * @param topic 主题
      * @param partitionId 分区id
      * @return {@link String}
      */
-    private String buildMessageLogFilename(final String topic, final int partitionId) {
+    private String buildMessageLogFilenameByTopicPartition(final String topic, final int partitionId) {
         return MESSAGE_STORE_BASE_PATH + File.separator + topic + File.separator + partitionId;
+    }
+
+    /**
+     * 根据消息文件路径解析Topic、Partition
+     *
+     * @param filename 文件名
+     * @return {@link String}
+     */
+    private String[] parseTopicPartitionByFilename(final String filename) {
+        String[] result;
+        if (filename.startsWith(MESSAGE_STORE_BASE_PATH)) {
+            result = filename.substring((MESSAGE_STORE_BASE_PATH + File.separator).length()).split(File.separator);
+        } else {
+            result = filename.split(File.separator);
+        }
+
+        if (result.length == 2) {
+            return result;
+        }
+
+        throw new FileLoadException();
     }
 
     /**
@@ -187,5 +224,30 @@ public final class MessageLog {
      */
     public static MessageLog create(final String topic, final int partitionId) throws IOException {
         return new MessageLog(topic, partitionId);
+    }
+
+    /**
+     * 加载所有日志文件
+     *
+     * @return {@link List}<{@link MessageLog}>
+     * @throws IOException ioexception
+     */
+    public static List<MessageLog> reloadAll() throws IOException {
+        final File messageLogDir = new File(MESSAGE_STORE_BASE_PATH);
+        if (messageLogDir.isDirectory()) {
+            final File[] messageLogFiles = messageLogDir.listFiles();
+            if (messageLogFiles != null) {
+                final List<MessageLog> logs = new ArrayList<>(messageLogFiles.length);
+                for (final File messageLogFile : messageLogFiles) {
+                    final MessageLog log = new MessageLog(messageLogFile);
+                    // TODO set Positions
+                    logs.add(log);
+                }
+
+                return logs;
+            }
+        }
+
+        return Collections.emptyList();
     }
 }

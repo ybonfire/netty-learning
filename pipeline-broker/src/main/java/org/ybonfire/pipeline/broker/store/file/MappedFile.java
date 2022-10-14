@@ -1,5 +1,12 @@
 package org.ybonfire.pipeline.broker.store.file;
 
+import lombok.EqualsAndHashCode;
+import org.ybonfire.pipeline.broker.exception.MessageFileNotEnoughSpaceException;
+import org.ybonfire.pipeline.broker.model.SelectMappedFileDataResult;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.server.exception.MessageWriteFailedException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -11,14 +18,6 @@ import java.nio.channels.FileChannel;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.ybonfire.pipeline.broker.exception.MessageFileNotEnoughSpaceException;
-import org.ybonfire.pipeline.broker.model.SelectMappedFileDataResult;
-import org.ybonfire.pipeline.common.logger.IInternalLogger;
-import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
-import org.ybonfire.pipeline.server.exception.MessageWriteFailedException;
-
-import lombok.EqualsAndHashCode;
-
 /**
  * 文件内存映射操作对象
  *
@@ -29,14 +28,14 @@ import lombok.EqualsAndHashCode;
 public final class MappedFile {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final String filename;
-    private final int fileSize;
+    private final long fileSize;
     private final File file;
     private FileChannel channel;
     private final MappedByteBuffer mappedByteBuffer;
-    private final AtomicInteger lastWritePosition = new AtomicInteger(0);
+    private final AtomicInteger lastWritePosition = new AtomicInteger(8);
     private final AtomicInteger lastFlushPosition = new AtomicInteger(0);
 
-    private MappedFile(final String filename, final int fileSize) throws IOException {
+    private MappedFile(final String filename, final long fileSize) throws IOException {
         this.filename = filename;
         this.fileSize = fileSize;
         this.file = new File(this.filename);
@@ -53,6 +52,10 @@ public final class MappedFile {
                 channel.close();
             }
         }
+    }
+
+    private MappedFile(final File file) throws IOException {
+        this(file.getName(), file.length());
     }
 
     /**
@@ -185,7 +188,22 @@ public final class MappedFile {
      * @return {@link MappedFile}
      * @throws IOException ioexception
      */
-    public static MappedFile create(final String filename, final int fileSize) throws IOException {
+    public static MappedFile create(final String filename, final long fileSize) throws IOException {
         return new MappedFile(filename, fileSize);
+    }
+
+    /**
+     * 根据文件创建MappedFile
+     *
+     * @param file 文件
+     * @return {@link MappedFile}
+     * @throws IOException ioexception
+     */
+    public static MappedFile from(final File file) throws IOException {
+        if (file == null) {
+            return null;
+        }
+
+        return new MappedFile(file);
     }
 }

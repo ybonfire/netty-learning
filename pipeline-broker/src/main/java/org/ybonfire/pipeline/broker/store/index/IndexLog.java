@@ -1,17 +1,21 @@
 package org.ybonfire.pipeline.broker.store.index;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
+import org.ybonfire.pipeline.broker.exception.FileLoadException;
 import org.ybonfire.pipeline.broker.model.Index;
 import org.ybonfire.pipeline.broker.model.SelectMappedFileDataResult;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
 import org.ybonfire.pipeline.broker.store.message.MessageLog;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 索引文件
@@ -35,6 +39,18 @@ public final class IndexLog {
         this.topic = topic;
         this.partitionId = partitionId;
         this.file = MappedFile.create(buildIndexLogFilename(this.topic, this.partitionId), INDEX_LOG_SIZE);
+    }
+
+    private IndexLog(final File file) throws IOException {
+        final String[] parseResult = parseTopicPartitionByFilename(file.getName());
+        final String topic = parseResult[0];
+        final int partitionId = Integer.parseInt(parseResult[1]);
+
+        final MappedFile mappedFile = MappedFile.from(file);
+
+        this.topic = topic;
+        this.partitionId = partitionId;
+        this.file = mappedFile;
     }
 
     /**
@@ -101,6 +117,14 @@ public final class IndexLog {
         }
     }
 
+    public String getTopic() {
+        return topic;
+    }
+
+    public int getPartitionId() {
+        return partitionId;
+    }
+
     /**
      * 将索引数据二进制化
      *
@@ -131,6 +155,27 @@ public final class IndexLog {
     }
 
     /**
+     * 根据消息文件路径解析Topic、Partition
+     *
+     * @param filename 文件名
+     * @return {@link String}
+     */
+    private static String[] parseTopicPartitionByFilename(final String filename) {
+        String[] result;
+        if (filename.startsWith(INDEX_STORE_BASE_PATH)) {
+            result = filename.substring((INDEX_STORE_BASE_PATH + File.separator).length()).split(File.separator);
+        } else {
+            result = filename.split(File.separator);
+        }
+
+        if (result.length == 2) {
+            return result;
+        }
+
+        throw new FileLoadException();
+    }
+
+    /**
      * 创建IndexLog
      *
      * @param topic 主题
@@ -140,5 +185,30 @@ public final class IndexLog {
      */
     public static IndexLog create(final String topic, final int partitionId) throws IOException {
         return new IndexLog(topic, partitionId);
+    }
+
+    /**
+     * 加载所有索引文件
+     *
+     * @return {@link List}<{@link IndexLog}>
+     * @throws IOException ioexception
+     */
+    public static List<IndexLog> reloadAll() throws IOException {
+        final File indexLogDir = new File(INDEX_STORE_BASE_PATH);
+        if (indexLogDir.isDirectory()) {
+            final File[] indexLogFiles = indexLogDir.listFiles();
+            if (indexLogFiles != null) {
+                final List<IndexLog> indices = new ArrayList<>(indexLogFiles.length);
+                for (final File indexLogFile : indexLogFiles) {
+                    final IndexLog index = new IndexLog(indexLogFile);
+                    // TODO set Positions
+                    indices.add(index);
+                }
+
+                return indices;
+            }
+        }
+
+        return Collections.emptyList();
     }
 }
