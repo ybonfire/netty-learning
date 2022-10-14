@@ -4,22 +4,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.ybonfire.pipeline.broker.client.INameServerClient;
-import org.ybonfire.pipeline.broker.model.PartitionConfig;
-import org.ybonfire.pipeline.broker.model.TopicConfig;
+import org.ybonfire.pipeline.broker.model.topic.PartitionConfig;
+import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.model.PartitionConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
-import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingRequest;
-import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.common.util.RemotingUtil;
 
@@ -55,16 +52,16 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      *
      * @param address broker地址
      * @param topicConfigs 主题配置
-     * @return {@link RouteUploadRequest}
+     * @return {@link DefaultResponse.RouteUploadRequest}
      */
-    private IRemotingRequest<RouteUploadRequest> buildRouteUploadRequest(final String address,
+    private IRemotingRequest<DefaultResponse.RouteUploadRequest> buildRouteUploadRequest(final String address,
         final List<TopicConfig> topicConfigs) {
         final List<TopicConfigRemotingEntity> topics =
             CollectionUtils.isEmpty(topicConfigs) ? Collections.emptyList() : topicConfigs.stream()
                 .map(this::buildTopicConfigRemotingEntity).filter(Objects::nonNull).collect(Collectors.toList());
 
         return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.UPLOAD_ROUTE.getCode(),
-            RouteUploadRequest.builder().address(address).topics(topics).build());
+            DefaultResponse.RouteUploadRequest.builder().address(address).topics(topics).build());
     }
 
     /**

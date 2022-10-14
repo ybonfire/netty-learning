@@ -1,13 +1,13 @@
-package org.ybonfire.pipeline.common.protocol.response;
-
-import java.util.Map;
+package org.ybonfire.pipeline.common.protocol.response.nameserver;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
 import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
+import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
+
+import java.util.Map;
 
 /**
  * 路由查询接口响应体

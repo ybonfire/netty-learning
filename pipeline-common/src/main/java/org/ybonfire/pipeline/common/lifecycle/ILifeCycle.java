@@ -17,7 +17,7 @@ public interface ILifeCycle {
     void start();
 
     /**
-     * @description: 判断是否启动
+     * @description: 判断服务是否启动
      * @param:
      * @return:
      * @date: 2022/10/12 10:23:37

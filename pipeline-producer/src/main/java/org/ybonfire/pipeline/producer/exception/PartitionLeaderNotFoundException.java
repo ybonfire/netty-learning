@@ -1,12 +1,14 @@
 package org.ybonfire.pipeline.producer.exception;
 
+import org.ybonfire.pipeline.client.exception.ClientException;
+
 /**
  * 未知分区Leader异常
  *
  * @author yuanbo
  * @date 2022/09/09 18:10:48
  */
-public class PartitionLeaderNotFoundException extends ProducerException {
+public class PartitionLeaderNotFoundException extends ClientException {
 
     public PartitionLeaderNotFoundException() {}
 

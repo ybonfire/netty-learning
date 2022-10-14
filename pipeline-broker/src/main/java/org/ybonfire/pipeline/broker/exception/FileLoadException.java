@@ -10,6 +10,7 @@ import org.ybonfire.pipeline.server.exception.ServerException;
  * @date 2022-10-13 11:07
  */
 public final class FileLoadException extends ServerException {
+    private static final ResponseEnum RESPONSE_TYPE = ResponseEnum.INTERNAL_SERVER_ERROR;
 
     public FileLoadException() {}
 
@@ -27,6 +28,6 @@ public final class FileLoadException extends ServerException {
 
     @Override
     public ResponseEnum getResponseType() {
-        return null;
+        return RESPONSE_TYPE;
     }
 }

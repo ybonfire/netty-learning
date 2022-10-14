@@ -1,13 +1,12 @@
 package org.ybonfire.pipeline.producer.metadata;
 
+import org.ybonfire.pipeline.common.model.TopicInfo;
+import org.ybonfire.pipeline.producer.client.impl.NameServerClientImpl;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.producer.client.impl.NameServerClientImpl;
-import org.ybonfire.pipeline.producer.constant.ProducerConstant;
 
 /**
  * 元数据服务

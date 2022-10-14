@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.common.protocol.request;
+package org.ybonfire.pipeline.common.protocol.request.broker;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,15 +7,16 @@ import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 
 /**
- * 查询指定路由请求体
+ * 更新主题请求
  *
- * @author Bo.Yuan5
- * @date 2022-07-13 15:30
+ * @author yuanbo
+ * @date 2022-10-14 17:35
  */
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class RouteSelectByTopicRequest implements IRemotingRequestBody {
+public class UpdateTopicRequest implements IRemotingRequestBody {
     private String topic;
+    private Integer partitionNums;
 }

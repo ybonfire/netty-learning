@@ -1,12 +1,14 @@
 package org.ybonfire.pipeline.producer.exception;
 
+import org.ybonfire.pipeline.client.exception.ClientException;
+
 /**
  * 未知路由异常
  *
  * @author yuanbo
  * @date 2022-09-20 18:48
  */
-public class RouteNotFoundException extends ProducerException {
+public class RouteNotFoundException extends ClientException {
 
     public RouteNotFoundException() {}
 

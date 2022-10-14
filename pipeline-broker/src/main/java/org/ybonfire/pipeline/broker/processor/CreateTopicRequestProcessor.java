@@ -2,26 +2,29 @@ package org.ybonfire.pipeline.broker.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.broker.converter.CreateTopicRequestConverter;
-import org.ybonfire.pipeline.broker.model.TopicConfig;
-import org.ybonfire.pipeline.broker.topic.TopicConfigManager;
+import org.ybonfire.pipeline.broker.exception.BrokerNotPartitionLeaderException;
+import org.ybonfire.pipeline.broker.model.RoleEnum;
+import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
+import org.ybonfire.pipeline.broker.role.RoleManager;
+import org.ybonfire.pipeline.broker.topic.impl.DefaultTopicConfigManager;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.protocol.request.CreateTopicRequest;
+import org.ybonfire.pipeline.common.protocol.request.broker.CreateTopicRequest;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
 /**
- * 管理请求处理器
+ * CreateTopicRequestProcessor请求处理器
  *
  * @author yuanbo
  * @date 2022-09-21 14:50
  */
-public class CreateTopicRequestProcessor extends AbstractNettyRemotingRequestProcessor<CreateTopicRequest> {
+public final class CreateTopicRequestProcessor extends AbstractNettyRemotingRequestProcessor<CreateTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final CreateTopicRequestProcessor INSTANCE = new CreateTopicRequestProcessor();
 
@@ -40,6 +43,11 @@ public class CreateTopicRequestProcessor extends AbstractNettyRemotingRequestPro
             throw new RequestTypeNotSupportException();
         }
 
+        // 校验Broker能否处理该请求
+        if (!isEnableProcess()) {
+            throw new BrokerNotPartitionLeaderException();
+        }
+
         // 校验请求参数
         if (!isRequestValid(request.getBody())) {
             throw new BadRequestException();
@@ -56,7 +64,7 @@ public class CreateTopicRequestProcessor extends AbstractNettyRemotingRequestPro
     protected RemotingResponse fire(final IRemotingRequest<CreateTopicRequest> request) {
         final CreateTopicRequest body = request.getBody();
         final TopicConfig topicConfig = CreateTopicRequestConverter.getInstance().convert(body);
-        TopicConfigManager.getInstance().updateTopicConfig(topicConfig);
+        DefaultTopicConfigManager.getInstance().addTopicConfig(topicConfig);
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(), null);
     }
 
@@ -79,7 +87,17 @@ public class CreateTopicRequestProcessor extends AbstractNettyRemotingRequestPro
      */
     private boolean isCreateTopicRequest(final IRemotingRequest<CreateTopicRequest> request) {
         final Integer code = request.getCode();
-        return code != null && RequestEnum.code(code) == RequestEnum.UPLOAD_ROUTE;
+        return code != null && RequestEnum.code(code) == RequestEnum.CREATE_TOPIC;
+    }
+
+    /**
+     * @description: 判断Broker是否能处理该请求
+     * @param:
+     * @return:
+     * @date: 2022/09/05 16:06:47
+     */
+    private boolean isEnableProcess() {
+        return RoleManager.getInstance().get() == RoleEnum.LEADER;
     }
 
     /**

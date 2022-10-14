@@ -2,7 +2,7 @@ package org.ybonfire.pipeline.broker.store.file;
 
 import lombok.EqualsAndHashCode;
 import org.ybonfire.pipeline.broker.exception.MessageFileNotEnoughSpaceException;
-import org.ybonfire.pipeline.broker.model.SelectMappedFileDataResult;
+import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.server.exception.MessageWriteFailedException;

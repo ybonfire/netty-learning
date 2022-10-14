@@ -1,5 +1,10 @@
 package org.ybonfire.pipeline.nameserver.route.impl;
 
+import org.ybonfire.pipeline.common.model.TopicInfo;
+import org.ybonfire.pipeline.nameserver.model.TopicInfoWrapper;
+import org.ybonfire.pipeline.nameserver.route.IRouteRepository;
+
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -8,10 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-
-import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.nameserver.model.TopicInfoWrapper;
-import org.ybonfire.pipeline.nameserver.route.IRouteRepository;
 
 /**
  * 内存路由信息存储器
@@ -81,6 +82,24 @@ public final class InMemoryRouteRepository implements IRouteRepository {
 
         try {
             return Optional.ofNullable(topicInfoTable.get(topicName)).map(TopicInfoWrapper::getTopicInfo);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * @description: 批量查询指定名称的Topic信息
+     * @param:
+     * @return:
+     * @date: 2022/10/14 17:00:20
+     */
+    @Override
+    public Map<String, TopicInfo> selectByTopicNames(final String... topicNames) {
+        lock.readLock().lock();
+
+        try {
+            return Arrays.stream(topicNames)
+                .collect(Collectors.toMap(topic -> topic, topic -> topicInfoTable.get(topic).getTopicInfo()));
         } finally {
             lock.readLock().unlock();
         }

@@ -2,7 +2,7 @@ package org.ybonfire.pipeline.broker.constant;
 
 import java.io.File;
 
-import org.ybonfire.pipeline.broker.model.MessageFlushPolicyEnum;
+import org.ybonfire.pipeline.broker.model.store.MessageFlushPolicyEnum;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

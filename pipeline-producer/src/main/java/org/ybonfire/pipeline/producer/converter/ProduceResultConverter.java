@@ -2,7 +2,7 @@ package org.ybonfire.pipeline.producer.converter;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.ybonfire.pipeline.common.converter.IConverter;
-import org.ybonfire.pipeline.common.protocol.response.MessageProduceResponse;
+import org.ybonfire.pipeline.common.protocol.response.broker.MessageProduceResponse;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 
 /**

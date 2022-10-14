@@ -9,7 +9,7 @@ import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
  * @author Bo.Yuan5
  * @date 2022-09-02 15:37
  */
-public class ConsumeMessageRequestProcessor {
+public final class ConsumeMessageRequestProcessor {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final ConsumeMessageRequestProcessor INSTANCE = new ConsumeMessageRequestProcessor();
 

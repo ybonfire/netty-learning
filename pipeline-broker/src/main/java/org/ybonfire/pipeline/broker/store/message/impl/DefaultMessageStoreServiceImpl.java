@@ -1,15 +1,17 @@
 package org.ybonfire.pipeline.broker.store.message.impl;
 
+import org.ybonfire.pipeline.broker.callback.impl.DefaultTopicConfigUpdateCallback;
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.exception.FileLoadException;
 import org.ybonfire.pipeline.broker.exception.MessageFileCreateException;
-import org.ybonfire.pipeline.broker.model.MessageFlushPolicyEnum;
-import org.ybonfire.pipeline.broker.model.MessageFlushResultEnum;
-import org.ybonfire.pipeline.broker.model.MessageLogFlushJob;
+import org.ybonfire.pipeline.broker.model.store.MessageFlushPolicyEnum;
+import org.ybonfire.pipeline.broker.model.store.MessageFlushResultEnum;
+import org.ybonfire.pipeline.broker.model.store.MessageLogFlushJob;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
 import org.ybonfire.pipeline.broker.store.index.impl.DefaultIndexStoreServiceImpl;
 import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
 import org.ybonfire.pipeline.broker.store.message.MessageLog;
+import org.ybonfire.pipeline.broker.topic.impl.DefaultTopicConfigManager;
 import org.ybonfire.pipeline.common.exception.LifeCycleException;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
@@ -122,7 +124,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     }
 
     /**
-     * @description: 重新加载文件数据
+     * @description: 重新加载消息文件数据
      * @param:
      * @return:
      * @date: 2022/10/11 16:38:05
@@ -247,8 +249,13 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      * @date: 2022/10/13 10:10:00
      */
     private void onStart() {
+        // 加载消息文件数据
         reload();
+        // 注册Topic配置变更回调
+        DefaultTopicConfigManager.getInstance().register(DefaultTopicConfigUpdateCallback.getInstance());
+        // 开启刷盘线程
         messageLogFlushThreadService.start();
+        // 开启索引构建服务
         DefaultIndexStoreServiceImpl.getInstance().start();
     }
 
@@ -259,8 +266,13 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      * @date: 2022/10/13 10:09:17
      */
     private void onShutdown() {
+        // 关闭索引构建服务
         DefaultIndexStoreServiceImpl.getInstance().shutdown();
+        // 关闭刷盘线程
         messageLogFlushThreadService.stop();
+        // 取消注册Topic配置变更回调
+        DefaultTopicConfigManager.getInstance().deregister(DefaultTopicConfigUpdateCallback.getInstance());
+        // 消息文件数据刷盘
         flushAll();
     }
 

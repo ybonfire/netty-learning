@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.common.protocol.request;
+package org.ybonfire.pipeline.common.protocol.request.broker;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

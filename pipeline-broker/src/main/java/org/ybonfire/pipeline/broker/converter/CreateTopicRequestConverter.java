@@ -1,14 +1,14 @@
 package org.ybonfire.pipeline.broker.converter;
 
+import org.ybonfire.pipeline.broker.model.topic.PartitionConfig;
+import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
+import org.ybonfire.pipeline.common.converter.IConverter;
+import org.ybonfire.pipeline.common.protocol.request.broker.CreateTopicRequest;
+
 import java.util.ArrayList;
 
-import org.ybonfire.pipeline.broker.model.PartitionConfig;
-import org.ybonfire.pipeline.broker.model.TopicConfig;
-import org.ybonfire.pipeline.common.converter.IConverter;
-import org.ybonfire.pipeline.common.protocol.request.CreateTopicRequest;
-
 /**
- * CreateTopicRequest转换器
+ * CreateTopicRequest类型转换器
  *
  * @author yuanbo
  * @date 2022-09-23 10:20

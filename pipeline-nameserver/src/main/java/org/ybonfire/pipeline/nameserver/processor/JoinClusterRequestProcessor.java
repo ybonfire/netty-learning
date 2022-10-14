@@ -6,7 +6,7 @@ import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.protocol.request.JoinClusterRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.JoinClusterRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
 import org.ybonfire.pipeline.nameserver.replica.peer.PeerManager;
@@ -14,7 +14,7 @@ import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
 /**
- * 加入集群请求处理器
+ * JoinClusterRequest请求处理器
  *
  * @author Bo.Yuan5
  * @date 2022-08-05 18:14

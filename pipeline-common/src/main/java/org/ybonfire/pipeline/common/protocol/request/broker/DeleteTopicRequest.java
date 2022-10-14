@@ -1,4 +1,4 @@
-package org.ybonfire.pipeline.common.protocol.request;
+package org.ybonfire.pipeline.common.protocol.request.broker;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,16 +7,15 @@ import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 
 /**
- * 加入集群请求
+ * 删除主题请求
  *
- * @author Bo.Yuan5
- * @date 2022-08-05 18:07
+ * @author yuanbo
+ * @date 2022-10-14 17:50
  */
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class JoinClusterRequest implements IRemotingRequestBody {
-    private String nodeId;
-    private String address;
+public class DeleteTopicRequest implements IRemotingRequestBody {
+    private String topic;
 }

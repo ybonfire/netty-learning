@@ -1,17 +1,18 @@
 package org.ybonfire.pipeline.broker.register.impl;
 
+import org.ybonfire.pipeline.broker.client.impl.NameServerClientImpl;
+import org.ybonfire.pipeline.broker.constant.BrokerConstant;
+import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
+import org.ybonfire.pipeline.broker.register.IBrokerRegisterService;
+import org.ybonfire.pipeline.broker.topic.impl.DefaultTopicConfigManager;
+import org.ybonfire.pipeline.broker.util.ThreadPoolUtil;
+import org.ybonfire.pipeline.common.exception.LifeCycleException;
+import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
+
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.ybonfire.pipeline.broker.client.impl.NameServerClientImpl;
-import org.ybonfire.pipeline.broker.constant.BrokerConstant;
-import org.ybonfire.pipeline.broker.model.TopicConfig;
-import org.ybonfire.pipeline.broker.register.IBrokerRegisterService;
-import org.ybonfire.pipeline.broker.topic.TopicConfigManager;
-import org.ybonfire.pipeline.broker.util.ThreadPoolUtil;
-import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 
 /**
  * Broker注册服务
@@ -20,8 +21,11 @@ import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
  * @date 2022-09-23 14:44
  */
 public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
-    private final AtomicBoolean started = new AtomicBoolean(false);
+    private static final IBrokerRegisterService INSTANCE = new BrokerRegisterServiceImpl();
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final NameServerClientImpl nameServerClient = new NameServerClientImpl();
+
+    private BrokerRegisterServiceImpl() {}
 
     /**
      * @description: 启动Broker注册服务
@@ -31,9 +35,20 @@ public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
      */
     @Override
     public void start() {
-        if (started.compareAndSet(false, true)) {
+        if (isStarted.compareAndSet(false, true)) {
             nameServerClient.start();
         }
+    }
+
+    /**
+     * @description: 判断Broker注册服务是否启动
+     * @param:
+     * @return:
+     * @date: 2022/10/12 10:23:37
+     */
+    @Override
+    public boolean isStarted() {
+        return isStarted.get();
     }
 
     /**
@@ -44,7 +59,7 @@ public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
      */
     @Override
     public void shutdown() {
-        if (started.compareAndSet(true, false)) {
+        if (isStarted.compareAndSet(true, false)) {
             nameServerClient.shutdown();
         }
     }
@@ -54,10 +69,13 @@ public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
      */
     @Override
     public void registerToNameServer(final List<String> nameServerAddressList) {
+        // 确保服务已启动
+        acquireOK();
+
         final CountDownLatch latch = new CountDownLatch(nameServerAddressList.size());
 
         // 向Broker上报TopicConfig信息
-        final List<TopicConfig> topicConfigs = TopicConfigManager.getInstance().selectAllTopicConfigs();
+        final List<TopicConfig> topicConfigs = DefaultTopicConfigManager.getInstance().selectAllTopicConfigs();
         for (final String nameServerAddress : nameServerAddressList) {
             final BrokerRegisterThreadTask task = new BrokerRegisterThreadTask(latch, topicConfigs, nameServerAddress);
             ThreadPoolUtil.getRegisterBrokerTaskExecutorService().submit(task);
@@ -69,6 +87,27 @@ public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
             Thread.currentThread().interrupt();
             // ignore
         }
+    }
+
+    /**
+     * @description: 确保服务已就绪
+     * @param:
+     * @return:
+     * @date: 2022/05/19 11:49:04
+     */
+    private void acquireOK() {
+        if (!this.isStarted.get()) {
+            throw new LifeCycleException();
+        }
+    }
+
+    /**
+     * 获取BrokerRegisterServiceImpl实例
+     *
+     * @return {@link IBrokerRegisterService}
+     */
+    public static IBrokerRegisterService getInstance() {
+        return INSTANCE;
     }
 
     /**

@@ -1,7 +1,5 @@
 package org.ybonfire.pipeline.nameserver.processor;
 
-import java.util.List;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
@@ -12,7 +10,6 @@ import org.ybonfire.pipeline.common.model.PartitionConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.protocol.request.RouteUploadRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.replica.publish.RouteUploadRequestPublisher;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
@@ -21,13 +18,15 @@ import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
 
+import java.util.List;
+
 /**
- * UploadRoute请求处理器
+ * RouteUploadRequest请求处理器
  *
  * @author Bo.Yuan5
  * @date 2022-07-01 17:35
  */
-public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequestProcessor<RouteUploadRequest> {
+public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequestProcessor<DefaultResponse.RouteUploadRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final UploadRouteRequestProcessor INSTANCE = new UploadRouteRequestProcessor();
     private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
@@ -44,7 +43,7 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
      * @date: 2022/07/09 15:10:48
      */
     @Override
-    protected void check(final IRemotingRequest<RouteUploadRequest> request) {
+    protected void check(final IRemotingRequest<DefaultResponse.RouteUploadRequest> request) {
         if (!isRouteUploadRequest(request)) {
             throw new RequestTypeNotSupportException();
         }
@@ -61,7 +60,7 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
      * @date: 2022/07/01 18:22:39
      */
     @Override
-    protected RemotingResponse fire(final IRemotingRequest<RouteUploadRequest> request) {
+    protected RemotingResponse fire(final IRemotingRequest<DefaultResponse.RouteUploadRequest> request) {
         routeManageService.uploadByBroker(request.getBody());
         uploadRouteRequestPublisher.publish(request);
 
@@ -76,7 +75,7 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
      * @date: 2022/07/09 15:20:21
      */
     @Override
-    protected void onComplete(IRemotingRequest<RouteUploadRequest> request) {
+    protected void onComplete(IRemotingRequest<DefaultResponse.RouteUploadRequest> request) {
 
     }
 
@@ -86,7 +85,7 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
      * @param request 请求
      * @return boolean
      */
-    private boolean isRouteUploadRequest(final IRemotingRequest<RouteUploadRequest> request) {
+    private boolean isRouteUploadRequest(final IRemotingRequest<DefaultResponse.RouteUploadRequest> request) {
         final Integer code = request.getCode();
         return code != null && RequestEnum.code(code) == RequestEnum.UPLOAD_ROUTE;
     }
@@ -97,7 +96,7 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
      * @return:
      * @date: 2022/09/14 15:22:31
      */
-    private boolean isRequestValid(final RouteUploadRequest request) {
+    private boolean isRequestValid(final DefaultResponse.RouteUploadRequest request) {
         // check request
         if (request == null) {
             LOGGER.error("upload route request is null");
