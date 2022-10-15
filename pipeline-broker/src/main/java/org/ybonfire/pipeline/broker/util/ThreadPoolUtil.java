@@ -42,17 +42,17 @@ public final class ThreadPoolUtil {
         buildThreadPool(CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MIN, CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MAX,
             CONSUME_MESSAGE_TASK_QUEUE_CAPACITY, CONSUME_MESSAGE_PROCESSOR_THREAD_FACTORY);
 
-    // Register Broker Task Thread Pool
-    private static final int REGISTER_BROKER_TASK_THREAD_NUMS_MIN =
+    // Broker Heartbeat Task Thread Pool
+    private static final int BROKER_HEARTBEAT_TASK_THREAD_NUMS_MIN =
         Math.max(4, Runtime.getRuntime().availableProcessors());
-    private static final int REGISTER_BROKER_TASK_THREAD_NUMS_MAX =
+    private static final int BROKER_HEARTBEAT_TASK_THREAD_NUMS_MAX =
         Math.max(4, Runtime.getRuntime().availableProcessors());
-    private static final int REGISTER_BROKER_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final ThreadFactory REGISTER_BROKER_TASK_THREAD_FACTORY =
-        new ThreadWorkerFactory("register_broker_task_", true);
-    private static final ExecutorService REGISTER_BROKER_TASK_EXECUTOR_SERVICE =
-        buildThreadPool(REGISTER_BROKER_TASK_THREAD_NUMS_MIN, REGISTER_BROKER_TASK_THREAD_NUMS_MAX,
-            REGISTER_BROKER_TASK_QUEUE_CAPACITY, REGISTER_BROKER_TASK_THREAD_FACTORY);
+    private static final int BROKER_HEARTBEAT_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final ThreadFactory BROKER_HEARTBEAT_TASK_THREAD_FACTORY =
+        new ThreadWorkerFactory("broker_heartbeat_task_", true);
+    private static final ExecutorService BROKER_HEARTBEAT_TASK_EXECUTOR_SERVICE =
+        buildThreadPool(BROKER_HEARTBEAT_TASK_THREAD_NUMS_MIN, BROKER_HEARTBEAT_TASK_THREAD_NUMS_MAX,
+            BROKER_HEARTBEAT_TASK_QUEUE_CAPACITY, BROKER_HEARTBEAT_TASK_THREAD_FACTORY);
 
     // Broker Admin Thread Pool
     private static final int BROKER_ADMIN_TASK_THREAD_NUMS_MIN =
@@ -74,8 +74,8 @@ public final class ThreadPoolUtil {
         return CONSUME_MESSAGE_PROCESSOR_EXECUTOR_SERVICE;
     }
 
-    public static ExecutorService getRegisterBrokerTaskExecutorService() {
-        return REGISTER_BROKER_TASK_EXECUTOR_SERVICE;
+    public static ExecutorService getBrokerHeartbeatTaskExecutorService() {
+        return BROKER_HEARTBEAT_TASK_EXECUTOR_SERVICE;
     }
 
     public static ExecutorService getBrokerAdminExecutorService() {
