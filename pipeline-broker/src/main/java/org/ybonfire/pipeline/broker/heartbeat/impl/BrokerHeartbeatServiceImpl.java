@@ -83,7 +83,7 @@ public class BrokerHeartbeatServiceImpl implements IBrokerHeartbeatService {
         // 向Nameserver上报心跳
         for (final String nameServerAddress : nameServerAddressList) {
             final HeartbeatThreadTask task = new HeartbeatThreadTask(heartbeatData, nameServerAddress, latch);
-            ThreadPoolUtil.getRegisterBrokerTaskExecutorService().submit(task);
+            ThreadPoolUtil.getBrokerHeartbeatTaskExecutorService().submit(task);
         }
 
         try {
