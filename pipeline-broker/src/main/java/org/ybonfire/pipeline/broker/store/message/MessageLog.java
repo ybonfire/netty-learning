@@ -3,6 +3,7 @@ package org.ybonfire.pipeline.broker.store.message;
 import lombok.EqualsAndHashCode;
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.exception.FileLoadException;
+import org.ybonfire.pipeline.broker.exception.MessageFileIllegalStateException;
 import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
 import org.ybonfire.pipeline.common.constant.CommonConstant;
@@ -32,12 +33,14 @@ public final class MessageLog {
     private final String topic;
     private final int partitionId;
     private final MappedFile file;
+    private volatile MessageLogState state;
 
     private MessageLog(final String topic, final int partitionId) throws IOException {
         this.topic = topic;
         this.partitionId = partitionId;
         this.file =
             MappedFile.create(buildMessageLogFilenameByTopicPartition(this.topic, this.partitionId), MESSAGE_LOG_SIZE);
+        this.state = MessageLogState.WORKING;
     }
 
     private MessageLog(final File file) throws IOException {
@@ -50,6 +53,7 @@ public final class MessageLog {
         this.topic = topic;
         this.partitionId = partitionId;
         this.file = mappedFile;
+        this.state = MessageLogState.WORKING;
     }
 
     /**
@@ -61,6 +65,7 @@ public final class MessageLog {
         if (message == null) {
             return;
         }
+        acquireOK();
 
         lock.lock();
         try {
@@ -78,6 +83,8 @@ public final class MessageLog {
      * @return boolean
      */
     public boolean flush() {
+        acquireOK();
+
         lock.lock();
         try {
             return file.flush();
@@ -93,6 +100,8 @@ public final class MessageLog {
      * @return {@link Optional}<{@link SelectMappedFileDataResult}>
      */
     public Optional<SelectMappedFileDataResult> get(final int position) {
+        acquireOK();
+
         lock.lock();
         try {
             return file.get(position);
@@ -109,9 +118,28 @@ public final class MessageLog {
      * @return {@link Optional}<{@link SelectMappedFileDataResult}>
      */
     public Optional<SelectMappedFileDataResult> get(final int position, final int size) {
+        acquireOK();
+
         lock.lock();
         try {
             return file.get(position, size);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * 摧毁消息文件
+     */
+    public void destroy() {
+        acquireOK();
+
+        lock.lock();
+        try {
+            file.destroy();
+            state = MessageLogState.DESTROYED;
+        } catch (IOException ex) {
+            // ignored
         } finally {
             lock.unlock();
         }
@@ -215,6 +243,18 @@ public final class MessageLog {
     }
 
     /**
+     * @description: 确保MessageLog状态为Working
+     * @param:
+     * @return:
+     * @date: 2022/10/15 10:44:57
+     */
+    private void acquireOK() {
+        if (this.state != MessageLogState.WORKING) {
+            throw new MessageFileIllegalStateException();
+        }
+    }
+
+    /**
      * 创建MessageLog
      *
      * @param topic 主题
@@ -249,5 +289,21 @@ public final class MessageLog {
         }
 
         return Collections.emptyList();
+    }
+
+    /**
+     * @description: MessageLog状态
+     * @author: yuanbo
+     * @date: 2022/10/15
+     */
+    private enum MessageLogState {
+        /**
+         * 工作中
+         */
+        WORKING,
+        /**
+         * 已销毁
+         */
+        DESTROYED
     }
 }

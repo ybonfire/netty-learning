@@ -16,7 +16,6 @@ import io.netty.channel.ChannelHandlerContext;
  * @date 2022-05-18 17:41
  */
 public class DefaultResponseCallback implements IResponseCallback {
-    private final ServerExceptionHandler exceptionHandler = new ServerExceptionHandler();
 
     /**
      * @description: 成功响应回调流程
@@ -37,6 +36,7 @@ public class DefaultResponseCallback implements IResponseCallback {
      */
     @Override
     public void onException(final IRemotingRequest request, final Exception ex, final ChannelHandlerContext context) {
+        final ServerExceptionHandler exceptionHandler = ServerExceptionHandler.getInstance();
         final RemotingResponse<?> response = ex instanceof ServerException
             ? exceptionHandler.handle(request, (ServerException)ex) : exceptionHandler.handle(request, ex);
         context.writeAndFlush(response);

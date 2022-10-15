@@ -3,6 +3,7 @@ package org.ybonfire.pipeline.nameserver.thread;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.client.INameServerClient;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
@@ -24,7 +25,7 @@ public final class RouteUploadRequestPublishThreadTaskBuilder {
      * @return:
      * @date: 2022/08/12 22:31:51
      */
-    public static RouteUploadRequestPublishThreadTask build(final IRemotingRequest<DefaultResponse.RouteUploadRequest> request,
+    public static RouteUploadRequestPublishThreadTask build(final IRemotingRequest<BrokerHeartbeatRequest> request,
         final PeerNode peer, final CountDownLatch latch, final INameServerClient nameServerClient) {
         return new RouteUploadRequestPublishThreadTask(request, peer, latch, nameServerClient);
     }

@@ -1,11 +1,10 @@
 package org.ybonfire.pipeline.broker.constant;
 
-import java.io.File;
-
-import org.ybonfire.pipeline.broker.model.store.MessageFlushPolicyEnum;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.ybonfire.pipeline.broker.model.store.MessageFlushPolicyEnum;
+
+import java.io.File;
 
 /**
  * Broker常量类
@@ -21,14 +20,14 @@ public final class BrokerConstant {
     public static final long TOPIC_CONFIG_LOCK_WAITING_MILLIS = 3 * 1000L;
 
     /**
-     * Broker注册响应等待时长
+     * Broker心跳响应超时时长
      */
-    public static final long BROKER_REGISTER_WAITING_MILLIS = 15 * 1000L;
+    public static final long HEARTBEAT_TIMEOUT_MILLIS = 10 * 1000L;
 
     /**
-     * Broker注册超时响应时长
+     * Broker心跳响应等待时长
      */
-    public static final long BROKER_REGISTER_TO_NAMESERVER_TIMEOUT_MILLIS = 10 * 1000L;
+    public static final long HEARTBEAT_WAITING_MILLIS = 15 * 1000L;
 
     /**
      * Broker存储基本路径

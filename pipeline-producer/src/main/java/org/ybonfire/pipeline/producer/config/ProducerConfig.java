@@ -17,6 +17,4 @@ public final class ProducerConfig {
     private final long requestTimeoutMillis = 15 * 1000L;
 
     private ProducerConfig() {}
-
-
 }

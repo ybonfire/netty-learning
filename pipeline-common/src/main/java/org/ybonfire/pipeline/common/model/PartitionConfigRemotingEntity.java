@@ -15,5 +15,4 @@ import lombok.NoArgsConstructor;
 @Data
 public class PartitionConfigRemotingEntity {
     private Integer partitionId;
-    private String address;
 }

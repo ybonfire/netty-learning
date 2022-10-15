@@ -14,7 +14,7 @@ import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
+import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * @author Bo.Yuan5
  * @date 2022-07-11 14:04
  */
-public final class SelectAllRouteRequestProcessor extends AbstractNettyRemotingRequestProcessor<RouteSelectAllRequest> {
+public final class SelectAllRouteRequestProcessor extends AbstractRemotingRequestProcessor<RouteSelectAllRequest> {
     private static final SelectAllRouteRequestProcessor INSTANCE = new SelectAllRouteRequestProcessor();
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
@@ -55,7 +55,7 @@ public final class SelectAllRouteRequestProcessor extends AbstractNettyRemotingR
      */
     @Override
     protected RemotingResponse fire(final IRemotingRequest<RouteSelectAllRequest> request) {
-        final List<TopicInfo> result = this.routeManageService.selectAll();
+        final List<TopicInfo> result = this.routeManageService.selectAllTopicInfo();
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
             convert(result));
     }

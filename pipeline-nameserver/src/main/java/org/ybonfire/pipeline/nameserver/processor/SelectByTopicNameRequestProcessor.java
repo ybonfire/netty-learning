@@ -14,7 +14,7 @@ import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
+import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -26,7 +26,7 @@ import java.util.Optional;
  * @date 2022-07-11 14:04
  */
 public final class SelectByTopicNameRequestProcessor
-    extends AbstractNettyRemotingRequestProcessor<RouteSelectByTopicRequest> {
+    extends AbstractRemotingRequestProcessor<RouteSelectByTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final SelectByTopicNameRequestProcessor INSTANCE = new SelectByTopicNameRequestProcessor();
     private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
@@ -55,7 +55,7 @@ public final class SelectByTopicNameRequestProcessor
     @Override
     protected RemotingResponse fire(final IRemotingRequest<RouteSelectByTopicRequest> request) {
         final Optional<TopicInfo> topicInfoOptional =
-            routeManageService.selectByTopicName(request.getBody().getTopic());
+            routeManageService.selectTopicInfoByName(request.getBody().getTopic());
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
             convert(topicInfoOptional));
     }

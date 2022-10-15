@@ -6,7 +6,7 @@ import org.ybonfire.pipeline.broker.processor.CreateTopicRequestProcessor;
 import org.ybonfire.pipeline.broker.processor.DeleteTopicRequestProcessor;
 import org.ybonfire.pipeline.broker.processor.ProduceMessageRequestProcessor;
 import org.ybonfire.pipeline.broker.processor.UpdateTopicRequestProcessor;
-import org.ybonfire.pipeline.broker.register.impl.BrokerRegisterServiceImpl;
+import org.ybonfire.pipeline.broker.heartbeat.impl.BrokerHeartbeatServiceImpl;
 import org.ybonfire.pipeline.broker.role.RoleManager;
 import org.ybonfire.pipeline.broker.topic.impl.DefaultTopicConfigManager;
 import org.ybonfire.pipeline.broker.util.ThreadPoolUtil;
@@ -80,7 +80,7 @@ public final class Broker extends NettyRemotingServer {
      * 注册Broker至NameServer
      */
     private void registerToNameServer() {
-        BrokerRegisterServiceImpl.getInstance().registerToNameServer(this.nameServerAddressList);
+        BrokerHeartbeatServiceImpl.getInstance().heartbeat(this.nameServerAddressList);
     }
 
     /**
@@ -141,7 +141,7 @@ public final class Broker extends NettyRemotingServer {
         DefaultTopicConfigManager.getInstance().start();
 
         // 启动Broker注册服务
-        BrokerRegisterServiceImpl.getInstance().start();
+        BrokerHeartbeatServiceImpl.getInstance().start();
 
         // 启动注册定时任务,定时向NameServer上报信息
         if (RoleManager.getInstance().get() == RoleEnum.LEADER) {
@@ -165,7 +165,7 @@ public final class Broker extends NettyRemotingServer {
         }
 
         // 关闭Broker注册服务
-        BrokerRegisterServiceImpl.getInstance().shutdown();
+        BrokerHeartbeatServiceImpl.getInstance().shutdown();
 
         // 关闭Topic配置管理服务
         DefaultTopicConfigManager.getInstance().shutdown();

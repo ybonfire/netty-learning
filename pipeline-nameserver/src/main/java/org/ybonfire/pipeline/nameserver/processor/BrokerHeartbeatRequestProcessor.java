@@ -1,5 +1,7 @@
 package org.ybonfire.pipeline.nameserver.processor;
 
+import java.util.List;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
@@ -10,29 +12,28 @@ import org.ybonfire.pipeline.common.model.PartitionConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.replica.publish.RouteUploadRequestPublisher;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
 import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
-
-import java.util.List;
+import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 /**
- * RouteUploadRequest请求处理器
+ * BrokerHeartbeatRequest请求处理器
  *
  * @author Bo.Yuan5
  * @date 2022-07-01 17:35
  */
-public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequestProcessor<DefaultResponse.RouteUploadRequest> {
+public final class BrokerHeartbeatRequestProcessor extends AbstractRemotingRequestProcessor<BrokerHeartbeatRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private static final UploadRouteRequestProcessor INSTANCE = new UploadRouteRequestProcessor();
+    private static final BrokerHeartbeatRequestProcessor INSTANCE = new BrokerHeartbeatRequestProcessor();
     private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
     private final RouteUploadRequestPublisher uploadRouteRequestPublisher = RouteUploadRequestPublisher.getInstance();
 
-    private UploadRouteRequestProcessor() {
+    private BrokerHeartbeatRequestProcessor() {
         this.uploadRouteRequestPublisher.start();
     }
 
@@ -43,8 +44,8 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
      * @date: 2022/07/09 15:10:48
      */
     @Override
-    protected void check(final IRemotingRequest<DefaultResponse.RouteUploadRequest> request) {
-        if (!isRouteUploadRequest(request)) {
+    protected void check(final IRemotingRequest<BrokerHeartbeatRequest> request) {
+        if (!isBrokerHeartbeatRequest(request)) {
             throw new RequestTypeNotSupportException();
         }
 
@@ -60,7 +61,7 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
      * @date: 2022/07/01 18:22:39
      */
     @Override
-    protected RemotingResponse fire(final IRemotingRequest<DefaultResponse.RouteUploadRequest> request) {
+    protected RemotingResponse fire(final IRemotingRequest<BrokerHeartbeatRequest> request) {
         routeManageService.uploadByBroker(request.getBody());
         uploadRouteRequestPublisher.publish(request);
 
@@ -75,19 +76,19 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
      * @date: 2022/07/09 15:20:21
      */
     @Override
-    protected void onComplete(IRemotingRequest<DefaultResponse.RouteUploadRequest> request) {
+    protected void onComplete(IRemotingRequest<BrokerHeartbeatRequest> request) {
 
     }
 
     /**
-     * 判断是否为RouteUploadRequest
+     * 判断是否为BrokerHeartbeatRequest
      *
      * @param request 请求
      * @return boolean
      */
-    private boolean isRouteUploadRequest(final IRemotingRequest<DefaultResponse.RouteUploadRequest> request) {
+    private boolean isBrokerHeartbeatRequest(final IRemotingRequest<BrokerHeartbeatRequest> request) {
         final Integer code = request.getCode();
-        return code != null && RequestEnum.code(code) == RequestEnum.UPLOAD_ROUTE;
+        return code != null && RequestEnum.code(code) == RequestEnum.BROKER_HEARTBEAT;
     }
 
     /**
@@ -96,30 +97,30 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
      * @return:
      * @date: 2022/09/14 15:22:31
      */
-    private boolean isRequestValid(final DefaultResponse.RouteUploadRequest request) {
+    private boolean isRequestValid(final BrokerHeartbeatRequest request) {
         // check request
         if (request == null) {
-            LOGGER.error("upload route request is null");
+            LOGGER.error("broker heartbeat request is null");
             return false;
         }
 
         // check address
         if (StringUtils.isBlank(request.getAddress())) {
-            LOGGER.error("upload route request[address] is invalid");
+            LOGGER.error("broker heartbeat request[address] is invalid");
             return false;
         }
 
-        // check topic
-        if (CollectionUtils.isNotEmpty(request.getTopics())) {
-            final List<TopicConfigRemotingEntity> topics = request.getTopics();
+        // check topic config
+        if (CollectionUtils.isNotEmpty(request.getTopicConfigs())) {
+            final List<TopicConfigRemotingEntity> topics = request.getTopicConfigs();
             for (final TopicConfigRemotingEntity topic : topics) {
                 if (topic == null) {
-                    LOGGER.error("upload route request[topics] is null");
+                    LOGGER.error("broker heartbeat request[topicConfigs] is null");
                     return false;
                 }
 
                 if (StringUtils.isBlank(topic.getTopic())) {
-                    LOGGER.error("upload route request[topics[topic]] is blank");
+                    LOGGER.error("broker heartbeat request[topicConfigs[topic]] is blank");
                     return false;
                 }
 
@@ -128,17 +129,13 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
                 if (CollectionUtils.isNotEmpty(topic.getPartitions())) {
                     for (final PartitionConfigRemotingEntity partition : partitions) {
                         if (partition == null) {
-                            LOGGER.error("upload route request[topics[partitions[partition]]] is null");
+                            LOGGER.error("broker heartbeat request[topicConfigs[partitions[partition]]] is null");
                             return false;
                         }
 
                         if (partition.getPartitionId() == null) {
-                            LOGGER.error("upload route request[topics[partitions[partition[partitionId]]]] is null");
-                            return false;
-                        }
-
-                        if (StringUtils.isBlank(partition.getAddress())) {
-                            LOGGER.error("upload route request[topics[partitions[partition[address]]]] is blank");
+                            LOGGER.error(
+                                "broker heartbeat request[topicConfigs[partitions[partition[partitionId]]]] is null");
                             return false;
                         }
                     }
@@ -150,11 +147,11 @@ public final class UploadRouteRequestProcessor extends AbstractNettyRemotingRequ
     }
 
     /**
-     * 获取UploadRouteRequestProcessor实例
+     * 获取BrokerHeartbeatRequestProcessor实例
      *
-     * @return {@link UploadRouteRequestProcessor}
+     * @return {@link BrokerHeartbeatRequestProcessor}
      */
-    public static UploadRouteRequestProcessor getInstance() {
+    public static BrokerHeartbeatRequestProcessor getInstance() {
         return INSTANCE;
     }
 }

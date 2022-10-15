@@ -1,13 +1,8 @@
 package org.ybonfire.pipeline.broker.client.impl;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.ybonfire.pipeline.broker.client.INameServerClient;
+import org.ybonfire.pipeline.broker.model.heartbeat.HeartbeatData;
 import org.ybonfire.pipeline.broker.model.topic.PartitionConfig;
 import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
@@ -17,8 +12,13 @@ import org.ybonfire.pipeline.common.model.PartitionConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingRequest;
-import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
-import org.ybonfire.pipeline.common.util.RemotingUtil;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Nameserver远程调用客户端接口
@@ -41,27 +41,42 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
     @Override
     protected void registerResponseProcessors() {}
 
+    /**
+     * 上报心跳
+     *
+     * @param heartbeatData 心跳数据
+     * @param address 地址
+     * @param timeoutMillis 超时,米尔斯
+     */
     @Override
-    public void uploadTopicConfig(final List<TopicConfig> topicConfigs, final String address,
-        final long timeoutMillis) {
-        super.request(address, buildRouteUploadRequest(RemotingUtil.getLocalAddress(), topicConfigs), timeoutMillis);
+    public void heartbeat(final HeartbeatData heartbeatData, final String address, final long timeoutMillis) {
+        final IRemotingRequest<BrokerHeartbeatRequest> request = buildBrokerHeartbeatRequest(heartbeatData);
+        super.request(request, address, timeoutMillis);
     }
 
     /**
-     * 构建RouteUploadRequest
-     *
-     * @param address broker地址
-     * @param topicConfigs 主题配置
-     * @return {@link DefaultResponse.RouteUploadRequest}
+     * @description: 构造BrokerHeartbeatRequest
+     * @param:
+     * @return:
+     * @date: 2022/10/15 14:37:40
      */
-    private IRemotingRequest<DefaultResponse.RouteUploadRequest> buildRouteUploadRequest(final String address,
-        final List<TopicConfig> topicConfigs) {
-        final List<TopicConfigRemotingEntity> topics =
-            CollectionUtils.isEmpty(topicConfigs) ? Collections.emptyList() : topicConfigs.stream()
-                .map(this::buildTopicConfigRemotingEntity).filter(Objects::nonNull).collect(Collectors.toList());
+    private IRemotingRequest<BrokerHeartbeatRequest> buildBrokerHeartbeatRequest(final HeartbeatData heartbeatData) {
+        if (heartbeatData == null) {
+            return null;
+        }
 
-        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.UPLOAD_ROUTE.getCode(),
-            DefaultResponse.RouteUploadRequest.builder().address(address).topics(topics).build());
+        final String brokerId = heartbeatData.getBrokerId();
+        final Integer role = heartbeatData.getRole().getCode();
+        final String address = heartbeatData.getAddress();
+        final List<TopicConfigRemotingEntity> topicConfigs =
+            CollectionUtils.emptyIfNull(heartbeatData.getTopicConfigs()).stream()
+                .map(this::buildTopicConfigRemotingEntity).collect(Collectors.toList());
+        final Long timestamp = heartbeatData.getTimestamp();
+
+        final BrokerHeartbeatRequest body = BrokerHeartbeatRequest.builder().brokerId(brokerId).role(role)
+            .address(address).topicConfigs(topicConfigs).timestamp(timestamp).build();
+
+        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.BROKER_HEARTBEAT.getCode(), body);
     }
 
     /**
@@ -94,6 +109,6 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
             return null;
         }
 
-        return new PartitionConfigRemotingEntity(partitionConfig.getPartitionId(), RemotingUtil.getLocalAddress());
+        return new PartitionConfigRemotingEntity(partitionConfig.getPartitionId());
     }
 }

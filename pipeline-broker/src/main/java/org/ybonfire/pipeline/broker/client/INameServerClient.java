@@ -1,8 +1,6 @@
 package org.ybonfire.pipeline.broker.client;
 
-import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
-
-import java.util.List;
+import org.ybonfire.pipeline.broker.model.heartbeat.HeartbeatData;
 
 /**
  * Nameserver远程调用客户端接口
@@ -13,9 +11,12 @@ import java.util.List;
 public interface INameServerClient {
 
     /**
-     * 上报主题配置
+     * 上报心跳
      *
-     * @param topicConfigs 主题配置
+     * @param heartbeatData 心跳数据
+     * @param address 地址
+     * @param timeoutMillis 超时,米尔斯
      */
-    void uploadTopicConfig(final List<TopicConfig> topicConfigs, final String address, final long timeoutMillis);
+    void heartbeat(final HeartbeatData heartbeatData, final String address, final long timeoutMillis);
+
 }

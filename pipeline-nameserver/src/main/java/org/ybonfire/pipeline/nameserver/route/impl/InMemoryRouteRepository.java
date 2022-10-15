@@ -1,6 +1,9 @@
 package org.ybonfire.pipeline.nameserver.route.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.ybonfire.pipeline.common.model.TopicInfo;
+import org.ybonfire.pipeline.nameserver.model.BrokerData;
+import org.ybonfire.pipeline.nameserver.model.BrokerDataWrapper;
 import org.ybonfire.pipeline.nameserver.model.TopicInfoWrapper;
 import org.ybonfire.pipeline.nameserver.route.IRouteRepository;
 
@@ -10,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
@@ -22,10 +23,51 @@ import java.util.stream.Collectors;
  */
 public final class InMemoryRouteRepository implements IRouteRepository {
     private static final InMemoryRouteRepository INSTANCE = new InMemoryRouteRepository();
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<String/*topic*/, TopicInfoWrapper> topicInfoTable = new ConcurrentHashMap<>();
+    private final Map<String/*brokerId*/, BrokerDataWrapper> brokerDataTable = new ConcurrentHashMap<>();
 
     private InMemoryRouteRepository() {}
+
+    /**
+     * @description: 更新Broker信息
+     * @param:
+     * @return:
+     * @date: 2022/10/15 15:39:31
+     */
+    @Override
+    public void updateBrokerData(final BrokerData brokerData) {
+        if (brokerData == null) {
+            return;
+        }
+
+        brokerDataTable.put(brokerData.getBrokerId(), BrokerDataWrapper.wrap(brokerData));
+    }
+
+    /**
+     * @description: 查询指定BrokerId的Broker信息
+     * @param:
+     * @return:
+     * @date: 2022/10/15 15:53:26
+     */
+    @Override
+    public Optional<BrokerData> selectBrokerDataById(final String brokerId) {
+        if (brokerId == null) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(brokerDataTable.get(brokerId)).map(BrokerDataWrapper::getBrokerData);
+    }
+
+    /**
+     * @description: 查询所有Broker信息
+     * @param:
+     * @return:
+     * @date: 2022/10/15 15:53:15
+     */
+    @Override
+    public List<BrokerData> selectAllBrokerData() {
+        return brokerDataTable.values().stream().map(BrokerDataWrapper::getBrokerData).collect(Collectors.toList());
+    }
 
     /**
      * @description: 更新路由信息
@@ -35,21 +77,16 @@ public final class InMemoryRouteRepository implements IRouteRepository {
      */
     @Override
     public void updateRoute(final List<TopicInfo> topicInfos) {
-        if (topicInfos == null || topicInfos.isEmpty()) {
+        if (CollectionUtils.isEmpty(topicInfos)) {
             return;
         }
 
-        lock.writeLock().lock();
-        try {
-            for (final TopicInfo topicInfo : topicInfos) {
-                final String topicName = topicInfo.getTopic();
-                final TopicInfoWrapper prev = topicInfoTable.putIfAbsent(topicName, TopicInfoWrapper.wrap(topicInfo));
-                if (prev != null) {
-                    prev.merge(topicInfo);
-                }
+        for (final TopicInfo topicInfo : topicInfos) {
+            final String topicName = topicInfo.getTopic();
+            final TopicInfoWrapper prev = topicInfoTable.putIfAbsent(topicName, TopicInfoWrapper.wrap(topicInfo));
+            if (prev != null) {
+                prev.merge(topicInfo);
             }
-        } finally {
-            lock.writeLock().unlock();
         }
     }
 
@@ -60,14 +97,8 @@ public final class InMemoryRouteRepository implements IRouteRepository {
      * @date: 2022/07/10 09:45:54
      */
     @Override
-    public List<TopicInfo> selectAll() {
-        lock.readLock().lock();
-
-        try {
-            return topicInfoTable.values().stream().map(TopicInfoWrapper::getTopicInfo).collect(Collectors.toList());
-        } finally {
-            lock.readLock().unlock();
-        }
+    public List<TopicInfo> selectAllTopicInfo() {
+        return topicInfoTable.values().stream().map(TopicInfoWrapper::getTopicInfo).collect(Collectors.toList());
     }
 
     /**
@@ -77,14 +108,8 @@ public final class InMemoryRouteRepository implements IRouteRepository {
      * @date: 2022/07/10 09:46:28
      */
     @Override
-    public Optional<TopicInfo> selectByTopicName(final String topicName) {
-        lock.readLock().lock();
-
-        try {
-            return Optional.ofNullable(topicInfoTable.get(topicName)).map(TopicInfoWrapper::getTopicInfo);
-        } finally {
-            lock.readLock().unlock();
-        }
+    public Optional<TopicInfo> selectTopicInfoByName(final String topic) {
+        return Optional.ofNullable(topicInfoTable.get(topic)).map(TopicInfoWrapper::getTopicInfo);
     }
 
     /**
@@ -94,15 +119,9 @@ public final class InMemoryRouteRepository implements IRouteRepository {
      * @date: 2022/10/14 17:00:20
      */
     @Override
-    public Map<String, TopicInfo> selectByTopicNames(final String... topicNames) {
-        lock.readLock().lock();
-
-        try {
-            return Arrays.stream(topicNames)
-                .collect(Collectors.toMap(topic -> topic, topic -> topicInfoTable.get(topic).getTopicInfo()));
-        } finally {
-            lock.readLock().unlock();
-        }
+    public Map<String, TopicInfo> selectTopicInfoByNames(final String... topics) {
+        return Arrays.stream(topics)
+            .collect(Collectors.toMap(topic -> topic, topic -> topicInfoTable.get(topic).getTopicInfo()));
     }
 
     /**
@@ -113,17 +132,21 @@ public final class InMemoryRouteRepository implements IRouteRepository {
      */
     @Override
     public void removeExpireRoute(final long liveMillis) {
-        lock.writeLock().lock();
-        try {
-            final Iterator<Map.Entry<String, TopicInfoWrapper>> iter = topicInfoTable.entrySet().iterator();
-            while (iter.hasNext()) {
-                final TopicInfoWrapper topicInfoWrapper = iter.next().getValue();
-                if (isRouteExpired(topicInfoWrapper, liveMillis)) {
-                    iter.remove();
-                }
+        // 移除过期TopicInfo
+        final Iterator<Map.Entry<String, TopicInfoWrapper>> topicInfoIter = topicInfoTable.entrySet().iterator();
+        while (topicInfoIter.hasNext()) {
+            final TopicInfoWrapper topicInfoWrapper = topicInfoIter.next().getValue();
+            if (isRouteExpired(topicInfoWrapper, liveMillis)) {
+                topicInfoIter.remove();
             }
-        } finally {
-            lock.writeLock().unlock();
+        }
+        // 移除过期BrokerData
+        final Iterator<Map.Entry<String, BrokerDataWrapper>> brokerDataIter = brokerDataTable.entrySet().iterator();
+        while (brokerDataIter.hasNext()) {
+            final BrokerDataWrapper brokerDataWrapper = brokerDataIter.next().getValue();
+            if (isBrokerExpired(brokerDataWrapper, liveMillis)) {
+                brokerDataIter.remove();
+            }
         }
     }
 
@@ -135,6 +158,16 @@ public final class InMemoryRouteRepository implements IRouteRepository {
      */
     private boolean isRouteExpired(final TopicInfoWrapper topicInfo, final long liveMillis) {
         return topicInfo.getLastUploadTimestamp() + liveMillis < System.currentTimeMillis();
+    }
+
+    /**
+     * @description: 判断Broker信息是否过期
+     * @param:
+     * @return:
+     * @date: 2022/07/01 18:16:22
+     */
+    private boolean isBrokerExpired(final BrokerDataWrapper brokerData, final long liveMillis) {
+        return brokerData.getLastUploadTimestamp() + liveMillis < System.currentTimeMillis();
     }
 
     /**

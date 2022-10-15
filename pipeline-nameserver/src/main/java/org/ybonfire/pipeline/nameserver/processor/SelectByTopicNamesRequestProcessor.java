@@ -3,7 +3,7 @@ package org.ybonfire.pipeline.nameserver.processor;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectByTopicsRequest;
-import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
+import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 /**
  * RouteSelectByTopicsRequest请求处理器
@@ -12,7 +12,7 @@ import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProces
  * @date 2022-10-14 16:56
  */
 public final class SelectByTopicNamesRequestProcessor
-    extends AbstractNettyRemotingRequestProcessor<RouteSelectByTopicsRequest> {
+    extends AbstractRemotingRequestProcessor<RouteSelectByTopicsRequest> {
     private static final SelectByTopicNamesRequestProcessor INSTANCE = new SelectByTopicNamesRequestProcessor();
 
     private SelectByTopicNamesRequestProcessor() {}

@@ -1,8 +1,8 @@
 package org.ybonfire.pipeline.broker.role;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.ybonfire.pipeline.broker.model.RoleEnum;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Role管理器
@@ -23,6 +23,10 @@ public final class RoleManager {
      * @date: 2022/09/02 16:13:37
      */
     public void set(final RoleEnum role) {
+        if (role == null) {
+            throw new UnsupportedOperationException();
+        }
+
         ROLE_HOLDER.set(role);
     }
 

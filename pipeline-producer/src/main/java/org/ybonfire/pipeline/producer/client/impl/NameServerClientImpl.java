@@ -1,11 +1,5 @@
 package org.ybonfire.pipeline.producer.client.impl;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.MapUtils;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
@@ -22,6 +16,12 @@ import org.ybonfire.pipeline.producer.client.INameServerClient;
 import org.ybonfire.pipeline.producer.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.producer.processor.SelectAllRouteResponseProcessor;
 import org.ybonfire.pipeline.producer.processor.SelectRouteResponseProcessor;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Nameserver远程调用
@@ -61,13 +61,13 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      */
     @Override
     public List<TopicInfo> selectAllTopicInfo(final String address, final long timeoutMillis) {
-        final IRemotingResponse response = super.request(address, buildSelectAllTopicInfoRequest(), timeoutMillis);
+        final IRemotingResponse response = super.request(buildSelectAllTopicInfoRequest(), address, timeoutMillis);
         if (response.getStatus() == ResponseEnum.SUCCESS.getCode()) {
             final RouteSelectResponse data = (RouteSelectResponse)response.getBody();
-            return MapUtils.isEmpty(data.getResult()) ? Collections.emptyList() : data.getResult().values().stream()
+            return MapUtils.emptyIfNull(data.getResult()).values().stream()
                 .map(TopicInfoConverter.getInstance()::convert).collect(Collectors.toList());
-        } else { // 远程调用响应异常
-            // TODO
+        } else {
+            // TODO 远程调用响应异常
             return Collections.emptyList();
         }
     }
@@ -80,7 +80,7 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      */
     @Override
     public Optional<TopicInfo> selectTopicInfo(final String topic, final String address, final long timeoutMillis) {
-        final IRemotingResponse response = super.request(address, buildSelectTopicInfoRequest(topic), timeoutMillis);
+        final IRemotingResponse response = super.request(buildSelectTopicInfoRequest(topic), address, timeoutMillis);
         if (response.getStatus() == ResponseEnum.SUCCESS.getCode()) {
             final RouteSelectResponse data = (RouteSelectResponse)response.getBody();
             return MapUtils.isEmpty(data.getResult()) ? Optional.empty()

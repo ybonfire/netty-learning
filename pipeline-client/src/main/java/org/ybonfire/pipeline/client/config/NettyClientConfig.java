@@ -21,11 +21,7 @@ public final class NettyClientConfig {
     /**
      * 连接超时阈值
      */
-    private int connectTimeoutMillis = 3000;
-    /**
-     * 响应超时与之
-     */
-    private int readTimeoutMillis = 15000;
+    private final long connectTimeoutMillis = 3000L;
     /**
      * socket Send Buffer size;
      */

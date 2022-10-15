@@ -1,12 +1,12 @@
 package org.ybonfire.pipeline.nameserver.thread;
 
-import java.util.concurrent.CountDownLatch;
-
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
-import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
 import org.ybonfire.pipeline.nameserver.client.INameServerClient;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * RouteUploadRequestPublish异步任务
@@ -15,12 +15,12 @@ import org.ybonfire.pipeline.nameserver.model.PeerNode;
  * @date 2022-08-12 22:24
  */
 public final class RouteUploadRequestPublishThreadTask extends AbstractThreadTask {
-    private final IRemotingRequest<DefaultResponse.RouteUploadRequest> request;
+    private final IRemotingRequest<BrokerHeartbeatRequest> request;
     private final PeerNode peer;
     private final CountDownLatch latch;
     private final INameServerClient client;
 
-    RouteUploadRequestPublishThreadTask(final IRemotingRequest<DefaultResponse.RouteUploadRequest> request, final PeerNode peer,
+    RouteUploadRequestPublishThreadTask(final IRemotingRequest<BrokerHeartbeatRequest> request, final PeerNode peer,
         final CountDownLatch latch, final INameServerClient client) {
         this.request = request;
         this.peer = peer;
@@ -50,6 +50,6 @@ public final class RouteUploadRequestPublishThreadTask extends AbstractThreadTas
      * @date: 2022/08/12 22:34:17
      */
     private void doPublish() {
-        client.uploadRoute(request, peer.getAddress());
+        client.publish(request, peer.getAddress());
     }
 }

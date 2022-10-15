@@ -4,6 +4,7 @@ import org.ybonfire.pipeline.client.NettyRemotingClient;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.client.exception.InvokeInterruptedException;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
 import org.ybonfire.pipeline.nameserver.client.INameServerClient;
 
 /**
@@ -25,9 +26,9 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      * @date: 2022/08/13 11:00:26
      */
     @Override
-    public void uploadRoute(final IRemotingRequest request, final String address) {
+    public void publish(final IRemotingRequest<BrokerHeartbeatRequest> request, final String address) {
         try {
-            requestOneway(address, request);
+            requestOneway(request, address);
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new InvokeInterruptedException(e);
