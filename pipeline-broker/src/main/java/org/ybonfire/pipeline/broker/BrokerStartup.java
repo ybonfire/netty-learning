@@ -1,11 +1,11 @@
 package org.ybonfire.pipeline.broker;
 
+import org.ybonfire.pipeline.broker.config.BrokerConfig;
+import org.ybonfire.pipeline.broker.server.Broker;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.ybonfire.pipeline.broker.config.BrokerConfig;
-import org.ybonfire.pipeline.broker.server.Broker;
 
 /**
  * Broker启动器
@@ -23,7 +23,7 @@ public class BrokerStartup {
      */
     public static void main(String[] args) {
         final List<String> nameServerAddressList = Stream.of("0:0:0:0:0:0:0:0:14690").collect(Collectors.toList());
-        final Broker server = new Broker(new BrokerConfig(), nameServerAddressList);
+        final Broker server = new Broker(BrokerConfig.getInstance(), nameServerAddressList);
 
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
 

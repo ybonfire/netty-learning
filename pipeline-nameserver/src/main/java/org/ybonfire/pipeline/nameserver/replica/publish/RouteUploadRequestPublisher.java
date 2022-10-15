@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.client.impl.NameServerClientImpl;
 import org.ybonfire.pipeline.nameserver.constant.NameServerConstant;
@@ -61,7 +62,7 @@ public class RouteUploadRequestPublisher {
      * @return:
      * @date: 2022/08/12 22:09:10
      */
-    public void publish(final IRemotingRequest<DefaultResponse.RouteUploadRequest> request) {
+    public void publish(final IRemotingRequest<BrokerHeartbeatRequest> request) {
         final Set<PeerNode> peers = PeerManager.getInstance().getPeers();
 
         final int quorum = peers.size() / 2 + 1;
@@ -86,7 +87,7 @@ public class RouteUploadRequestPublisher {
      * @date: 2022/08/12 22:32:47
      */
     private RouteUploadRequestPublishThreadTask buildRouteUploadRequestPublishThreadTask(
-        final IRemotingRequest<DefaultResponse.RouteUploadRequest> request, final PeerNode peer, final CountDownLatch latch) {
+        final IRemotingRequest<BrokerHeartbeatRequest> request, final PeerNode peer, final CountDownLatch latch) {
         return RouteUploadRequestPublishThreadTaskBuilder.build(request, peer, latch, nameServerClient);
     }
 

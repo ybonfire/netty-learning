@@ -11,7 +11,7 @@ import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
 import org.ybonfire.pipeline.nameserver.replica.peer.PeerManager;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
+import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 /**
  * JoinClusterRequest请求处理器
@@ -19,7 +19,7 @@ import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProces
  * @author Bo.Yuan5
  * @date 2022-08-05 18:14
  */
-public final class JoinClusterRequestProcessor extends AbstractNettyRemotingRequestProcessor<JoinClusterRequest> {
+public final class JoinClusterRequestProcessor extends AbstractRemotingRequestProcessor<JoinClusterRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final JoinClusterRequestProcessor INSTANCE = new JoinClusterRequestProcessor();
 

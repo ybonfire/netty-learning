@@ -16,7 +16,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.broker.CreateTopicRequest;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
+import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 /**
  * CreateTopicRequestProcessor请求处理器
@@ -24,7 +24,7 @@ import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProces
  * @author yuanbo
  * @date 2022-09-21 14:50
  */
-public final class CreateTopicRequestProcessor extends AbstractNettyRemotingRequestProcessor<CreateTopicRequest> {
+public final class CreateTopicRequestProcessor extends AbstractRemotingRequestProcessor<CreateTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final CreateTopicRequestProcessor INSTANCE = new CreateTopicRequestProcessor();
 

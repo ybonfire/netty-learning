@@ -1,15 +1,15 @@
 package org.ybonfire.pipeline.nameserver.converter;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import org.ybonfire.pipeline.common.converter.IConverter;
 import org.ybonfire.pipeline.common.model.PartitionConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicInfo;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * TopicConfigRemotingEntityConverter
@@ -75,7 +75,7 @@ public class TopicInfoConverter implements IConverter<TopicInfo, TopicConfigRemo
             return null;
         }
 
-        return PartitionInfo.builder().partitionId(src.getPartitionId()).address(src.getAddress()).build();
+        return PartitionInfo.builder().partitionId(src.getPartitionId()).build();
     }
 
     /**
@@ -89,6 +89,6 @@ public class TopicInfoConverter implements IConverter<TopicInfo, TopicConfigRemo
             return null;
         }
 
-        return new PartitionConfigRemotingEntity(src.getPartitionId(), src.getAddress());
+        return new PartitionConfigRemotingEntity(src.getPartitionId());
     }
 }

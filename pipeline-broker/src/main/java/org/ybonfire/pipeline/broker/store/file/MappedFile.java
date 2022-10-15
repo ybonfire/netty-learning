@@ -138,6 +138,26 @@ public final class MappedFile {
     }
 
     /**
+     * @description: 销毁文件
+     * @param:
+     * @return:
+     * @date: 2022/10/15 10:55:07
+     */
+    public void destroy() throws IOException {
+        if (this.channel != null) {
+            channel.close();
+        }
+
+        if (this.mappedByteBuffer != null) {
+            this.mappedByteBuffer.clear();
+        }
+
+        if (this.file != null) {
+            this.file.delete();
+        }
+    }
+
+    /**
      * 获取文件名
      *
      * @return {@link String}

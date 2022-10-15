@@ -4,9 +4,10 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
 import org.ybonfire.pipeline.common.protocol.request.broker.CreateTopicRequest;
 import org.ybonfire.pipeline.common.protocol.request.broker.DeleteTopicRequest;
-import org.ybonfire.pipeline.common.protocol.request.broker.UpdateTopicRequest;
-import org.ybonfire.pipeline.common.protocol.request.nameserver.JoinClusterRequest;
 import org.ybonfire.pipeline.common.protocol.request.broker.MessageProduceRequest;
+import org.ybonfire.pipeline.common.protocol.request.broker.UpdateTopicRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
+import org.ybonfire.pipeline.common.protocol.request.nameserver.JoinClusterRequest;
 import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectAllRequest;
 import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectByTopicRequest;
 import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectByTopicsRequest;
@@ -27,9 +28,9 @@ public enum RequestEnum {
      */
     PRODUCE_MESSAGE(100, MessageProduceRequest.class, DefaultResponse.class),
     /**
-     * 上报路由请求
+     * 心跳注册请求
      */
-    UPLOAD_ROUTE(200, DefaultResponse.RouteUploadRequest.class, DefaultResponse.class),
+    BROKER_HEARTBEAT(200, BrokerHeartbeatRequest.class, DefaultResponse.class),
     /**
      * 查询全部路由请求
      */

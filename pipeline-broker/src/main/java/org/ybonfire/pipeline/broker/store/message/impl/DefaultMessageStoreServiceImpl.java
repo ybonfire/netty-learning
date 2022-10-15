@@ -1,12 +1,16 @@
 package org.ybonfire.pipeline.broker.store.message.impl;
 
-import org.ybonfire.pipeline.broker.callback.impl.DefaultTopicConfigUpdateCallback;
+import org.apache.commons.collections4.MapUtils;
+import org.ybonfire.pipeline.broker.callback.ITopicConfigUpdateEventCallback;
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.exception.FileLoadException;
 import org.ybonfire.pipeline.broker.exception.MessageFileCreateException;
 import org.ybonfire.pipeline.broker.model.store.MessageFlushPolicyEnum;
 import org.ybonfire.pipeline.broker.model.store.MessageFlushResultEnum;
 import org.ybonfire.pipeline.broker.model.store.MessageLogFlushJob;
+import org.ybonfire.pipeline.broker.model.topic.PartitionConfig;
+import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
+import org.ybonfire.pipeline.broker.model.topic.TopicConfigUpdateEvent;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
 import org.ybonfire.pipeline.broker.store.index.impl.DefaultIndexStoreServiceImpl;
 import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
@@ -21,15 +25,18 @@ import org.ybonfire.pipeline.server.exception.MessageFlushTimeoutException;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * 消息存储服务
@@ -42,6 +49,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     private static final DefaultMessageStoreServiceImpl INSTANCE = new DefaultMessageStoreServiceImpl();
     private final Map<String/*topic*/, Map<Integer/*partitionId*/, MessageLog>> messageLogTable = new HashMap<>();
     private final MessageLogFlushThreadService messageLogFlushThreadService = new MessageLogFlushThreadService();
+    private final ITopicConfigUpdateEventCallback callback = new DefaultTopicConfigUpdateCallback();
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
     private DefaultMessageStoreServiceImpl() {}
@@ -252,7 +260,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
         // 加载消息文件数据
         reload();
         // 注册Topic配置变更回调
-        DefaultTopicConfigManager.getInstance().register(DefaultTopicConfigUpdateCallback.getInstance());
+        DefaultTopicConfigManager.getInstance().register(callback);
         // 开启刷盘线程
         messageLogFlushThreadService.start();
         // 开启索引构建服务
@@ -271,7 +279,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
         // 关闭刷盘线程
         messageLogFlushThreadService.stop();
         // 取消注册Topic配置变更回调
-        DefaultTopicConfigManager.getInstance().deregister(DefaultTopicConfigUpdateCallback.getInstance());
+        DefaultTopicConfigManager.getInstance().deregister(callback);
         // 消息文件数据刷盘
         flushAll();
     }
@@ -285,6 +293,15 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     private void flushAll() {
         messageLogTable.values().parallelStream().flatMap(logsGroupByTopic -> logsGroupByTopic.values().stream())
             .forEach(MessageLog::flush);
+    }
+
+    /**
+     * 获取DefaultMessageStoreServiceImpl实例
+     *
+     * @return {@link DefaultMessageStoreServiceImpl}
+     */
+    public static DefaultMessageStoreServiceImpl getInstance() {
+        return INSTANCE;
     }
 
     /**
@@ -344,11 +361,98 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     }
 
     /**
-     * 获取DefaultMessageStoreServiceImpl实例
+     * 默认TopicConfig更新事件回调
      *
-     * @return {@link DefaultMessageStoreServiceImpl}
+     * @author yuanbo
+     * @date 2022-10-14 16:28
      */
-    public static DefaultMessageStoreServiceImpl getInstance() {
-        return INSTANCE;
+    private class DefaultTopicConfigUpdateCallback implements ITopicConfigUpdateEventCallback {
+
+        private DefaultTopicConfigUpdateCallback() {}
+
+        /**
+         * @description: 更新事件回调
+         * @param:
+         * @return:
+         * @date: 2022/10/14 13:59:57
+         */
+        @Override
+        public void onEvent(final TopicConfigUpdateEvent event) {
+            switch (event.getType()) {
+                case ADD:
+                    onAddEvent(event);
+                    break;
+                case UPDATE:
+                    onUpdateEvent(event);
+                    break;
+                case DELETE:
+                    onDeleteEvent(event);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /**
+         * @description: TopicConfig新增事件处理
+         * @param:
+         * @return:
+         * @date: 2022/10/14 16:30:30
+         */
+        private void onAddEvent(final TopicConfigUpdateEvent event) {
+            // no ops
+        }
+
+        /**
+         * @description: TopicConfig更新事件处理
+         * @param:
+         * @return:
+         * @date: 2022/10/14 16:30:32
+         */
+        private void onUpdateEvent(final TopicConfigUpdateEvent event) {
+            if (event == null) {
+                return;
+            }
+
+            final TopicConfig config = event.getConfig();
+            if (config == null) {
+                return;
+            }
+
+            final Set<Integer> partitionIds =
+                config.getPartitions().stream().map(PartitionConfig::getPartitionId).collect(Collectors.toSet());
+            final Map<Integer, MessageLog> messageLogGroupByTopic =
+                MapUtils.emptyIfNull(messageLogTable.get(config.getTopic()));
+            // 销毁该Topic下所有的不属于TopicConfig的Partition下的消息文件
+            final Iterator<Map.Entry<Integer, MessageLog>> iter = messageLogGroupByTopic.entrySet().iterator();
+            while (iter.hasNext()) {
+                final Map.Entry<Integer, MessageLog> entry = iter.next();
+                final int partitionId = entry.getKey();
+                final MessageLog messageLog = entry.getValue();
+                if (!partitionIds.contains(partitionId)) {
+                    // 删除对应Partition的消息文件
+                    messageLog.destroy();
+                    iter.remove();
+                }
+            }
+        }
+
+        /**
+         * @description: TopicConfig删除事件处理
+         * @param:
+         * @return:
+         * @date: 2022/10/14 16:30:34
+         */
+        private void onDeleteEvent(final TopicConfigUpdateEvent event) {
+            if (event == null) {
+                return;
+            }
+
+            final String topic = event.getTopic();
+
+            // 销毁该Topic下所有Partition的消息文件
+            MapUtils.emptyIfNull(messageLogTable.get(topic)).values().parallelStream().forEach(MessageLog::destroy);
+            messageLogTable.remove(topic);
+        }
     }
 }

@@ -1,15 +1,15 @@
 package org.ybonfire.pipeline.nameserver.server;
 
-import java.util.concurrent.ExecutorService;
-
 import org.ybonfire.pipeline.common.constant.RequestEnum;
+import org.ybonfire.pipeline.nameserver.processor.BrokerHeartbeatRequestProcessor;
 import org.ybonfire.pipeline.nameserver.processor.JoinClusterRequestProcessor;
 import org.ybonfire.pipeline.nameserver.processor.SelectAllRouteRequestProcessor;
 import org.ybonfire.pipeline.nameserver.processor.SelectByTopicNameRequestProcessor;
-import org.ybonfire.pipeline.nameserver.processor.UploadRouteRequestProcessor;
 import org.ybonfire.pipeline.nameserver.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.server.NettyRemotingServer;
 import org.ybonfire.pipeline.server.config.NettyServerConfig;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * NameServer服务
@@ -31,8 +31,8 @@ public final class NameServer extends NettyRemotingServer {
      */
     @Override
     protected void registerRequestProcessor() {
-        // RouteUploadRequestProcessor
-        registerRouteUploadRequestProcessor();
+        // BrokerHeartbeatRequestProcessor
+        registerBrokerHeartbeatRequestProcessor();
         // RouteSelectAllRequestProcessor
         registerRouteSelectAllRequestProcessor();
         // RouteSelectRequestProcessor
@@ -42,16 +42,16 @@ public final class NameServer extends NettyRemotingServer {
     }
 
     /**
-     * 注册上报路由请求处理器
+     * 注册BrokerHeartbeatRequestProcessor
      */
-    private void registerRouteUploadRequestProcessor() {
+    private void registerBrokerHeartbeatRequestProcessor() {
         final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();
-        registerRequestProcessor(RequestEnum.UPLOAD_ROUTE.getCode(), UploadRouteRequestProcessor.getInstance(),
+        registerRequestProcessor(RequestEnum.BROKER_HEARTBEAT.getCode(), BrokerHeartbeatRequestProcessor.getInstance(),
             processorExecutor);
     }
 
     /**
-     * 注册查询全部路由请求处理器
+     * 注册SelectAllRouteRequestProcessor
      */
     private void registerRouteSelectAllRequestProcessor() {
         final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();
@@ -60,7 +60,7 @@ public final class NameServer extends NettyRemotingServer {
     }
 
     /**
-     * 注册路线查询请求处理器
+     * 注册SelectByTopicNameRequestProcessor
      */
     private void registerRouteSelectRequestProcessor() {
         final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();
@@ -69,7 +69,7 @@ public final class NameServer extends NettyRemotingServer {
     }
 
     /**
-     * 注册加入集群请求处理器
+     * 注册JoinClusterRequestProcessor
      */
     private void registerJoinClusterRequestProcessor() {
         final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();

@@ -1,15 +1,15 @@
 package org.ybonfire.pipeline.producer.converter;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import org.ybonfire.pipeline.common.converter.IConverter;
 import org.ybonfire.pipeline.common.model.PartitionConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicInfo;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * TopicInfo参数转换器
@@ -56,6 +56,6 @@ public final class TopicInfoConverter implements IConverter<TopicConfigRemotingE
             return null;
         }
 
-        return PartitionInfo.builder().partitionId(src.getPartitionId()).address(src.getAddress()).build();
+        return PartitionInfo.builder().partitionId(src.getPartitionId()).build();
     }
 }

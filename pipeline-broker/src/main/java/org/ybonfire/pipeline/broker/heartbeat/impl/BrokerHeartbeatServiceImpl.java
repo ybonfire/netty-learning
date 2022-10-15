@@ -1,13 +1,18 @@
-package org.ybonfire.pipeline.broker.register.impl;
+package org.ybonfire.pipeline.broker.heartbeat.impl;
 
 import org.ybonfire.pipeline.broker.client.impl.NameServerClientImpl;
+import org.ybonfire.pipeline.broker.config.BrokerConfig;
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
+import org.ybonfire.pipeline.broker.heartbeat.IBrokerHeartbeatService;
+import org.ybonfire.pipeline.broker.model.RoleEnum;
+import org.ybonfire.pipeline.broker.model.heartbeat.HeartbeatData;
 import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
-import org.ybonfire.pipeline.broker.register.IBrokerRegisterService;
+import org.ybonfire.pipeline.broker.role.RoleManager;
 import org.ybonfire.pipeline.broker.topic.impl.DefaultTopicConfigManager;
 import org.ybonfire.pipeline.broker.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.common.exception.LifeCycleException;
 import org.ybonfire.pipeline.common.thread.task.AbstractThreadTask;
+import org.ybonfire.pipeline.common.util.RemotingUtil;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -15,17 +20,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Broker注册服务
+ * Broker心跳服务
  *
  * @author yuanbo
  * @date 2022-09-23 14:44
  */
-public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
-    private static final IBrokerRegisterService INSTANCE = new BrokerRegisterServiceImpl();
+public class BrokerHeartbeatServiceImpl implements IBrokerHeartbeatService {
+    private static final IBrokerHeartbeatService INSTANCE = new BrokerHeartbeatServiceImpl();
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final NameServerClientImpl nameServerClient = new NameServerClientImpl();
 
-    private BrokerRegisterServiceImpl() {}
+    private BrokerHeartbeatServiceImpl() {}
 
     /**
      * @description: 启动Broker注册服务
@@ -68,21 +73,21 @@ public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
      * 将Broker注册至NameServer
      */
     @Override
-    public void registerToNameServer(final List<String> nameServerAddressList) {
+    public void heartbeat(final List<String> nameServerAddressList) {
         // 确保服务已启动
         acquireOK();
 
+        final HeartbeatData heartbeatData = buildHeartbeatData();
         final CountDownLatch latch = new CountDownLatch(nameServerAddressList.size());
 
-        // 向Broker上报TopicConfig信息
-        final List<TopicConfig> topicConfigs = DefaultTopicConfigManager.getInstance().selectAllTopicConfigs();
+        // 向Nameserver上报心跳
         for (final String nameServerAddress : nameServerAddressList) {
-            final BrokerRegisterThreadTask task = new BrokerRegisterThreadTask(latch, topicConfigs, nameServerAddress);
+            final HeartbeatThreadTask task = new HeartbeatThreadTask(heartbeatData, nameServerAddress, latch);
             ThreadPoolUtil.getRegisterBrokerTaskExecutorService().submit(task);
         }
 
         try {
-            latch.await(BrokerConstant.BROKER_REGISTER_WAITING_MILLIS, TimeUnit.MILLISECONDS);
+            latch.await(BrokerConstant.HEARTBEAT_WAITING_MILLIS, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             // ignore
@@ -102,29 +107,45 @@ public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
     }
 
     /**
+     * @description: 构造HeartbeatData
+     * @param:
+     * @return:
+     * @date: 2022/10/15 14:23:55
+     */
+    private HeartbeatData buildHeartbeatData() {
+        final String brokerId = BrokerConfig.getInstance().getId();
+        final RoleEnum role = RoleManager.getInstance().get();
+        final String address = RemotingUtil.getLocalAddress();
+        final List<TopicConfig> topicConfigs = DefaultTopicConfigManager.getInstance().selectAllTopicConfigs();
+
+        return HeartbeatData.builder().brokerId(brokerId).role(role).address(address).topicConfigs(topicConfigs)
+            .build();
+    }
+
+    /**
      * 获取BrokerRegisterServiceImpl实例
      *
-     * @return {@link IBrokerRegisterService}
+     * @return {@link IBrokerHeartbeatService}
      */
-    public static IBrokerRegisterService getInstance() {
+    public static IBrokerHeartbeatService getInstance() {
         return INSTANCE;
     }
 
     /**
-     * @description: Broker注册线程任务
+     * @description: 心跳上报异步任务
      * @author: yuanbo
      * @date: 2022/9/23
      */
-    private class BrokerRegisterThreadTask extends AbstractThreadTask {
-        private final CountDownLatch latch;
-        private final List<TopicConfig> topicConfigs;
+    private class HeartbeatThreadTask extends AbstractThreadTask {
+        private final HeartbeatData heartbeatData;
         private final String address;
+        private final CountDownLatch latch;
 
-        private BrokerRegisterThreadTask(final CountDownLatch latch, final List<TopicConfig> topicConfigs,
-            final String address) {
-            this.latch = latch;
-            this.topicConfigs = topicConfigs;
+        private HeartbeatThreadTask(final HeartbeatData heartbeatData, final String address,
+            final CountDownLatch latch) {
+            this.heartbeatData = heartbeatData;
             this.address = address;
+            this.latch = latch;
         }
 
         /**
@@ -136,8 +157,7 @@ public class BrokerRegisterServiceImpl implements IBrokerRegisterService {
         @Override
         protected void execute() {
             try {
-                nameServerClient.uploadTopicConfig(topicConfigs, address,
-                    BrokerConstant.BROKER_REGISTER_TO_NAMESERVER_TIMEOUT_MILLIS);
+                nameServerClient.heartbeat(heartbeatData, address, BrokerConstant.HEARTBEAT_TIMEOUT_MILLIS);
             } finally {
                 latch.countDown();
             }

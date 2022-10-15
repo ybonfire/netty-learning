@@ -1,21 +1,20 @@
 package org.ybonfire.pipeline.client.manager;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import org.ybonfire.pipeline.client.exception.ConnectFailedException;
 import org.ybonfire.pipeline.client.exception.ConnectTimeoutException;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.util.RemotingUtil;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Netty连接管理器
@@ -55,26 +54,37 @@ public class NettyChannelManager {
      * @date: 2022/05/19 10:12:58
      */
     public Channel getOrCreateNettyChannel(final String address, final long timeoutMillis) {
-        lock.lock();
+        final long startTime = System.currentTimeMillis();
         try {
-            // get
-            final Channel existedChannel = channelTable.get(address);
-            if (existedChannel != null) {
-                if (existedChannel.isActive()) {
-                    return existedChannel;
-                } else {
-                    channelTable.remove(address);
+            if (lock.tryLock(timeoutMillis, TimeUnit.MILLISECONDS)) {
+                try {
+                    // get
+                    final Channel existedChannel = channelTable.get(address);
+                    if (existedChannel != null) {
+                        if (existedChannel.isActive()) {
+                            return existedChannel;
+                        } else {
+                            channelTable.remove(address);
+                        }
+                    }
+
+                    // create
+                    final long remainingTimeoutMillis = timeoutMillis - (System.currentTimeMillis() - startTime);
+                    final Channel newChannel = createNettyChannel(address, remainingTimeoutMillis);
+                    channelTable.put(address, newChannel);
+
+                    return newChannel;
+                } finally {
+                    lock.unlock();
                 }
             }
-
-            // create
-            final Channel newChannel = createNettyChannel(address, timeoutMillis);
-            channelTable.put(address, newChannel);
-
-            return newChannel;
-        } finally {
-            lock.unlock();
+        } catch (InterruptedException ex) {
+            // ignore
+            Thread.currentThread().interrupt();
         }
+
+        LOGGER.error("远程连接失败");
+        throw new ConnectFailedException();
     }
 
     /**

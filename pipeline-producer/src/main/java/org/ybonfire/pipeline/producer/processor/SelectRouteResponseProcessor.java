@@ -1,14 +1,14 @@
 package org.ybonfire.pipeline.producer.processor;
 
-import java.util.Optional;
-
-import org.ybonfire.pipeline.client.processor.AbstractNettyRemotingResponseProcessor;
 import org.ybonfire.pipeline.client.manager.InflightRequestManager;
 import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
 import org.ybonfire.pipeline.client.model.RemotingRequestFutureStateEnum;
+import org.ybonfire.pipeline.client.processor.AbstractRemotingResponseProcessor;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
+
+import java.util.Optional;
 
 /**
  * SelectRoute响应处理器
@@ -16,7 +16,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
  * @author Bo.Yuan5
  * @date 2022-08-04 18:23
  */
-public class SelectRouteResponseProcessor extends AbstractNettyRemotingResponseProcessor {
+public class SelectRouteResponseProcessor extends AbstractRemotingResponseProcessor {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final SelectRouteResponseProcessor INSTANCE = new SelectRouteResponseProcessor();
     private final InflightRequestManager inflightRequestManager = InflightRequestManager.getInstance();

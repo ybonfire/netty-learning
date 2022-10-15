@@ -18,7 +18,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.broker.MessageProduceRequest;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
+import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +29,7 @@ import java.util.Optional;
  * @author Bo.Yuan5
  * @date 2022-09-02 15:37
  */
-public final class ProduceMessageRequestProcessor extends AbstractNettyRemotingRequestProcessor<MessageProduceRequest> {
+public final class ProduceMessageRequestProcessor extends AbstractRemotingRequestProcessor<MessageProduceRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final ProduceMessageRequestProcessor INSTANCE = new ProduceMessageRequestProcessor();
 

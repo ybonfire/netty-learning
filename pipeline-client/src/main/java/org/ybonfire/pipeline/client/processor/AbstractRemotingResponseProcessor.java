@@ -8,7 +8,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
  * @author Bo.Yuan5
  * @date 2022-07-09 13:57
  */
-public abstract class AbstractNettyRemotingResponseProcessor implements IRemotingResponseProcessor {
+public abstract class AbstractRemotingResponseProcessor implements IRemotingResponseProcessor {
 
     /**
      * @description: 处理响应

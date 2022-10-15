@@ -14,7 +14,7 @@ import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.broker.DeleteTopicRequest;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
-import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProcessor;
+import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 /**
  * DeleteTopicRequest请求处理器
@@ -22,7 +22,7 @@ import org.ybonfire.pipeline.server.processor.AbstractNettyRemotingRequestProces
  * @author yuanbo
  * @date 2022-10-14 16:55
  */
-public final class DeleteTopicRequestProcessor extends AbstractNettyRemotingRequestProcessor<DeleteTopicRequest> {
+public final class DeleteTopicRequestProcessor extends AbstractRemotingRequestProcessor<DeleteTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final DeleteTopicRequestProcessor INSTANCE = new DeleteTopicRequestProcessor();
 

@@ -11,11 +11,6 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ProducerConstant {
-    
-    /**
-     * 消息投递超时时间
-     */
-    public static final long TIMEOUT_MILLIS_IN_PRODUCE_MESSAGE = 15 * 1000L;
 
     /**
      * 路由更新超时时间

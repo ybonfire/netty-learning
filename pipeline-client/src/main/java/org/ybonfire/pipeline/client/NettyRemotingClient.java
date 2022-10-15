@@ -156,10 +156,10 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @date: 2022/05/19 10:07:08
      */
     @Override
-    public IRemotingResponse request(final String address, final IRemotingRequest request, final long timeoutMillis) {
+    public IRemotingResponse request(final IRemotingRequest request, final String address, final long timeoutMillis) {
         acquireOK();
         try {
-            return doRequest(address, request, null, timeoutMillis, RequestTypeEnum.SYNC);
+            return doRequest(request, null, address, timeoutMillis, RequestTypeEnum.SYNC);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new InvokeInterruptedException(ex);
@@ -173,10 +173,10 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @date: 2022/05/19 10:07:13
      */
     @Override
-    public void requestAsync(final String address, final IRemotingRequest request, final IRequestCallback callback,
+    public void requestAsync(final IRemotingRequest request, final String address, final IRequestCallback callback,
         final long timeoutMillis) throws InterruptedException {
         acquireOK();
-        doRequest(address, request, callback, timeoutMillis, RequestTypeEnum.ASYNC);
+        doRequest(request, callback, address, timeoutMillis, RequestTypeEnum.ASYNC);
     }
 
     /**
@@ -186,9 +186,9 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @date: 2022/05/19 10:07:18
      */
     @Override
-    public void requestOneway(final String address, final IRemotingRequest request) throws InterruptedException {
+    public void requestOneway(final IRemotingRequest request, final String address) throws InterruptedException {
         acquireOK();
-        doRequest(address, request, null, -1L, RequestTypeEnum.ONEWAY);
+        doRequest(request, null, address, -1L, RequestTypeEnum.ONEWAY);
     }
 
     /**
@@ -255,9 +255,8 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @return:
      * @date: 2022/05/19 14:10:22
      */
-    private IRemotingResponse doRequest(final String address, final IRemotingRequest request,
-        final IRequestCallback callback, final long timeoutMillis, final RequestTypeEnum type)
-        throws InterruptedException {
+    private IRemotingResponse doRequest(final IRemotingRequest request, final IRequestCallback callback,
+        final String address, final long timeoutMillis, final RequestTypeEnum type) throws InterruptedException {
         final long startTimestamp = System.currentTimeMillis();
 
         // 参数校验
@@ -266,9 +265,8 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
         AssertUtils.notNull(type);
 
         // 建立连接
-        final Channel channel = channelManager.getOrCreateNettyChannel(address, timeoutMillis);
-        final long remainingTimeoutMillis =
-            config.getReadTimeoutMillis() - (System.currentTimeMillis() - startTimestamp);
+        final Channel channel = channelManager.getOrCreateNettyChannel(address, config.getConnectTimeoutMillis());
+        final long remainingTimeoutMillis = timeoutMillis - (System.currentTimeMillis() - startTimestamp);
 
         // 缓存在途请求
         final RemoteRequestFuture future =

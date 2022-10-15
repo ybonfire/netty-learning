@@ -12,9 +12,8 @@ import org.ybonfire.pipeline.server.exception.handler.ServerExceptionHandler;
  * @author Bo.Yuan5
  * @date 2022-07-01 18:18
  */
-public abstract class AbstractNettyRemotingRequestProcessor<T extends IRemotingRequestBody>
+public abstract class AbstractRemotingRequestProcessor<T extends IRemotingRequestBody>
     implements IRemotingRequestProcessor<T> {
-    private final ServerExceptionHandler exceptionHandler = new ServerExceptionHandler();
 
     /**
      * @description: 处理请求
@@ -69,6 +68,7 @@ public abstract class AbstractNettyRemotingRequestProcessor<T extends IRemotingR
      * @date: 2022/07/01 18:22:46
      */
     private RemotingResponse onException(final IRemotingRequest<T> request, final Exception ex) {
+        final ServerExceptionHandler exceptionHandler = ServerExceptionHandler.getInstance();
         return ex instanceof ServerException ? exceptionHandler.handle(request, (ServerException)ex)
             : exceptionHandler.handle(request, ex);
     }
