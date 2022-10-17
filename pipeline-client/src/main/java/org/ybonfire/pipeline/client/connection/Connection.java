@@ -51,7 +51,17 @@ public class Connection {
      * @date: 2022/10/17 16:33:15
      */
     public void addMetadata(final String key, final Object value) {
+        metadata.put(key, value);
+    }
 
+    /**
+     * @description: 添加Metadata
+     * @param:
+     * @return:
+     * @date: 2022/10/17 18:12:25
+     */
+    public void addMetadataIfAbsent(final String key, final Object value) {
+        metadata.putIfAbsent(key, value);
     }
 
     /**
@@ -61,10 +71,6 @@ public class Connection {
      * @date: 2022/10/17 14:49:10
      */
     public ChannelFuture write(final IRemotingRequestResponse requestResponse) {
-        if (requestResponse == null) {
-
-        }
-
         return this.channel.writeAndFlush(requestResponse);
     }
 
