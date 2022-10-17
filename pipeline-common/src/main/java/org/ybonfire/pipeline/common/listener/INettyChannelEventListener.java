@@ -16,7 +16,7 @@ public interface INettyChannelEventListener {
      * @return:
      * @date: 2022/05/24 17:17:36
      */
-    void onOpen(final String address, final Channel channel);
+    void onOpen(final Channel channel);
 
     /**
      * @description: 连接关闭
@@ -24,5 +24,5 @@ public interface INettyChannelEventListener {
      * @return:
      * @date: 2022/05/24 17:18:14
      */
-    void onClose(final String address, final Channel channel);
+    void onClose(final Channel channel);
 }

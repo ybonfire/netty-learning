@@ -6,7 +6,7 @@ package org.ybonfire.pipeline.common.protocol;
  * @author Bo.Yuan5
  * @date 2022-07-19 16:39
  */
-public interface IRemotingResponse<T extends IRemotingResponseBody> {
+public interface IRemotingResponse<T extends IRemotingResponseBody> extends IRemotingRequestResponse {
 
     /**
      * @description: 获取远程调用Id

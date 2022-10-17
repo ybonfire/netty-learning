@@ -170,7 +170,7 @@ public class DefaultTopicConfigManager implements ITopicConfigManager {
 
                 try {
                     if (topicConfigTable.containsKey(topic)) {
-                        final TopicConfig prev = topicConfigTable.remove(topic);
+                        topicConfigTable.remove(topic);
                         LOGGER.info("delete topic config, topic:[" + topic + "]");
                         isSuccess = true;
                     } else {

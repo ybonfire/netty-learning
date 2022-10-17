@@ -1,8 +1,5 @@
 package org.ybonfire.pipeline.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.protocol.RemotingRequest;
 
@@ -17,15 +14,14 @@ import java.util.concurrent.Executors;
  * @date 2022-07-18 17:26
  */
 public class NameServerGetRouteTest extends NettyRemotingClient {
-    private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(1);
 
-    public NameServerGetRouteTest(NettyClientConfig config) {
-        super(config);
+    public NameServerGetRouteTest() {
+
     }
 
-    public static void main(String[] args) throws InterruptedException, JsonProcessingException {
-        final NettyRemotingClient client = new NameServerGetRouteTest(new NettyClientConfig());
+    public static void main(String[] args) throws InterruptedException {
+        final NettyRemotingClient client = new NameServerGetRouteTest();
 
         Runtime.getRuntime().addShutdownHook(new Thread(client::shutdown));
 

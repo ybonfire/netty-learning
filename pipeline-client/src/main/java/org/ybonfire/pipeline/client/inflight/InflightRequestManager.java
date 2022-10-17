@@ -1,4 +1,8 @@
-package org.ybonfire.pipeline.client.manager;
+package org.ybonfire.pipeline.client.inflight;
+
+import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
+import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
+import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -8,10 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
-import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
-import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 
 /**
  * 在途请求管理器

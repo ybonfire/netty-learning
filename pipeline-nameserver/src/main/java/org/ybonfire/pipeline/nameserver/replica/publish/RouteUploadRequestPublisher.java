@@ -1,15 +1,7 @@
 package org.ybonfire.pipeline.nameserver.replica.publish;
 
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
-import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.client.impl.NameServerClientImpl;
 import org.ybonfire.pipeline.nameserver.constant.NameServerConstant;
 import org.ybonfire.pipeline.nameserver.model.PeerNode;
@@ -17,6 +9,12 @@ import org.ybonfire.pipeline.nameserver.replica.peer.PeerManager;
 import org.ybonfire.pipeline.nameserver.thread.RouteUploadRequestPublishThreadTask;
 import org.ybonfire.pipeline.nameserver.thread.RouteUploadRequestPublishThreadTaskBuilder;
 import org.ybonfire.pipeline.nameserver.util.ThreadPoolUtil;
+
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 路由数据广播器
@@ -27,7 +25,7 @@ import org.ybonfire.pipeline.nameserver.util.ThreadPoolUtil;
 public class RouteUploadRequestPublisher {
     private static final RouteUploadRequestPublisher INSTANCE = new RouteUploadRequestPublisher();
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private final NameServerClientImpl nameServerClient = new NameServerClientImpl(new NettyClientConfig());
+    private final NameServerClientImpl nameServerClient = new NameServerClientImpl();
     private final ExecutorService publishExecutors = ThreadPoolUtil.getRouteUploadRequestPublishExecutorService();
 
     private RouteUploadRequestPublisher() {}

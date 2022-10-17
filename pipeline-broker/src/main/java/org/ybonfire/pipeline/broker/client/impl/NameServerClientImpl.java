@@ -6,7 +6,6 @@ import org.ybonfire.pipeline.broker.model.heartbeat.HeartbeatData;
 import org.ybonfire.pipeline.broker.model.topic.PartitionConfig;
 import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
-import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.model.PartitionConfigRemotingEntity;
 import org.ybonfire.pipeline.common.model.TopicConfigRemotingEntity;
@@ -27,13 +26,7 @@ import java.util.stream.Collectors;
  * @date 2022-09-23 10:57
  */
 public class NameServerClientImpl extends NettyRemotingClient implements INameServerClient {
-    public NameServerClientImpl() {
-        super(new NettyClientConfig());
-    }
-
-    public NameServerClientImpl(final NettyClientConfig config) {
-        super(config);
-    }
+    public NameServerClientImpl() {}
 
     /**
      * 注册ResponseProcessors

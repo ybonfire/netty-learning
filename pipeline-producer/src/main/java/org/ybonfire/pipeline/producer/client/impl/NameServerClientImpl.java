@@ -2,7 +2,6 @@ package org.ybonfire.pipeline.producer.client.impl;
 
 import org.apache.commons.collections4.MapUtils;
 import org.ybonfire.pipeline.client.NettyRemotingClient;
-import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.TopicInfo;
@@ -31,13 +30,7 @@ import java.util.stream.Collectors;
  */
 public class NameServerClientImpl extends NettyRemotingClient implements INameServerClient {
 
-    public NameServerClientImpl() {
-        this(new NettyClientConfig());
-    }
-
-    public NameServerClientImpl(final NettyClientConfig config) {
-        super(config);
-    }
+    public NameServerClientImpl() {}
 
     /**
      * @description: 注册远程调用响应处理器

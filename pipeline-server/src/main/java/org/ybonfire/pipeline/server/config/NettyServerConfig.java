@@ -10,6 +10,7 @@ import lombok.Getter;
  */
 @Getter
 public class NettyServerConfig {
+    private static final NettyServerConfig INSTANCE = new NettyServerConfig();
     /**
      * 监听端口
      */
@@ -34,4 +35,8 @@ public class NettyServerConfig {
      * socket receive buffer size
      */
     private final int serverSocketReceiveBufferSize = 65535;
+
+    public static NettyServerConfig getInstance() {
+        return INSTANCE;
+    }
 }

@@ -14,26 +14,17 @@ public class NettyChannelEvent {
      */
     private final NettyChannelEventTypeEnum type;
     /**
-     * 连接地址
-     */
-    private final String address;
-    /**
      * 连接
      */
     private final Channel channel;
 
-    public NettyChannelEvent(final NettyChannelEventTypeEnum type, final String address, final Channel channel) {
+    public NettyChannelEvent(final NettyChannelEventTypeEnum type, final Channel channel) {
         this.type = type;
-        this.address = address;
         this.channel = channel;
     }
 
     public NettyChannelEventTypeEnum getType() {
         return type;
-    }
-
-    public String getAddress() {
-        return address;
     }
 
     public Channel getChannel() {
