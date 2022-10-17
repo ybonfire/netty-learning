@@ -1,11 +1,6 @@
 package org.ybonfire.pipeline.client.model;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import org.ybonfire.pipeline.client.connection.Connection;
 import org.ybonfire.pipeline.client.exception.InvokeExecuteException;
 import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
@@ -13,7 +8,11 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
-import io.netty.channel.Channel;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 远程调用数据
@@ -23,7 +22,7 @@ import io.netty.channel.Channel;
  */
 public class RemoteRequestFuture {
     private final String address;
-    private final Channel channel;
+    private final Connection connection;
     private final IRemotingRequest request;
     private final IRequestCallback callback;
     private final long startTimestamp = System.currentTimeMillis();
@@ -34,10 +33,10 @@ public class RemoteRequestFuture {
     private volatile Throwable cause;
     private volatile RemotingRequestFutureStateEnum state = RemotingRequestFutureStateEnum.FLIGHT;
 
-    public RemoteRequestFuture(final String address, final Channel channel, final IRemotingRequest request,
+    public RemoteRequestFuture(final String address, final Connection connection, final IRemotingRequest request,
         IRequestCallback callback, final long timeoutMillis) {
         this.address = address;
-        this.channel = channel;
+        this.connection = connection;
         this.request = request;
         this.callback = callback;
         this.timeoutMillis = timeoutMillis;
@@ -95,8 +94,8 @@ public class RemoteRequestFuture {
         return address;
     }
 
-    public Channel getChannel() {
-        return channel;
+    public Connection getConnection() {
+        return connection;
     }
 
     public IRemotingRequest getRequest() {

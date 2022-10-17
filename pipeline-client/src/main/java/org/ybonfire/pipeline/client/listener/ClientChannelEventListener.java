@@ -1,7 +1,9 @@
 package org.ybonfire.pipeline.client.listener;
 
-import org.ybonfire.pipeline.client.manager.NettyChannelManager;
+import org.ybonfire.pipeline.client.connection.Connection;
+import org.ybonfire.pipeline.client.connection.ConnectionManager;
 import org.ybonfire.pipeline.common.listener.INettyChannelEventListener;
+import org.ybonfire.pipeline.common.util.RemotingUtil;
 
 import io.netty.channel.Channel;
 
@@ -12,11 +14,6 @@ import io.netty.channel.Channel;
  * @date 2022-05-24 17:30
  */
 public class ClientChannelEventListener implements INettyChannelEventListener {
-    private final NettyChannelManager nettyChannelManager;
-
-    public ClientChannelEventListener(final NettyChannelManager nettyChannelManager) {
-        this.nettyChannelManager = nettyChannelManager;
-    }
 
     /**
      * @description: 连接开启
@@ -25,8 +22,14 @@ public class ClientChannelEventListener implements INettyChannelEventListener {
      * @date: 2022/05/24 17:37:53
      */
     @Override
-    public void onOpen(final String address, final Channel channel) {
-        nettyChannelManager.putChannel(address, channel);
+    public void onOpen(final Channel channel) {
+        if (channel == null) {
+            return;
+        }
+
+        // 将连接添加至ConnectionManager
+        final Connection connection = Connection.wrap(channel);
+        ConnectionManager.getInstance().add(connection);
     }
 
     /**
@@ -36,7 +39,13 @@ public class ClientChannelEventListener implements INettyChannelEventListener {
      * @date: 2022/05/24 17:37:58
      */
     @Override
-    public void onClose(final String address, final Channel channel) {
-        nettyChannelManager.closeChannel(address);
+    public void onClose(final Channel channel) {
+        if (channel == null) {
+            return;
+        }
+
+        // 移除并关闭指定地址的连接
+        final String address = RemotingUtil.parseChannelAddress(channel);
+        ConnectionManager.getInstance().remove(address);
     }
 }

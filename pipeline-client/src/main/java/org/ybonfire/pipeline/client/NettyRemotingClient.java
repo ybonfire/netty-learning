@@ -1,40 +1,29 @@
 package org.ybonfire.pipeline.client;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.ybonfire.pipeline.client.config.NettyClientConfig;
+import org.ybonfire.pipeline.client.connection.Connection;
+import org.ybonfire.pipeline.client.connection.ConnectionFactory;
+import org.ybonfire.pipeline.client.connection.ConnectionManager;
 import org.ybonfire.pipeline.client.dispatcher.impl.NettyRemotingResponseDispatcher;
 import org.ybonfire.pipeline.client.exception.InvokeExecuteException;
 import org.ybonfire.pipeline.client.exception.InvokeInterruptedException;
 import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
 import org.ybonfire.pipeline.client.exception.UnSupportedRequestTypeException;
-import org.ybonfire.pipeline.client.handler.NettyClientHandler;
-import org.ybonfire.pipeline.client.handler.NettyConnectEventHandler;
-import org.ybonfire.pipeline.client.manager.InflightRequestManager;
-import org.ybonfire.pipeline.client.manager.NettyChannelManager;
+import org.ybonfire.pipeline.client.inflight.InflightRequestManager;
 import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
 import org.ybonfire.pipeline.client.model.RequestTypeEnum;
 import org.ybonfire.pipeline.client.processor.IRemotingResponseProcessor;
 import org.ybonfire.pipeline.client.thread.ClientChannelEventHandleThreadService;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
-import org.ybonfire.pipeline.common.codec.request.RequestEncoder;
-import org.ybonfire.pipeline.common.codec.response.ResponseDecoder;
 import org.ybonfire.pipeline.common.exception.LifeCycleException;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.util.AssertUtils;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Netty远程调用客户端
@@ -43,41 +32,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date 2022-05-18 15:28
  */
 public abstract class NettyRemotingClient implements IRemotingClient<IRemotingResponseProcessor> {
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
-    private final Bootstrap bootstrap = new Bootstrap();
-    private final NettyChannelManager channelManager = new NettyChannelManager(bootstrap);
     private final ClientChannelEventHandleThreadService channelEventHandleThreadService =
-        new ClientChannelEventHandleThreadService(channelManager);
-    private final InflightRequestManager inflightRequestManager = InflightRequestManager.getInstance();
-    private final NettyClientConfig config;
-    private final EventLoopGroup clientEventLoopGroup;
-    private final DefaultEventExecutorGroup defaultEventExecutorGroup;
+        new ClientChannelEventHandleThreadService();
 
-    protected NettyRemotingClient(final NettyClientConfig config) {
-        this.config = config;
-
-        // eventLoopGroup
-        final int eventLoopGroupThreadNums = this.config.getClientEventLoopThread();
-        this.clientEventLoopGroup = buildEventLoop(eventLoopGroupThreadNums, new ThreadFactory() {
-            private final AtomicInteger threadIndex = new AtomicInteger(0);
-
-            @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r, String.format("ClientEventLoopGroup_%d", this.threadIndex.incrementAndGet()));
-            }
-        });
-
-        // executorGroup
-        final int executorThreadNums = this.config.getWorkerThreadNums();
-        this.defaultEventExecutorGroup = buildDefaultEventExecutorGroup(executorThreadNums, new ThreadFactory() {
-            private final AtomicInteger threadIndex = new AtomicInteger(0);
-
-            @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r, String.format("EventExecutor_%d", this.threadIndex.incrementAndGet()));
-            }
-        });
-    }
+    protected NettyRemotingClient() {}
 
     /**
      * @description: 启动客户端
@@ -88,26 +48,14 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
     @Override
     public void start() {
         if (isStarted.compareAndSet(false, true)) {
-            // register processor
-            registerResponseProcessors();
-
-            // start ChannelEventHandleThreadService
+            // start channelEventHandleThreadService
             channelEventHandleThreadService.start();
 
-            // start client
-            bootstrap.group(this.clientEventLoopGroup).channel(NioSocketChannel.class)
-                .option(ChannelOption.SO_SNDBUF, this.config.getClientSocketSendBufferSize())
-                .option(ChannelOption.SO_RCVBUF, this.config.getClientSocketReceiveBufferSize())
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(defaultEventExecutorGroup, new RequestEncoder(), new ResponseDecoder(),
-                            new NettyConnectEventHandler(), NettyClientHandler.getInstance());
-                    }
-                });
+            // start connection factory
+            ConnectionFactory.getInstance().start();
 
             // start inflight requests manager
-            inflightRequestManager.start();
+            InflightRequestManager.getInstance().start();
         }
     }
 
@@ -131,21 +79,17 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
     @Override
     public void shutdown() {
         if (isStarted.compareAndSet(true, false)) {
-            // disconnect
-            this.channelManager.closeAllChannel();
+            // start inflight requests manager
+            InflightRequestManager.getInstance().shutdown();
+
+            // shutdown connection factory
+            ConnectionFactory.getInstance().shutdown();
 
             // stop ChannelEventHandler
             this.channelEventHandleThreadService.stop();
 
-            // clientEventLoopGroup
-            if (this.clientEventLoopGroup != null) {
-                this.clientEventLoopGroup.shutdownGracefully();
-            }
-
-            // executorGroup
-            if (this.defaultEventExecutorGroup != null) {
-                this.defaultEventExecutorGroup.shutdownGracefully();
-            }
+            // remove and close all connection
+            ConnectionManager.getInstance().removeAll();
         }
     }
 
@@ -204,10 +148,6 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
             executor);
     }
 
-    protected InflightRequestManager getInflightRequestManager() {
-        return inflightRequestManager;
-    }
-
     /**
      * @description: 注册远程调用响应处理器
      * @param:
@@ -217,24 +157,14 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
     protected abstract void registerResponseProcessors();
 
     /**
-     * @description: 构造EventLoopGroup
-     * @param:
-     * @return:
-     * @date: 2022/05/18 12:21:07
-     */
-    private EventLoopGroup buildEventLoop(final int theadNums, final ThreadFactory threadFactory) {
-        return new NioEventLoopGroup(theadNums, threadFactory);
-    }
-
-    /**
      * @description: 构造RemoteRequestFuture
      * @param:
      * @return:
      * @date: 2022/05/19 13:26:46
      */
-    private RemoteRequestFuture buildRemoteRequestFuture(final String address, final Channel channel,
+    private RemoteRequestFuture buildRemoteRequestFuture(final String address, final Connection connection,
         final IRemotingRequest request, final IRequestCallback callback, final long timeoutMillis) {
-        return new RemoteRequestFuture(address, channel, request, callback, timeoutMillis);
+        return new RemoteRequestFuture(address, connection, request, callback, timeoutMillis);
     }
 
     /**
@@ -265,13 +195,15 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
         AssertUtils.notNull(type);
 
         // 建立连接
-        final Channel channel = channelManager.getOrCreateNettyChannel(address, config.getConnectTimeoutMillis());
+        final NettyClientConfig config = NettyClientConfig.getInstance();
+        final long connectionTimeoutMillis = Math.min(config.getConnectTimeoutMillis(), timeoutMillis);
+        final Connection connection = ConnectionManager.getInstance().get(address, connectionTimeoutMillis);
         final long remainingTimeoutMillis = timeoutMillis - (System.currentTimeMillis() - startTimestamp);
 
         // 缓存在途请求
         final RemoteRequestFuture future =
-            buildRemoteRequestFuture(address, channel, request, callback, remainingTimeoutMillis);
-        inflightRequestManager.add(future);
+            buildRemoteRequestFuture(address, connection, request, callback, remainingTimeoutMillis);
+        InflightRequestManager.getInstance().add(future);
 
         // 发送请求
         switch (type) {
@@ -299,11 +231,11 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
         throws InterruptedException {
         try {
             // 发送请求
-            future.getChannel().writeAndFlush(future.getRequest()).addListener(f -> {
+            future.getConnection().write(future.getRequest()).addListener(f -> {
                 if (f.isSuccess()) {
                     future.setRequestSuccess(true);
                 } else {
-                    // TODO log
+                    LOGGER.error(String.format("Failed to send request. id:[%s]", future.getRequest().getId()));
                     future.setRequestSuccess(false);
                     future.setCause(f.cause());
                 }
@@ -323,7 +255,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
             return response;
         } finally {
             // 移除在途请求
-            inflightRequestManager.remove(future.getRequest().getId());
+            InflightRequestManager.getInstance().remove(future.getRequest().getId());
         }
     }
 
@@ -336,11 +268,11 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
     private void doRequestAsync(final RemoteRequestFuture future) {
         try {
             // 发送请求
-            future.getChannel().writeAndFlush(future.getRequest()).addListener(f -> {
+            future.getConnection().write(future.getRequest()).addListener(f -> {
                 if (f.isSuccess()) {
                     future.setRequestSuccess(true);
                 } else {
-                    // TODO log
+                    LOGGER.error(String.format("Failed to send request. id:[%s]", future.getRequest().getId()));
                     future.setRequestSuccess(false);
                     future.setCause(f.cause());
                 }
@@ -353,7 +285,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
         } finally {
             // 移除在途请求
             if (!future.isRequestSuccess()) {
-                inflightRequestManager.remove(future.getRequest().getId());
+                InflightRequestManager.getInstance().remove(future.getRequest().getId());
             }
         }
     }
@@ -367,21 +299,10 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
     private void doRequestOneWay(final RemoteRequestFuture future) {
         try {
             // 发送请求
-            future.getChannel().writeAndFlush(future.getRequest());
+            future.getConnection().write(future.getRequest());
         } finally {
             // 移除在途请求
-            inflightRequestManager.remove(future.getRequest().getId());
+            InflightRequestManager.getInstance().remove(future.getRequest().getId());
         }
-    }
-
-    /**
-     * @description: 构造DefaultEventExecutorGroup
-     * @param:
-     * @return:
-     * @date: 2022/05/18 14:48:57
-     */
-    private DefaultEventExecutorGroup buildDefaultEventExecutorGroup(final int threadNums,
-        final ThreadFactory threadFactory) {
-        return new DefaultEventExecutorGroup(threadNums, threadFactory);
     }
 }

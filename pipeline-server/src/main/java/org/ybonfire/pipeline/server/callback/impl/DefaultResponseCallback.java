@@ -1,5 +1,7 @@
 package org.ybonfire.pipeline.server.callback.impl;
 
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
@@ -16,6 +18,7 @@ import io.netty.channel.ChannelHandlerContext;
  * @date 2022-05-18 17:41
  */
 public class DefaultResponseCallback implements IResponseCallback {
+    private static final IInternalLogger LOGGER = new SimpleInternalLogger();
 
     /**
      * @description: 成功响应回调流程
@@ -25,7 +28,11 @@ public class DefaultResponseCallback implements IResponseCallback {
      */
     @Override
     public void onSuccess(final IRemotingResponse response, final ChannelHandlerContext context) {
-        context.writeAndFlush(response);
+        context.writeAndFlush(response).addListener(f -> {
+            if (!f.isSuccess()) {
+                LOGGER.error(String.format("Failed to send response. id:[%s]", response.getId()));
+            }
+        });
     }
 
     /**
@@ -39,6 +46,10 @@ public class DefaultResponseCallback implements IResponseCallback {
         final ServerExceptionHandler exceptionHandler = ServerExceptionHandler.getInstance();
         final RemotingResponse<?> response = ex instanceof ServerException
             ? exceptionHandler.handle(request, (ServerException)ex) : exceptionHandler.handle(request, ex);
-        context.writeAndFlush(response);
+        context.writeAndFlush(response).addListener(f -> {
+            if (!f.isSuccess()) {
+                LOGGER.error(String.format("Failed to send response. id:[%s]", response.getId()));
+            }
+        });
     }
 }

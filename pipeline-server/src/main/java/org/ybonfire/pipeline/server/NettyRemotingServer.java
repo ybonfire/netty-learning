@@ -7,7 +7,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
@@ -15,6 +14,7 @@ import org.ybonfire.pipeline.common.codec.request.RequestDecoder;
 import org.ybonfire.pipeline.common.codec.response.ResponseEncoder;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.common.util.NettyUtil;
 import org.ybonfire.pipeline.server.config.NettyServerConfig;
 import org.ybonfire.pipeline.server.dispatcher.impl.NettyRemotingRequestDispatcher;
 import org.ybonfire.pipeline.server.exception.StartupException;
@@ -92,9 +92,10 @@ public abstract class NettyRemotingServer implements IRemotingServer<IRemotingRe
             registerRequestProcessor();
 
             // start server
-            this.serverBootstrap.group(this.parentGroup, this.childGroup).channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG, 1024).option(ChannelOption.SO_REUSEADDR, true)
-                .option(ChannelOption.SO_KEEPALIVE, true).childOption(ChannelOption.TCP_NODELAY, true)
+            this.serverBootstrap.group(this.parentGroup, this.childGroup)
+                .channel(NettyUtil.getServerSocketChannelClass()).option(ChannelOption.SO_BACKLOG, 1024)
+                .option(ChannelOption.SO_REUSEADDR, true).option(ChannelOption.SO_KEEPALIVE, true)
+                .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_SNDBUF, this.config.getServerSocketSendBufferSize())
                 .childOption(ChannelOption.SO_RCVBUF, this.config.getServerSocketReceiveBufferSize())
                 .localAddress(new InetSocketAddress(this.config.getPort())).handler(new LoggingHandler(LogLevel.INFO))

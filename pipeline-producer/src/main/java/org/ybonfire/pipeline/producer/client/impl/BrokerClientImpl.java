@@ -1,7 +1,6 @@
 package org.ybonfire.pipeline.producer.client.impl;
 
 import org.ybonfire.pipeline.client.NettyRemotingClient;
-import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.model.Message;
@@ -25,13 +24,7 @@ import java.util.UUID;
  */
 public final class BrokerClientImpl extends NettyRemotingClient implements IBrokerClient {
 
-    public BrokerClientImpl() {
-        this(new NettyClientConfig());
-    }
-
-    public BrokerClientImpl(final NettyClientConfig config) {
-        super(config);
-    }
+    public BrokerClientImpl() {}
 
     /**
      * @description: 注册Broker响应处理器

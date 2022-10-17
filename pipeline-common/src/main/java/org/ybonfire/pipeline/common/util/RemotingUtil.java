@@ -1,5 +1,11 @@
 package org.ybonfire.pipeline.common.util;
 
+import io.netty.channel.Channel;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -7,14 +13,6 @@ import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Enumeration;
-
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.ybonfire.pipeline.common.logger.IInternalLogger;
-import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 
 /**
  * 远程调用工具类
@@ -70,7 +68,7 @@ public final class RemotingUtil {
      * @param socketAddress 套接字地址
      * @return {@link String}
      */
-    public static String parseSocketAddressAddress(SocketAddress socketAddress) {
+    public static String parseSocketAddress(SocketAddress socketAddress) {
         if (socketAddress != null) {
             final String addr = socketAddress.toString();
 
@@ -82,44 +80,18 @@ public final class RemotingUtil {
     }
 
     /**
-     * 解析远程地址
-     *
-     * @param channel 通道
-     * @return {@link String}
-     */
-    public static String parseChannelRemoteAddr(final Channel channel) {
-        if (null == channel) {
-            return "";
-        }
-        SocketAddress remote = channel.remoteAddress();
-        final String addr = remote != null ? remote.toString() : "";
-
-        if (addr.length() > 0) {
-            int index = addr.lastIndexOf("/");
-            if (index >= 0) {
-                return addr.substring(index + 1);
-            }
-
-            return addr;
-        }
-
-        return "";
-    }
-
-    /**
      * 关闭通道
      *
      * @param channel 通道
      */
     public static void closeChannel(final Channel channel) {
-        final String addrRemote = parseChannelRemoteAddr(channel);
-        channel.close().addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                LOGGER.info("closeChannel: close the connection to remote address: " + addrRemote + "result: "
-                    + future.isSuccess());
-            }
-        });
+        if (channel == null) {
+            return;
+        }
+
+        final String addrRemote = parseChannelAddress(channel);
+        channel.close().addListener(future -> LOGGER.info(
+            "closeChannel: close the connection to remote address: " + addrRemote + "result: " + future.isSuccess()));
     }
 
     /**
@@ -162,7 +134,7 @@ public final class RemotingUtil {
             } else if (!ipv6Result.isEmpty()) {
                 return ipv6Result.get(0);
             }
-            //If failed to find,fall back to localhost
+            // If failed to find,fall back to localhost
             final InetAddress localHost = InetAddress.getLocalHost();
             return normalizeHostAddress(localHost);
         } catch (Exception e) {
@@ -178,9 +150,5 @@ public final class RemotingUtil {
         } else {
             return localHost.getHostAddress();
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println(getLocalAddress());
     }
 }

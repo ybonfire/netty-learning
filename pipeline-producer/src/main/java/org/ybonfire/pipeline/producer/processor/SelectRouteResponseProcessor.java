@@ -1,6 +1,6 @@
 package org.ybonfire.pipeline.producer.processor;
 
-import org.ybonfire.pipeline.client.manager.InflightRequestManager;
+import org.ybonfire.pipeline.client.inflight.InflightRequestManager;
 import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
 import org.ybonfire.pipeline.client.model.RemotingRequestFutureStateEnum;
 import org.ybonfire.pipeline.client.processor.AbstractRemotingResponseProcessor;

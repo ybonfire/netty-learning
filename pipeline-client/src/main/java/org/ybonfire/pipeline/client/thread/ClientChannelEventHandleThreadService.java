@@ -1,15 +1,13 @@
 package org.ybonfire.pipeline.client.thread;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
+import io.netty.channel.Channel;
 import org.ybonfire.pipeline.client.listener.ClientChannelEventListener;
-import org.ybonfire.pipeline.client.manager.NettyChannelManager;
 import org.ybonfire.pipeline.common.listener.INettyChannelEventListener;
 import org.ybonfire.pipeline.common.model.NettyChannelEvent;
 import org.ybonfire.pipeline.common.thread.service.AbstractThreadService;
 
-import io.netty.channel.Channel;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Netty客户端连接相关事件处理器
@@ -22,9 +20,9 @@ public class ClientChannelEventHandleThreadService extends AbstractThreadService
     private final BlockingQueue<NettyChannelEvent> eventQueue = new LinkedBlockingQueue<>();
     private final INettyChannelEventListener listener;
 
-    public ClientChannelEventHandleThreadService(final NettyChannelManager nettyChannelManager) {
-        super(1000L);
-        this.listener = new ClientChannelEventListener(nettyChannelManager);
+    public ClientChannelEventHandleThreadService() {
+        super(0L);
+        this.listener = new ClientChannelEventListener();
     }
 
     @Override
@@ -42,14 +40,13 @@ public class ClientChannelEventHandleThreadService extends AbstractThreadService
     protected void execute() {
         try {
             final NettyChannelEvent event = this.eventQueue.take();
-            final String address = event.getAddress();
             final Channel channel = event.getChannel();
             switch (event.getType()) {
                 case OPEN:
-                    this.listener.onOpen(address, channel);
+                    this.listener.onOpen(channel);
                     break;
                 case CLOSE:
-                    this.listener.onClose(address, channel);
+                    this.listener.onClose(channel);
                     break;
                 default:
                     break;

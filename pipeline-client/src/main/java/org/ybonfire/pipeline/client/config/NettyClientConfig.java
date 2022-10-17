@@ -10,6 +10,8 @@ import lombok.Getter;
  */
 @Getter
 public final class NettyClientConfig {
+    private static final NettyClientConfig INSTANCE = new NettyClientConfig();
+
     /**
      * netty eventLoop线程数
      */
@@ -30,4 +32,8 @@ public final class NettyClientConfig {
      * socket receive buffer size
      */
     private final int clientSocketReceiveBufferSize = 65535;
+
+    public static NettyClientConfig getInstance() {
+        return INSTANCE;
+    }
 }
