@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
@@ -44,7 +43,7 @@ public final class MessageLog {
     }
 
     private MessageLog(final File file) throws IOException {
-        final String[] parseResult = parseTopicPartitionByFilename(file.getName());
+        final String[] parseResult = parseTopicPartitionByFilename(file.getAbsolutePath());
         final String topic = parseResult[0];
         final int partitionId = Integer.parseInt(parseResult[1]);
 
@@ -228,15 +227,12 @@ public final class MessageLog {
      * @return {@link String}
      */
     private String[] parseTopicPartitionByFilename(final String filename) {
-        String[] result;
         if (filename.startsWith(MESSAGE_STORE_BASE_PATH)) {
-            result = filename.substring((MESSAGE_STORE_BASE_PATH + File.separator).length()).split(File.separator);
-        } else {
-            result = filename.split(File.separator);
-        }
+            final String subFilename = filename.substring((MESSAGE_STORE_BASE_PATH + File.separator).length());
+            final String topic = subFilename.substring(0, subFilename.indexOf(File.separator));
+            final String partition = subFilename.substring(subFilename.indexOf(File.separator) + 1);
 
-        if (result.length == 2) {
-            return result;
+            return new String[] {topic, partition};
         }
 
         throw new FileLoadException();
@@ -273,22 +269,26 @@ public final class MessageLog {
      * @throws IOException ioexception
      */
     public static List<MessageLog> reloadAll() throws IOException {
+        final List<MessageLog> logs = new ArrayList<>();
+
         final File messageLogDir = new File(MESSAGE_STORE_BASE_PATH);
         if (messageLogDir.isDirectory()) {
-            final File[] messageLogFiles = messageLogDir.listFiles();
-            if (messageLogFiles != null) {
-                final List<MessageLog> logs = new ArrayList<>(messageLogFiles.length);
-                for (final File messageLogFile : messageLogFiles) {
-                    final MessageLog log = new MessageLog(messageLogFile);
-                    // TODO set Positions
-                    logs.add(log);
+            final File[] messageLogFilesGroupByTopic = messageLogDir.listFiles();
+            for (final File messageLogFilesGroup : messageLogFilesGroupByTopic) {
+                if (messageLogFilesGroup.isDirectory()) {
+                    final File[] messageLogFiles = messageLogFilesGroup.listFiles();
+                    if (messageLogFiles != null) {
+                        for (final File messageLogFile : messageLogFiles) {
+                            final MessageLog log = new MessageLog(messageLogFile);
+                            // TODO set Positions
+                            logs.add(log);
+                        }
+                    }
                 }
-
-                return logs;
             }
         }
 
-        return Collections.emptyList();
+        return logs;
     }
 
     /**

@@ -133,7 +133,7 @@ public final class DefaultIndexStoreServiceImpl implements IIndexStoreService {
             }
         } else {
             LOGGER.error(
-                "取消注册失败. 查询到指定Topic、Partition对应的消息文件. topic:[" + topic + "]" + "| partition:[" + partitionId + "]");
+                "取消注册失败. 查询到指定Topic、Partition对应的消息文件. topic:[" + topic + "]" + " | partition:[" + partitionId + "]");
         }
     }
 
@@ -200,10 +200,6 @@ public final class DefaultIndexStoreServiceImpl implements IIndexStoreService {
                 if (!indexLogGroupByTopic.containsKey(partitionId)) {
                     indexLogGroupByTopic.put(partitionId, indexLog);
                 }
-
-                // 创建IndexConstructWorker
-                final IndexConstructWorker worker = new IndexConstructWorker(topic, partitionId);
-                workers.add(worker);
             }
         } catch (IOException ex) {
             throw new FileLoadException();

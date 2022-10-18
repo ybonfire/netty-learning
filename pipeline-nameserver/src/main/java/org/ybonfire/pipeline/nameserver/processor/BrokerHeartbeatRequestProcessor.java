@@ -1,7 +1,5 @@
 package org.ybonfire.pipeline.nameserver.processor;
 
-import java.util.List;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
@@ -20,6 +18,8 @@ import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
+
+import java.util.List;
 
 /**
  * BrokerHeartbeatRequest请求处理器
@@ -66,7 +66,7 @@ public final class BrokerHeartbeatRequestProcessor extends AbstractRemotingReque
         uploadRouteRequestPublisher.publish(request);
 
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
-            DefaultResponse.create(ResponseEnum.SUCCESS.name()));
+            new DefaultResponse(ResponseEnum.SUCCESS.name()));
     }
 
     /**
