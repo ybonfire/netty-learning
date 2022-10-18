@@ -1,10 +1,8 @@
 package org.ybonfire.pipeline.common.codec.response.serializer.impl;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Objects;
-import java.util.Optional;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.ybonfire.pipeline.common.codec.response.serializer.IResponseSerializer;
 import org.ybonfire.pipeline.common.constant.CommonConstant;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
@@ -14,8 +12,10 @@ import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 默认序列化器实现
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class DefaultResponseSerializerImpl implements IResponseSerializer {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
     /**
      * @description: 序列化

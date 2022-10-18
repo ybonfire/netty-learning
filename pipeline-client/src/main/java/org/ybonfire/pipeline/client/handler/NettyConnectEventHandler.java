@@ -2,6 +2,7 @@ package org.ybonfire.pipeline.client.handler;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import org.ybonfire.pipeline.client.thread.ClientChannelEventHandleThreadService;
@@ -19,6 +20,7 @@ import java.net.SocketAddress;
  * @author yuanbo
  * @date 2022-10-12 17:50
  */
+@ChannelHandler.Sharable
 public final class NettyConnectEventHandler extends ChannelDuplexHandler {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final NettyConnectEventHandler INSTANCE = new NettyConnectEventHandler();
@@ -40,7 +42,7 @@ public final class NettyConnectEventHandler extends ChannelDuplexHandler {
         super.connect(ctx, remoteAddress, localAddress, promise);
 
         final String local = RemotingUtil.getLocalAddress();
-        final String remote = RemotingUtil.parseChannelAddress(ctx.channel());
+        final String remote = RemotingUtil.parseSocketAddress(remoteAddress);
         LOGGER.info("NETTY CLIENT PIPELINE: CONNECT " + local + "->" + remote);
 
         // 发布连接事件

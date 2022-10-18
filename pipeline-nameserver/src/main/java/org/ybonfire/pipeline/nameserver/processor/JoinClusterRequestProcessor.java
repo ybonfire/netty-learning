@@ -50,7 +50,7 @@ public final class JoinClusterRequestProcessor extends AbstractRemotingRequestPr
             PeerNode.builder().id(request.getBody().getNodeId()).address(request.getBody().getAddress()).build();
         PeerManager.getInstance().add(peerNode);
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
-            DefaultResponse.create(ResponseEnum.SUCCESS.name()));
+            new DefaultResponse(ResponseEnum.SUCCESS.name()));
     }
 
     /**

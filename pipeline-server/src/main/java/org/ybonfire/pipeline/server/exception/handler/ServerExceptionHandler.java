@@ -30,7 +30,7 @@ public class ServerExceptionHandler {
         final int code = request.getCode();
         final ResponseEnum responseType = ObjectUtils.defaultIfNull(ex.getResponseType(), ResponseEnum.UNKNOWN_ERROR);
         final int status = responseType.getCode();
-        final DefaultResponse response = DefaultResponse.create(responseType.name());
+        final DefaultResponse response = new DefaultResponse(responseType.name());
         return RemotingResponse.create(id, code, status, response);
     }
 
@@ -46,7 +46,7 @@ public class ServerExceptionHandler {
         final int code = request.getCode();
         final ResponseEnum responseType = ResponseEnum.UNKNOWN_ERROR;
         final int status = responseType.getCode();
-        final DefaultResponse response = DefaultResponse.create(responseType.name());
+        final DefaultResponse response = new DefaultResponse(responseType.name());
         return RemotingResponse.create(id, code, status, response);
     }
 

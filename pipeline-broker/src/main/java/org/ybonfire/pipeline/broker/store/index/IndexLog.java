@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
@@ -42,7 +41,7 @@ public final class IndexLog {
     }
 
     private IndexLog(final File file) throws IOException {
-        final String[] parseResult = parseTopicPartitionByFilename(file.getName());
+        final String[] parseResult = parseTopicPartitionByFilename(file.getAbsolutePath());
         final String topic = parseResult[0];
         final int partitionId = Integer.parseInt(parseResult[1]);
 
@@ -161,15 +160,12 @@ public final class IndexLog {
      * @return {@link String}
      */
     private static String[] parseTopicPartitionByFilename(final String filename) {
-        String[] result;
         if (filename.startsWith(INDEX_STORE_BASE_PATH)) {
-            result = filename.substring((INDEX_STORE_BASE_PATH + File.separator).length()).split(File.separator);
-        } else {
-            result = filename.split(File.separator);
-        }
+            final String subFilename = filename.substring((INDEX_STORE_BASE_PATH + File.separator).length());
+            final String topic = subFilename.substring(0, subFilename.indexOf(File.separator));
+            final String partition = subFilename.substring(subFilename.indexOf(File.separator) + 1);
 
-        if (result.length == 2) {
-            return result;
+            return new String[] {topic, partition};
         }
 
         throw new FileLoadException();
@@ -194,21 +190,26 @@ public final class IndexLog {
      * @throws IOException ioexception
      */
     public static List<IndexLog> reloadAll() throws IOException {
+        final List<IndexLog> indices = new ArrayList<>();
         final File indexLogDir = new File(INDEX_STORE_BASE_PATH);
         if (indexLogDir.isDirectory()) {
-            final File[] indexLogFiles = indexLogDir.listFiles();
-            if (indexLogFiles != null) {
-                final List<IndexLog> indices = new ArrayList<>(indexLogFiles.length);
-                for (final File indexLogFile : indexLogFiles) {
-                    final IndexLog index = new IndexLog(indexLogFile);
-                    // TODO set Positions
-                    indices.add(index);
+            final File[] indexLogFilesGroupByTopic = indexLogDir.listFiles();
+            if (indexLogFilesGroupByTopic != null) {
+                for (final File indexLogFilesGroup : indexLogFilesGroupByTopic) {
+                    if (indexLogFilesGroup.isDirectory()) {
+                        final File[] indexLogFiles = indexLogFilesGroup.listFiles();
+                        if (indexLogFiles != null) {
+                            for (final File indexLogFile : indexLogFiles) {
+                                final IndexLog index = new IndexLog(indexLogFile);
+                                // TODO set Positions
+                                indices.add(index);
+                            }
+                        }
+                    }
                 }
-
-                return indices;
             }
         }
 
-        return Collections.emptyList();
+        return indices;
     }
 }

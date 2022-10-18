@@ -257,14 +257,14 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      * @date: 2022/10/13 10:10:00
      */
     private void onStart() {
+        // 开启索引构建服务
+        DefaultIndexStoreServiceImpl.getInstance().start();
         // 加载消息文件数据
         reload();
         // 注册Topic配置变更回调
         DefaultTopicConfigManager.getInstance().register(callback);
         // 开启刷盘线程
         messageLogFlushThreadService.start();
-        // 开启索引构建服务
-        DefaultIndexStoreServiceImpl.getInstance().start();
     }
 
     /**
@@ -274,14 +274,14 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      * @date: 2022/10/13 10:09:17
      */
     private void onShutdown() {
-        // 关闭索引构建服务
-        DefaultIndexStoreServiceImpl.getInstance().shutdown();
         // 关闭刷盘线程
         messageLogFlushThreadService.stop();
         // 取消注册Topic配置变更回调
         DefaultTopicConfigManager.getInstance().deregister(callback);
         // 消息文件数据刷盘
         flushAll();
+        // 关闭索引构建服务
+        DefaultIndexStoreServiceImpl.getInstance().shutdown();
     }
 
     /**
