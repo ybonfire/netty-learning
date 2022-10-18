@@ -2,9 +2,10 @@ package org.ybonfire.pipeline.broker.processor;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.ybonfire.pipeline.broker.config.BrokerConfig;
 import org.ybonfire.pipeline.broker.exception.BrokerNotPartitionLeaderException;
-import org.ybonfire.pipeline.broker.model.topic.PartitionConfig;
 import org.ybonfire.pipeline.broker.model.RoleEnum;
+import org.ybonfire.pipeline.broker.model.topic.PartitionConfig;
 import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
 import org.ybonfire.pipeline.broker.role.RoleManager;
 import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreServiceImpl;
@@ -16,6 +17,7 @@ import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.broker.MessageProduceRequest;
+import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
@@ -33,9 +35,7 @@ public final class ProduceMessageRequestProcessor extends AbstractRemotingReques
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final ProduceMessageRequestProcessor INSTANCE = new ProduceMessageRequestProcessor();
 
-    private ProduceMessageRequestProcessor() {
-        DefaultMessageStoreServiceImpl.getInstance().start();
-    }
+    private ProduceMessageRequestProcessor() {}
 
     /**
      * @description: 参数校验
@@ -71,7 +71,8 @@ public final class ProduceMessageRequestProcessor extends AbstractRemotingReques
     protected RemotingResponse fire(final IRemotingRequest<MessageProduceRequest> request) {
         final MessageProduceRequest body = request.getBody();
         DefaultMessageStoreServiceImpl.getInstance().store(body.getTopic(), body.getPartitionId(), body.getMessage());
-        return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(), null);
+        return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
+            new DefaultResponse(ResponseEnum.SUCCESS.name()));
     }
 
     /**
@@ -137,27 +138,32 @@ public final class ProduceMessageRequestProcessor extends AbstractRemotingReques
             return false;
         }
 
-        final Optional<TopicConfig> topicConfigOptional =
-            DefaultTopicConfigManager.getInstance().selectTopicConfig(request.getTopic());
-        if (!topicConfigOptional.isPresent()) {
-            LOGGER.error("produce message request topic config not found");
-            return false;
-        }
-
         // check partition
         if (request.getPartitionId() == null) {
             LOGGER.error("produce message request[partitionId] is null");
             return false;
         }
 
-        final List<PartitionConfig> partitions = topicConfigOptional.get().getPartitions();
-        if (CollectionUtils.isEmpty(partitions)) {
-            LOGGER.error("produce message request partition config not found");
-            return false;
+        // check topic config in broker when broker not allow auto create topic
+        if (!BrokerConfig.getInstance().isEnableAutoCreateTopic()) {
+            final Optional<TopicConfig> topicConfigOptional =
+                DefaultTopicConfigManager.getInstance().selectTopicConfig(request.getTopic());
+            if (!topicConfigOptional.isPresent()) {
+                LOGGER.error("produce message request topic config not found");
+                return false;
+            }
+
+            final List<PartitionConfig> partitions = topicConfigOptional.get().getPartitions();
+            if (CollectionUtils.isEmpty(partitions)) {
+                LOGGER.error("produce message request partition config not found");
+                return false;
+            }
+
+            return partitions.stream().map(PartitionConfig::getPartitionId)
+                .anyMatch(partitionId -> partitionId.equals(request.getPartitionId()));
         }
 
-        return partitions.stream().map(PartitionConfig::getPartitionId)
-            .anyMatch(partitionId -> partitionId.equals(request.getPartitionId()));
+        return true;
     }
 
     /**

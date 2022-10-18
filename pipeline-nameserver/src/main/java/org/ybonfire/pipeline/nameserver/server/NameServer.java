@@ -5,6 +5,7 @@ import org.ybonfire.pipeline.nameserver.processor.BrokerHeartbeatRequestProcesso
 import org.ybonfire.pipeline.nameserver.processor.JoinClusterRequestProcessor;
 import org.ybonfire.pipeline.nameserver.processor.SelectAllRouteRequestProcessor;
 import org.ybonfire.pipeline.nameserver.processor.SelectByTopicNameRequestProcessor;
+import org.ybonfire.pipeline.nameserver.processor.SelectByTopicNamesRequestProcessor;
 import org.ybonfire.pipeline.nameserver.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.server.NettyRemotingServer;
 import org.ybonfire.pipeline.server.config.NettyServerConfig;
@@ -37,6 +38,8 @@ public final class NameServer extends NettyRemotingServer {
         registerRouteSelectAllRequestProcessor();
         // RouteSelectRequestProcessor
         registerRouteSelectRequestProcessor();
+        // RoutesSelectRequestProcessor
+        registerRoutesSelectRequestProcessor();
         // JoinClusterRequestProcessor
         registerJoinClusterRequestProcessor();
     }
@@ -65,6 +68,15 @@ public final class NameServer extends NettyRemotingServer {
     private void registerRouteSelectRequestProcessor() {
         final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();
         registerRequestProcessor(RequestEnum.SELECT_ROUTE.getCode(), SelectByTopicNameRequestProcessor.getInstance(),
+            processorExecutor);
+    }
+
+    /**
+     * 注册SelectByTopicNamesRequestProcessor
+     */
+    private void registerRoutesSelectRequestProcessor() {
+        final ExecutorService processorExecutor = ThreadPoolUtil.getNameserverProcessorExecutorService();
+        registerRequestProcessor(RequestEnum.SELECT_ROUTES.getCode(), SelectByTopicNamesRequestProcessor.getInstance(),
             processorExecutor);
     }
 

@@ -1,11 +1,11 @@
 package org.ybonfire.pipeline.producer.partition;
 
-import java.util.Optional;
-
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.producer.route.RouteManager;
+
+import java.util.Optional;
 
 /**
  * Partition选择器

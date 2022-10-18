@@ -20,4 +20,5 @@ import java.util.List;
 @Data
 public class RouteSelectByTopicsRequest implements IRemotingRequestBody {
     private List<String> topics;
+    private Boolean autoCreateWhenTopicNotFound;
 }

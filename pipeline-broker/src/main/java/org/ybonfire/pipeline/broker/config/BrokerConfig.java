@@ -23,6 +23,10 @@ public class BrokerConfig extends NettyServerConfig {
      * Broker角色配置
      */
     private final int role = 1;
+    /**
+     * 是否允许自动创建Topic
+     */
+    private final boolean enableAutoCreateTopic = false;
 
     public static BrokerConfig getInstance() {
         return INSTANCE;

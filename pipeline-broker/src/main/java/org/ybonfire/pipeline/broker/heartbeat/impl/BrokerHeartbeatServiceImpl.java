@@ -117,9 +117,10 @@ public class BrokerHeartbeatServiceImpl implements IBrokerHeartbeatService {
         final RoleEnum role = RoleManager.getInstance().get();
         final String address = RemotingUtil.getLocalAddress();
         final List<TopicConfig> topicConfigs = DefaultTopicConfigManager.getInstance().selectAllTopicConfigs();
+        final boolean enableAutoCreateTopic = BrokerConfig.getInstance().isEnableAutoCreateTopic();
 
         return HeartbeatData.builder().brokerId(brokerId).role(role).address(address).topicConfigs(topicConfigs)
-            .build();
+            .enableAutoCreateTopic(enableAutoCreateTopic).build();
     }
 
     /**

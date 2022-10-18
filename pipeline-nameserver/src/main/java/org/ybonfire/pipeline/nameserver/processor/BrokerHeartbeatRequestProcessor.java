@@ -14,7 +14,6 @@ import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatR
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.nameserver.replica.publish.RouteUploadRequestPublisher;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
-import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
@@ -22,7 +21,7 @@ import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 import java.util.List;
 
 /**
- * BrokerHeartbeatRequest请求处理器
+ * BrokerHeartbeatRequestProcessor
  *
  * @author Bo.Yuan5
  * @date 2022-07-01 17:35
@@ -30,7 +29,7 @@ import java.util.List;
 public final class BrokerHeartbeatRequestProcessor extends AbstractRemotingRequestProcessor<BrokerHeartbeatRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final BrokerHeartbeatRequestProcessor INSTANCE = new BrokerHeartbeatRequestProcessor();
-    private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
+    private final RouteManageService routeManageService = RouteManageService.getInstance();
     private final RouteUploadRequestPublisher uploadRouteRequestPublisher = RouteUploadRequestPublisher.getInstance();
 
     private BrokerHeartbeatRequestProcessor() {

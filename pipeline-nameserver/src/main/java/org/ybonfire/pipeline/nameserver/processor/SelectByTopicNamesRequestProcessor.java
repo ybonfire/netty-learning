@@ -6,7 +6,7 @@ import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectByTop
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 /**
- * RouteSelectByTopicsRequest请求处理器
+ * SelectByTopicNamesRequestProcessor
  *
  * @author yuanbo
  * @date 2022-10-14 16:56

@@ -12,7 +12,6 @@ import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectAllRe
 import org.ybonfire.pipeline.common.protocol.response.nameserver.RouteSelectResponse;
 import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
-import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
@@ -22,7 +21,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * RouteSelectAllRequest请求处理器
+ * SelectAllRouteRequestProcessor
  *
  * @author Bo.Yuan5
  * @date 2022-07-11 14:04
@@ -30,7 +29,7 @@ import java.util.stream.Collectors;
 public final class SelectAllRouteRequestProcessor extends AbstractRemotingRequestProcessor<RouteSelectAllRequest> {
     private static final SelectAllRouteRequestProcessor INSTANCE = new SelectAllRouteRequestProcessor();
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
+    private final RouteManageService routeManageService = RouteManageService.getInstance();
 
     private SelectAllRouteRequestProcessor() {}
 

@@ -21,6 +21,10 @@ public class BrokerData {
      */
     private final Integer role;
     /**
+     * 是否允许自动创建Topic
+     */
+    private final boolean enableAutoCreateTopic;
+    /**
      * Broker地址
      */
     private final String address;

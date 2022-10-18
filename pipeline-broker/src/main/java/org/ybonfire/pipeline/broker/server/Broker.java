@@ -8,6 +8,7 @@ import org.ybonfire.pipeline.broker.processor.ProduceMessageRequestProcessor;
 import org.ybonfire.pipeline.broker.processor.UpdateTopicRequestProcessor;
 import org.ybonfire.pipeline.broker.heartbeat.impl.BrokerHeartbeatServiceImpl;
 import org.ybonfire.pipeline.broker.role.RoleManager;
+import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreServiceImpl;
 import org.ybonfire.pipeline.broker.topic.impl.DefaultTopicConfigManager;
 import org.ybonfire.pipeline.broker.util.ThreadPoolUtil;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
@@ -140,6 +141,9 @@ public final class Broker extends NettyRemotingServer {
         // 启动Topic配置管理服务
         DefaultTopicConfigManager.getInstance().start();
 
+        // 启动消息存储服务
+        DefaultMessageStoreServiceImpl.getInstance().start();
+
         // 启动Broker注册服务
         BrokerHeartbeatServiceImpl.getInstance().start();
 
@@ -166,6 +170,9 @@ public final class Broker extends NettyRemotingServer {
 
         // 关闭Broker注册服务
         BrokerHeartbeatServiceImpl.getInstance().shutdown();
+
+        // 关闭消息存储服务
+        DefaultMessageStoreServiceImpl.getInstance().shutdown();
 
         // 关闭Topic配置管理服务
         DefaultTopicConfigManager.getInstance().shutdown();

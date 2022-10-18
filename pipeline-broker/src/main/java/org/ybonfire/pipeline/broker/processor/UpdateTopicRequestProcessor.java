@@ -14,6 +14,7 @@ import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.broker.UpdateTopicRequest;
+import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
@@ -65,7 +66,8 @@ public final class UpdateTopicRequestProcessor extends AbstractRemotingRequestPr
         final UpdateTopicRequest body = request.getBody();
         final TopicConfig topicConfig = UpdateTopicRequestConverter.getInstance().convert(body);
         DefaultTopicConfigManager.getInstance().updateTopicConfig(topicConfig);
-        return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(), null);
+        return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
+            new DefaultResponse(ResponseEnum.SUCCESS.name()));
     }
 
     /**

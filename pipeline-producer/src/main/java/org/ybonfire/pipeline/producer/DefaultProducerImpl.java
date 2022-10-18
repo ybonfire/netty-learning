@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.producer;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
 import org.ybonfire.pipeline.common.exception.LifeCycleException;
@@ -139,7 +140,7 @@ public final class DefaultProducerImpl implements IProducer {
             throw new IllegalMessageException("topic must not blank");
         }
 
-        if (message.getPayload() == null || message.getPayload().length == 0) {
+        if (ArrayUtils.isEmpty(message.getPayload())) {
             throw new IllegalMessageException("payload must not be empty");
         }
     }

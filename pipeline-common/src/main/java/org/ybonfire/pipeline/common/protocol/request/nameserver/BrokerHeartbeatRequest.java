@@ -37,6 +37,10 @@ public class BrokerHeartbeatRequest implements IRemotingRequestBody {
      */
     private List<TopicConfigRemotingEntity> topicConfigs;
     /**
+     * 是否允许自动创建Topic
+     */
+    private Boolean enableAutoCreateTopic;
+    /**
      * 心跳时间戳
      */
     private Long timestamp;

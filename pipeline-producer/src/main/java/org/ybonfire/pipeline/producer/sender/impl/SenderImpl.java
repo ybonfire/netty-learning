@@ -1,10 +1,6 @@
 package org.ybonfire.pipeline.producer.sender.impl;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import lombok.Getter;
 import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
@@ -16,7 +12,10 @@ import org.ybonfire.pipeline.producer.model.ProduceTypeEnum;
 import org.ybonfire.pipeline.producer.sender.ISender;
 import org.ybonfire.pipeline.producer.util.ThreadPoolUtil;
 
-import lombok.Getter;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 发送器实现
@@ -75,13 +74,12 @@ public class SenderImpl implements ISender {
             return;
         }
 
-        final long timeoutMillis = message.getTimeoutMillis();
-
         // 构造消息发送异步任务
         final MessageSendThreadTask task = buildMessageSendThreadTask(message);
         produceMessageExecutor.submit(task);
 
         // 阻塞等待同步投递结果
+        final long timeoutMillis = message.getTimeoutMillis();
         if (isSyncMessage(message) && timeoutMillis > 0L) {
             try {
                 task.getLatch().await(timeoutMillis, TimeUnit.MILLISECONDS);
