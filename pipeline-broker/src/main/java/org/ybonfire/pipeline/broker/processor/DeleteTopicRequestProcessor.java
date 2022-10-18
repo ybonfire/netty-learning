@@ -12,6 +12,7 @@ import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
 import org.ybonfire.pipeline.common.protocol.request.broker.DeleteTopicRequest;
+import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
@@ -62,7 +63,8 @@ public final class DeleteTopicRequestProcessor extends AbstractRemotingRequestPr
     protected RemotingResponse fire(final IRemotingRequest<DeleteTopicRequest> request) {
         final DeleteTopicRequest body = request.getBody();
         DefaultTopicConfigManager.getInstance().deleteTopicConfig(body.getTopic());
-        return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(), null);
+        return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
+            new DefaultResponse(ResponseEnum.SUCCESS.name()));
     }
 
     /**

@@ -1,5 +1,12 @@
 package org.ybonfire.pipeline.producer.route;
 
+import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.common.model.TopicInfo;
+import org.ybonfire.pipeline.producer.constant.ProducerConstant;
+import org.ybonfire.pipeline.producer.metadata.NameServers;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -11,13 +18,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-
-import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
-import org.ybonfire.pipeline.common.logger.IInternalLogger;
-import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
-import org.ybonfire.pipeline.common.model.TopicInfo;
-import org.ybonfire.pipeline.producer.constant.ProducerConstant;
-import org.ybonfire.pipeline.producer.metadata.NameServers;
 
 /**
  * 路由管理器
@@ -71,7 +71,7 @@ public final class RouteManager implements ILifeCycle {
     @Override
     public void shutdown() {
         if (isStarted.compareAndSet(true, false)) {
-            nameServers.stop();
+            nameServers.shutdown();
             scheduler.shutdown();
         }
     }

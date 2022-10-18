@@ -1,15 +1,14 @@
 package org.ybonfire.pipeline.producer.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.ybonfire.pipeline.common.util.ThreadWorkerFactory;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import org.ybonfire.pipeline.common.util.ThreadWorkerFactory;
-
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
 /**
  * 线程池工具类
@@ -28,8 +27,21 @@ public final class ThreadPoolUtil {
         buildThreadPool(MESSAGE_PRODUCE_THREAD_NUMS_MIN, MESSAGE_PRODUCE_THREAD_NUMS_MAX,
             MESSAGE_PRODUCE_TASK_QUEUE_CAPACITY, MESSAGE_PRODUCE_THREAD_FACTORY);
 
+    private static final int NAMESERVER_REQUEST_THREAD_NUMS_MIN = 3;
+    private static final int NAMESERVER_REQUEST_THREAD_NUMS_MAX = 3;
+    private static final int NAMESERVER_REQUEST_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final ThreadFactory NAMESERVER_REQUEST_THREAD_FACTORY =
+        new ThreadWorkerFactory("nameserver_request_", true);
+    private static final ExecutorService NAMESERVER_REQUEST_EXECUTOR_SERVICE =
+        buildThreadPool(NAMESERVER_REQUEST_THREAD_NUMS_MIN, NAMESERVER_REQUEST_THREAD_NUMS_MAX,
+            NAMESERVER_REQUEST_TASK_QUEUE_CAPACITY, NAMESERVER_REQUEST_THREAD_FACTORY);
+
     public static ExecutorService getMessageProduceExecutorService() {
         return MESSAGE_PRODUCE_EXECUTOR_SERVICE;
+    }
+
+    public static ExecutorService getNameserverRequestExecutorService() {
+        return NAMESERVER_REQUEST_EXECUTOR_SERVICE;
     }
 
     /**

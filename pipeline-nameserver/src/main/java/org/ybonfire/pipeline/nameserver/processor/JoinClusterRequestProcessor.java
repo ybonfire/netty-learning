@@ -14,7 +14,7 @@ import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 /**
- * JoinClusterRequest请求处理器
+ * JoinClusterRequestProcessor
  *
  * @author Bo.Yuan5
  * @date 2022-08-05 18:14

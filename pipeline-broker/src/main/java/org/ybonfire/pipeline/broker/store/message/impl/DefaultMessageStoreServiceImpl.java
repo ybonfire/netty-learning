@@ -152,6 +152,7 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
                 final Map<Integer, MessageLog> messageLogGroupByTopic = messageLogTable.get(topic);
                 if (!messageLogGroupByTopic.containsKey(partitionId)) {
                     messageLogGroupByTopic.put(partitionId, messageLog);
+                    // 注册IndexConstructWorker
                     DefaultIndexStoreServiceImpl.getInstance().register(topic, partitionId);
                 }
             }

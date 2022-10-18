@@ -1,15 +1,15 @@
 package org.ybonfire.pipeline.producer.partition.impl;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.common.model.TopicInfo;
 import org.ybonfire.pipeline.producer.partition.AbstractPartitionSelector;
 import org.ybonfire.pipeline.producer.route.RouteManager;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Round-Robin策略Partition选择器

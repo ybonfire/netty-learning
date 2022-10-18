@@ -64,10 +64,12 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
         final List<TopicConfigRemotingEntity> topicConfigs =
             CollectionUtils.emptyIfNull(heartbeatData.getTopicConfigs()).stream()
                 .map(this::buildTopicConfigRemotingEntity).collect(Collectors.toList());
+        final boolean enableAutoCreateTopic = heartbeatData.isEnableAutoCreateTopic();
         final Long timestamp = heartbeatData.getTimestamp();
 
-        final BrokerHeartbeatRequest body = BrokerHeartbeatRequest.builder().brokerId(brokerId).role(role)
-            .address(address).topicConfigs(topicConfigs).timestamp(timestamp).build();
+        final BrokerHeartbeatRequest body =
+            BrokerHeartbeatRequest.builder().brokerId(brokerId).role(role).address(address).topicConfigs(topicConfigs)
+                .enableAutoCreateTopic(enableAutoCreateTopic).timestamp(timestamp).build();
 
         return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.BROKER_HEARTBEAT.getCode(), body);
     }

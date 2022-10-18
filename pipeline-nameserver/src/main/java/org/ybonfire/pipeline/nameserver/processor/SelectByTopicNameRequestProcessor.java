@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.nameserver.processor;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.ybonfire.pipeline.common.constant.RequestEnum;
 import org.ybonfire.pipeline.common.constant.ResponseEnum;
 import org.ybonfire.pipeline.common.logger.IInternalLogger;
@@ -12,7 +13,6 @@ import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectByTop
 import org.ybonfire.pipeline.common.protocol.response.nameserver.RouteSelectResponse;
 import org.ybonfire.pipeline.nameserver.converter.TopicInfoConverter;
 import org.ybonfire.pipeline.nameserver.route.RouteManageService;
-import org.ybonfire.pipeline.nameserver.route.impl.InMemoryRouteRepository;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 /**
- * RouteSelectByTopicRequest请求处理器
+ * SelectByTopicNameRequestProcessor
  *
  * @author Bo.Yuan5
  * @date 2022-07-11 14:04
@@ -29,7 +29,7 @@ public final class SelectByTopicNameRequestProcessor
     extends AbstractRemotingRequestProcessor<RouteSelectByTopicRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final SelectByTopicNameRequestProcessor INSTANCE = new SelectByTopicNameRequestProcessor();
-    private final RouteManageService routeManageService = new RouteManageService(InMemoryRouteRepository.getInstance());
+    private final RouteManageService routeManageService = RouteManageService.getInstance();
 
     private SelectByTopicNameRequestProcessor() {}
 
@@ -54,8 +54,10 @@ public final class SelectByTopicNameRequestProcessor
      */
     @Override
     protected RemotingResponse fire(final IRemotingRequest<RouteSelectByTopicRequest> request) {
-        final Optional<TopicInfo> topicInfoOptional =
-            routeManageService.selectTopicInfoByName(request.getBody().getTopic());
+        final RouteSelectByTopicRequest body = request.getBody();
+        final String topic = body.getTopic();
+        final boolean autoCreate = BooleanUtils.toBooleanDefaultIfNull(body.getAutoCreateWhenTopicNotFound(), false);
+        final Optional<TopicInfo> topicInfoOptional = routeManageService.selectTopicInfoByName(topic, autoCreate);
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
             convert(topicInfoOptional));
     }

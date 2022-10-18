@@ -33,6 +33,10 @@ public class HeartbeatData {
      */
     private final List<TopicConfig> topicConfigs;
     /**
+     * 是否允许自动创建Topic
+     */
+    private final boolean enableAutoCreateTopic;
+    /**
      * 心跳时间戳
      */
     private final long timestamp = System.currentTimeMillis();
