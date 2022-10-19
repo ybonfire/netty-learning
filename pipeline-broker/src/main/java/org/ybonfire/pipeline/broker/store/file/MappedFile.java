@@ -1,12 +1,5 @@
 package org.ybonfire.pipeline.broker.store.file;
 
-import lombok.EqualsAndHashCode;
-import org.ybonfire.pipeline.broker.exception.MessageFileNotEnoughSpaceException;
-import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
-import org.ybonfire.pipeline.common.logger.IInternalLogger;
-import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
-import org.ybonfire.pipeline.server.exception.MessageWriteFailedException;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -17,6 +10,15 @@ import java.nio.ReadOnlyBufferException;
 import java.nio.channels.FileChannel;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.ybonfire.pipeline.broker.exception.FileReadException;
+import org.ybonfire.pipeline.broker.exception.MessageFileNotEnoughSpaceException;
+import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.server.exception.MessageWriteFailedException;
+
+import lombok.EqualsAndHashCode;
 
 /**
  * 文件内存映射操作对象
@@ -108,18 +110,19 @@ public final class MappedFile {
      * @return {@link Optional}<{@link SelectMappedFileDataResult}>
      */
     public Optional<SelectMappedFileDataResult> get(final int position) {
-        final int flushPosition = getLastFlushPosition();
-        final int size = flushPosition - position;
-        if (size <= 0) {
-            return Optional.empty();
+        if (position < 0) {
+            throw new FileReadException();
         }
 
-        final ByteBuffer readBuffer = mappedByteBuffer.slice();
-        readBuffer.position(position);
-        final ByteBuffer data = readBuffer.slice();
-        data.limit(size);
+        final int flushPosition = getLastFlushPosition();
+        final int dataSize = Math.max(flushPosition - position, 0);
 
-        return Optional.of(SelectMappedFileDataResult.builder().startPosition(position).size(size).data(data).build());
+        final ByteBuffer data = mappedByteBuffer.slice();
+        data.position(position);
+        data.limit(position + dataSize);
+
+        return Optional
+            .of(SelectMappedFileDataResult.builder().startPosition(position).size(dataSize).data(data).build());
     }
 
     /**
@@ -129,12 +132,19 @@ public final class MappedFile {
      * @return {@link Optional}<{@link SelectMappedFileDataResult}>
      */
     public Optional<SelectMappedFileDataResult> get(final int position, final int size) {
-        final ByteBuffer readBuffer = mappedByteBuffer.slice();
-        readBuffer.position(position);
-        final ByteBuffer data = readBuffer.slice();
-        data.limit(size);
+        if (position < 0 || size < 0) {
+            throw new FileReadException();
+        }
 
-        return Optional.of(SelectMappedFileDataResult.builder().startPosition(position).size(size).data(data).build());
+        final int flushPosition = getLastFlushPosition();
+        final int dataSize = Math.max(Math.min(size, flushPosition - position), 0);
+
+        final ByteBuffer data = mappedByteBuffer.slice();
+        data.position(position);
+        data.limit(position + dataSize);
+
+        return Optional
+            .of(SelectMappedFileDataResult.builder().startPosition(position).size(dataSize).data(data).build());
     }
 
     /**
@@ -176,12 +186,30 @@ public final class MappedFile {
     }
 
     /**
+     * 设置写入偏移量
+     *
+     * @param writePosition 偏移量
+     */
+    public void setLastWritePosition(final int writePosition) {
+        lastWritePosition.set(writePosition);
+    }
+
+    /**
      * 获取刷盘偏移量
      *
      * @return int
      */
     public int getLastFlushPosition() {
         return lastFlushPosition.get();
+    }
+
+    /**
+     * 设置刷盘偏移量
+     *
+     * @param flushPosition 偏移量
+     */
+    public void setLastFlushPosition(final int flushPosition) {
+        lastFlushPosition.set(flushPosition);
     }
 
     /**

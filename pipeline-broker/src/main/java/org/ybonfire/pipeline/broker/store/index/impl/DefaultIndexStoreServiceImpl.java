@@ -97,10 +97,9 @@ public final class DefaultIndexStoreServiceImpl implements IIndexStoreService {
             // 确保IndexLog文件已创建
             ensureIndexLogCreateOK(topic, partitionId);
 
-            // 创建IndexConstructWorker
+            // 添加IndexConstructWorker
             final IndexConstructWorker worker = new IndexConstructWorker(topic, partitionId);
-            workers.add(worker);
-            worker.start();
+            tryToAddWorker(new IndexConstructWorker(topic, partitionId));
         } else {
             LOGGER.error(
                 "注册失败. 未查询到指定Topic、Partition对应的消息文件. topic:[" + topic + "]" + "| partition:[" + partitionId + "]");
@@ -126,10 +125,9 @@ public final class DefaultIndexStoreServiceImpl implements IIndexStoreService {
             final Optional<IndexConstructWorker> workerOptional =
                 tryToFindIndexLogConstructWorkerByTopicPartition(topic, partitionId);
             if (workerOptional.isPresent()) {
-                // 停止并移除对应Worker
+                // 停止并移除IndexConstructWorker
                 final IndexConstructWorker worker = workerOptional.get();
-                worker.stop();
-                workers.remove(worker);
+                tryToRemoveWorker(worker);
             }
         } else {
             LOGGER.error(
@@ -147,6 +145,40 @@ public final class DefaultIndexStoreServiceImpl implements IIndexStoreService {
     public Optional<IndexLog> tryToFindIndexLogByTopicPartition(String topic, int partitionId) {
         return Optional.ofNullable(indexTable.get(topic))
             .map(indexLogGroupByTopic -> indexLogGroupByTopic.get(partitionId));
+    }
+
+    /**
+     * @description: 尝试添加IndexConstructWorker
+     * @param:
+     * @return:
+     * @date: 2022/10/19 16:34:51
+     */
+    private void tryToAddWorker(final IndexConstructWorker worker) {
+        if (worker == null) {
+            return;
+        }
+
+        if (!workers.contains(worker)) {
+            workers.add(worker);
+            worker.start();
+        }
+    }
+
+    /**
+     * @description: 尝试移除IndexConstructWorker
+     * @param:
+     * @return:
+     * @date: 2022/10/19 16:39:21
+     */
+    private void tryToRemoveWorker(final IndexConstructWorker worker) {
+        if (worker == null) {
+            return;
+        }
+
+        if (workers.contains(worker)) {
+            workers.remove(worker);
+            worker.stop();
+        }
     }
 
     /**
@@ -283,7 +315,7 @@ public final class DefaultIndexStoreServiceImpl implements IIndexStoreService {
         private final AtomicInteger lastIndexPosition = new AtomicInteger(0);
 
         public IndexConstructWorker(final String topic, final int partitionId) {
-            super(100L);
+            super(50L);
             this.topic = topic;
             this.partitionId = partitionId;
         }

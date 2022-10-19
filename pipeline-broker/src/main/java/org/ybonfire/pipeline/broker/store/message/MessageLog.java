@@ -6,6 +6,8 @@ import org.ybonfire.pipeline.broker.exception.FileLoadException;
 import org.ybonfire.pipeline.broker.exception.MessageFileIllegalStateException;
 import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
+import org.ybonfire.pipeline.broker.store.index.IndexLog;
+import org.ybonfire.pipeline.broker.store.index.impl.DefaultIndexStoreServiceImpl;
 import org.ybonfire.pipeline.common.constant.CommonConstant;
 import org.ybonfire.pipeline.common.model.Message;
 
@@ -172,12 +174,39 @@ public final class MessageLog {
     }
 
     /**
+     * 获取写入偏移量
+     *
+     * @return int
+     */
+    public int getLastWritePosition() {
+        return file.getLastWritePosition();
+    }
+
+    /**
+     * 设置写入偏移量
+     *
+     * @param writePosition 写入偏移量
+     */
+    public void setLastWritePosition(final int writePosition) {
+        file.setLastWritePosition(writePosition);
+    }
+
+    /**
      * 获取刷盘偏移量
      *
      * @return int
      */
     public int getLastFlushPosition() {
         return file.getLastFlushPosition();
+    }
+
+    /**
+     * 设置刷盘偏移量
+     *
+     * @param flushPosition 刷盘偏移量
+     */
+    public void setLastFlushPosition(final int flushPosition) {
+        file.setLastFlushPosition(flushPosition);
     }
 
     /**
@@ -280,7 +309,7 @@ public final class MessageLog {
                     if (messageLogFiles != null) {
                         for (final File messageLogFile : messageLogFiles) {
                             final MessageLog log = new MessageLog(messageLogFile);
-                            // TODO set Positions
+                            resetMessageLogPositions(log);
                             logs.add(log);
                         }
                     }
@@ -289,6 +318,43 @@ public final class MessageLog {
         }
 
         return logs;
+    }
+
+    /**
+     * @description: 重置对应MessageLog的偏移量
+     * @param:
+     * @return:
+     * @date: 2022/10/19 16:49:17
+     */
+    private static void resetMessageLogPositions(final MessageLog messageLog) {
+        if (messageLog == null) {
+            return;
+        }
+
+        int position = 0;
+        final String topic = messageLog.getTopic();
+        final int partitionId = messageLog.getPartitionId();
+
+        // 读取对应Topic、Partition的IndexLog.
+        final Optional<IndexLog> indexLogOptional =
+            DefaultIndexStoreServiceImpl.getInstance().tryToFindIndexLogByTopicPartition(topic, partitionId);
+        if (indexLogOptional.isPresent()) {
+            final IndexLog indexLog = indexLogOptional.get();
+            final Optional<SelectMappedFileDataResult> resultOptional = indexLog.get(position);
+            if (resultOptional.isPresent()) {
+                final SelectMappedFileDataResult result = resultOptional.get();
+                final ByteBuffer byteBuffer = result.getData();
+
+                // 获取最后一条Index，计算MessageLog偏移量
+                byteBuffer.position(byteBuffer.limit() - IndexLog.INDEX_UNIT_BYTE_LENGTH);
+                position = byteBuffer.getInt();
+                position += byteBuffer.getInt();
+            }
+        }
+
+        // 设置MessageLog偏移量
+        messageLog.setLastFlushPosition(position);
+        messageLog.setLastWritePosition(position);
     }
 
     /**
