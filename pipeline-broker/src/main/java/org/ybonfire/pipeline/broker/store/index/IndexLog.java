@@ -28,7 +28,7 @@ public final class IndexLog {
     /**
      * 4 bytes startOffset + 4 bytes size + 8 bytes timestamp
      */
-    private static final int INDEX_UNIT_BYTE_LENGTH = 16;
+    public static final int INDEX_UNIT_BYTE_LENGTH = 16;
     private final Lock lock = new ReentrantLock();
     private final String topic;
     private final int partitionId;

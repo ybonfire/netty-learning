@@ -345,12 +345,10 @@ public final class MessageLog {
                 final SelectMappedFileDataResult result = resultOptional.get();
                 final ByteBuffer byteBuffer = result.getData();
 
-                // 遍历IndexLog数据，获取MessageLog的最大偏移量
-                while (byteBuffer.hasRemaining()) {
-                    position = byteBuffer.getInt();
-                    position += byteBuffer.getInt();
-                    byteBuffer.getLong();
-                }
+                // 获取最后一条Index，计算MessageLog偏移量
+                byteBuffer.position(byteBuffer.limit() - IndexLog.INDEX_UNIT_BYTE_LENGTH);
+                position = byteBuffer.getInt();
+                position += byteBuffer.getInt();
             }
         }
 
