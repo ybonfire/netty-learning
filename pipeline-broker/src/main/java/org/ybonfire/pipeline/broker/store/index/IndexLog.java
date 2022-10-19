@@ -1,5 +1,12 @@
 package org.ybonfire.pipeline.broker.store.index;
 
+import org.ybonfire.pipeline.broker.constant.BrokerConstant;
+import org.ybonfire.pipeline.broker.exception.FileLoadException;
+import org.ybonfire.pipeline.broker.model.store.Index;
+import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
+import org.ybonfire.pipeline.broker.store.file.MappedFile;
+import org.ybonfire.pipeline.broker.store.message.MessageLog;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -8,13 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import org.ybonfire.pipeline.broker.constant.BrokerConstant;
-import org.ybonfire.pipeline.broker.exception.FileLoadException;
-import org.ybonfire.pipeline.broker.model.store.Index;
-import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
-import org.ybonfire.pipeline.broker.store.file.MappedFile;
-import org.ybonfire.pipeline.broker.store.message.MessageLog;
 
 /**
  * 索引文件
@@ -28,7 +28,7 @@ public final class IndexLog {
     /**
      * 4 bytes startOffset + 4 bytes size + 8 bytes timestamp
      */
-    public static final int INDEX_UNIT_BYTE_LENGTH = 16;
+    private static final int INDEX_UNIT_BYTE_LENGTH = 16;
     private final Lock lock = new ReentrantLock();
     private final String topic;
     private final int partitionId;
