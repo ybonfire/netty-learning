@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private static final DefaultMessageStoreServiceImpl INSTANCE = new DefaultMessageStoreServiceImpl();
+    private final Map<String/*topic+partitionId*/, Object> lockTable = new ConcurrentHashMap<>();
     private final Map<String/*topic*/, Map<Integer/*partitionId*/, MessageLog>> messageLogTable = new HashMap<>();
     private final MessageLogFlushThreadService messageLogFlushThreadService = new MessageLogFlushThreadService();
     private final ITopicConfigUpdateEventCallback callback = new DefaultTopicConfigUpdateCallback();
@@ -145,11 +147,8 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
                 final String topic = messageLog.getTopic();
                 final int partitionId = messageLog.getPartitionId();
 
-                if (!messageLogTable.containsKey(topic)) {
-                    messageLogTable.put(topic, new HashMap<>());
-                }
-
-                final Map<Integer, MessageLog> messageLogGroupByTopic = messageLogTable.get(topic);
+                final Map<Integer, MessageLog> messageLogGroupByTopic =
+                    messageLogTable.computeIfAbsent(topic, key -> new HashMap<>());
                 if (!messageLogGroupByTopic.containsKey(partitionId)) {
                     messageLogGroupByTopic.put(partitionId, messageLog);
                     // 注册IndexConstructWorker
@@ -167,19 +166,20 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
      * @param topic 主题
      * @param partitionId 分区id
      */
-    private synchronized void ensureMessageLogCreateOK(final String topic, final int partitionId) {
-        if (!messageLogTable.containsKey(topic)) {
-            messageLogTable.put(topic, new HashMap<>());
-        }
+    private void ensureMessageLogCreateOK(final String topic, final int partitionId) {
+        final Object lockObject = lockTable.computeIfAbsent(topic + partitionId, key -> new Object());
 
-        final Map<Integer, MessageLog> messageLogGroupByTopic = messageLogTable.get(topic);
-        if (!messageLogGroupByTopic.containsKey(partitionId)) {
-            try {
-                final MessageLog messageLog = MessageLog.create(topic, partitionId);
-                messageLogGroupByTopic.put(partitionId, messageLog);
-                DefaultIndexStoreServiceImpl.getInstance().register(topic, partitionId);
-            } catch (IOException e) {
-                throw new MessageFileCreateException();
+        synchronized (lockObject) {
+            final Map<Integer, MessageLog> messageLogGroupByTopic =
+                messageLogTable.computeIfAbsent(topic, key -> new HashMap<>());
+            if (!messageLogGroupByTopic.containsKey(partitionId)) {
+                try {
+                    final MessageLog messageLog = MessageLog.create(topic, partitionId);
+                    messageLogGroupByTopic.put(partitionId, messageLog);
+                    DefaultIndexStoreServiceImpl.getInstance().register(topic, partitionId);
+                } catch (IOException e) {
+                    throw new MessageFileCreateException();
+                }
             }
         }
     }
