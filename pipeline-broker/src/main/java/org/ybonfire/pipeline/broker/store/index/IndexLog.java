@@ -116,6 +116,42 @@ public final class IndexLog {
         }
     }
 
+    /**
+     * 获取写入偏移量
+     *
+     * @return int
+     */
+    public int getLastWritePosition() {
+        return file.getLastWritePosition();
+    }
+
+    /**
+     * 设置写入偏移量
+     *
+     * @param writePosition 写入偏移量
+     */
+    public void setLastWritePosition(final int writePosition) {
+        file.setLastWritePosition(writePosition);
+    }
+
+    /**
+     * 获取刷盘偏移量
+     *
+     * @return int
+     */
+    public int getLastFlushPosition() {
+        return file.getLastFlushPosition();
+    }
+
+    /**
+     * 设置刷盘偏移量
+     *
+     * @param flushPosition 刷盘偏移量
+     */
+    public void setLastFlushPosition(final int flushPosition) {
+        file.setLastFlushPosition(flushPosition);
+    }
+
     public String getTopic() {
         return topic;
     }
@@ -201,7 +237,7 @@ public final class IndexLog {
                         if (indexLogFiles != null) {
                             for (final File indexLogFile : indexLogFiles) {
                                 final IndexLog index = new IndexLog(indexLogFile);
-                                // TODO set Positions
+                                resetMessageLogPositions(index);
                                 indices.add(index);
                             }
                         }
@@ -211,5 +247,37 @@ public final class IndexLog {
         }
 
         return indices;
+    }
+
+    /**
+     * @description: 重置对应IndexLog的偏移量
+     * @param:
+     * @return:
+     * @date: 2022/10/20 10:31:13
+     */
+    private static void resetMessageLogPositions(final IndexLog indexLog) {
+        if (indexLog == null) {
+            return;
+        }
+
+        int position = 0;
+        final ByteBuffer indexByteBuffer = indexLog.file.slice();
+        indexByteBuffer.position(position);
+
+        while (indexByteBuffer.hasRemaining()) {
+            final int startOffset = indexByteBuffer.getInt();
+            final int size = indexByteBuffer.getInt();
+            final long timestamp = indexByteBuffer.getLong();
+
+            if (startOffset >= 0 && size > 0) { // 该条件下说明该INDEX_UNIT是有效数据
+                position += INDEX_UNIT_BYTE_LENGTH;
+            } else {
+                break;
+            }
+        }
+
+        // 设置IndexLog偏移量
+        indexLog.setLastFlushPosition(position);
+        indexLog.setLastWritePosition(position);
     }
 }
