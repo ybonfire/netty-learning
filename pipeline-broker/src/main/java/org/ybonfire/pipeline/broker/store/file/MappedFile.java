@@ -1,5 +1,13 @@
 package org.ybonfire.pipeline.broker.store.file;
 
+import lombok.EqualsAndHashCode;
+import org.ybonfire.pipeline.broker.exception.FileReadException;
+import org.ybonfire.pipeline.broker.exception.MessageFileNotEnoughSpaceException;
+import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
+import org.ybonfire.pipeline.common.logger.IInternalLogger;
+import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
+import org.ybonfire.pipeline.server.exception.MessageWriteFailedException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -10,15 +18,6 @@ import java.nio.ReadOnlyBufferException;
 import java.nio.channels.FileChannel;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.ybonfire.pipeline.broker.exception.FileReadException;
-import org.ybonfire.pipeline.broker.exception.MessageFileNotEnoughSpaceException;
-import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
-import org.ybonfire.pipeline.common.logger.IInternalLogger;
-import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
-import org.ybonfire.pipeline.server.exception.MessageWriteFailedException;
-
-import lombok.EqualsAndHashCode;
 
 /**
  * 文件内存映射操作对象
@@ -145,6 +144,26 @@ public final class MappedFile {
 
         return Optional
             .of(SelectMappedFileDataResult.builder().startPosition(position).size(dataSize).data(data).build());
+    }
+
+    /**
+     * @description: 获取MappedByteBuffer
+     * @param:
+     * @return:
+     * @date: 2022/10/20 10:13:37
+     */
+    public ByteBuffer slice() {
+        return mappedByteBuffer.slice();
+    }
+
+    /**
+     * @description: 获取文件大小
+     * @param:
+     * @return:
+     * @date: 2022/10/20 10:23:41
+     */
+    public long getFileSize() {
+        return fileSize;
     }
 
     /**
