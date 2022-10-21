@@ -20,11 +20,11 @@ public enum ProduceTypeEnum {
      */
     ONEWAY(0, "单向投递");
 
-    ProduceTypeEnum(int code, String description) {
+    private final int code;
+    private final String description;
+
+    ProduceTypeEnum(final int code, final String description) {
         this.code = code;
         this.description = description;
     }
-
-    private int code;
-    private String description;
 }

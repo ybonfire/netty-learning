@@ -17,5 +17,8 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 @NoArgsConstructor
 @Data
 public class DeleteTopicRequest implements IRemotingRequestBody {
+    /**
+     * topic名称
+     */
     private String topic;
 }

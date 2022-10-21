@@ -13,8 +13,6 @@ import org.ybonfire.pipeline.common.protocol.request.nameserver.RouteSelectByTop
 import org.ybonfire.pipeline.common.protocol.response.nameserver.RouteSelectResponse;
 import org.ybonfire.pipeline.producer.client.INameServerClient;
 import org.ybonfire.pipeline.producer.converter.TopicInfoConverter;
-import org.ybonfire.pipeline.producer.processor.SelectAllRouteResponseProcessor;
-import org.ybonfire.pipeline.producer.processor.SelectRouteResponseProcessor;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,20 +29,6 @@ import java.util.stream.Collectors;
 public class NameServerClientImpl extends NettyRemotingClient implements INameServerClient {
 
     public NameServerClientImpl() {}
-
-    /**
-     * @description: 注册远程调用响应处理器
-     * @param:
-     * @return:
-     * @date: 2022/08/04 18:12:08
-     */
-    @Override
-    protected void registerResponseProcessors() {
-        // SelectAllRouteResponseProcessor
-        registerSelectAllRouteResponseProcessor();
-        // SelectRouteResponseProcessor
-        registerSelectRouteResponseProcessor();
-    }
 
     /**
      * @description: 发送查询所有TopicInfo请求
@@ -103,26 +87,5 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
     private IRemotingRequest<RouteSelectByTopicRequest> buildSelectTopicInfoRequest(final String topic) {
         return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SELECT_ROUTE.getCode(),
             RouteSelectByTopicRequest.builder().topic(topic).build());
-    }
-
-    /**
-     * @description: 注册SelectAllRoute响应处理器
-     * @param:
-     * @return:
-     * @date: 2022/10/12 17:14:55
-     */
-    private void registerSelectAllRouteResponseProcessor() {
-        registerResponseProcessor(RequestEnum.SELECT_ALL_ROUTE.getCode(), SelectAllRouteResponseProcessor.getInstance(),
-            null);
-    }
-
-    /**
-     * @description: 注册SelectRoute响应处理器
-     * @param:
-     * @return:
-     * @date: 2022/10/12 17:14:55
-     */
-    private void registerSelectRouteResponseProcessor() {
-        registerResponseProcessor(RequestEnum.SELECT_ROUTE.getCode(), SelectRouteResponseProcessor.getInstance(), null);
     }
 }

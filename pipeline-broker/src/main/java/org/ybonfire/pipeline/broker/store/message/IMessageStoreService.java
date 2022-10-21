@@ -1,5 +1,6 @@
 package org.ybonfire.pipeline.broker.store.message;
 
+import org.ybonfire.pipeline.broker.model.message.SelectMessageResult;
 import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 import org.ybonfire.pipeline.common.model.Message;
 
@@ -20,6 +21,23 @@ public interface IMessageStoreService extends ILifeCycle {
      * @date: 2022/09/14 18:30:19
      */
     void store(final String topic, final int partitionId, final Message message);
+
+    /**
+     * @description: 查询消息
+     * @param:
+     * @return:
+     * @date: 2022/10/20 23:36:26
+     */
+    SelectMessageResult select(final String topic, final int partitionId, final int startLogicOffset);
+
+    /**
+     * @description: 查询消息
+     * @param:
+     * @return:
+     * @date: 2022/10/20 23:36:35
+     */
+    SelectMessageResult select(final String topic, final int partitionId, final int startLogicOffset,
+        final int selectCount);
 
     /**
      * @description: 尝试根据Topic、Partition获取消息文件

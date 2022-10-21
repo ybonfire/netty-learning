@@ -8,12 +8,12 @@ import org.ybonfire.pipeline.common.protocol.request.broker.UpdateTopicRequest;
 import java.util.ArrayList;
 
 /**
- * UpdateTopicRequest类型转换器
+ * UpdateTopicRequestConverter
  *
  * @author yuanbo
  * @date 2022-10-14 17:56
  */
-public class UpdateTopicRequestConverter implements IConverter<UpdateTopicRequest, TopicConfig> {
+public final class UpdateTopicRequestConverter implements IConverter<UpdateTopicRequest, TopicConfig> {
     private static final UpdateTopicRequestConverter INSTANCE = new UpdateTopicRequestConverter();
 
     public static UpdateTopicRequestConverter getInstance() {

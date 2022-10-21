@@ -16,11 +16,11 @@ public enum NettyChannelEventTypeEnum {
      */
     CLOSE(2, "关闭连接");
 
+    private final int code;
+    private final String description;
+
     NettyChannelEventTypeEnum(final int code, final String description) {
         this.code = code;
         this.description = description;
     }
-
-    private int code;
-    private String description;
 }

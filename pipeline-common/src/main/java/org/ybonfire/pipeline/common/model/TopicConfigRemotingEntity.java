@@ -1,10 +1,10 @@
 package org.ybonfire.pipeline.common.model;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * Topic信息响应体
@@ -16,6 +16,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public final class TopicConfigRemotingEntity {
+    /**
+     * topic名称
+     */
     private String topic;
     private List<PartitionConfigRemotingEntity> partitions;
 }

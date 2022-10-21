@@ -1,12 +1,13 @@
 package org.ybonfire.pipeline.broker.server;
 
 import org.ybonfire.pipeline.broker.config.BrokerConfig;
+import org.ybonfire.pipeline.broker.heartbeat.impl.BrokerHeartbeatServiceImpl;
 import org.ybonfire.pipeline.broker.model.RoleEnum;
 import org.ybonfire.pipeline.broker.processor.CreateTopicRequestProcessor;
 import org.ybonfire.pipeline.broker.processor.DeleteTopicRequestProcessor;
-import org.ybonfire.pipeline.broker.processor.ProduceMessageRequestProcessor;
+import org.ybonfire.pipeline.broker.processor.PullMessageRequestProcessor;
+import org.ybonfire.pipeline.broker.processor.SendMessageRequestProcessor;
 import org.ybonfire.pipeline.broker.processor.UpdateTopicRequestProcessor;
-import org.ybonfire.pipeline.broker.heartbeat.impl.BrokerHeartbeatServiceImpl;
 import org.ybonfire.pipeline.broker.role.RoleManager;
 import org.ybonfire.pipeline.broker.store.message.impl.DefaultMessageStoreServiceImpl;
 import org.ybonfire.pipeline.broker.topic.impl.DefaultTopicConfigManager;
@@ -65,10 +66,10 @@ public final class Broker extends NettyRemotingServer {
 
     @Override
     protected void registerRequestProcessor() {
-        // ProduceMessageRequestProcessor
-        registerProduceMessageRequestProcessor();
-        // ConsumeMessageRequestProcessor
-        registerConsumeMessageRequestProcessor();
+        // SendMessageRequestProcessor
+        registerSendMessageRequestProcessor();
+        // PullMessageRequestProcessors
+        registerPullMessageRequestProcessor();
         // UpdateTopicRequestProcessor
         registerUpdateTopicRequestProcessor();
         // CreateTopicRequestProcessor
@@ -85,13 +86,23 @@ public final class Broker extends NettyRemotingServer {
     }
 
     /**
-     * 注册ProduceMessageRequestProcessor
+     * 注册SendMessageRequestProcessor
      */
-    private void registerProduceMessageRequestProcessor() {
-        final ExecutorService produceMessageRequestProcessorExecutor =
-            ThreadPoolUtil.getProduceMessageProcessorExecutorService();
-        registerRequestProcessor(RequestEnum.PRODUCE_MESSAGE.getCode(), ProduceMessageRequestProcessor.getInstance(),
-            produceMessageRequestProcessorExecutor);
+    private void registerSendMessageRequestProcessor() {
+        final ExecutorService sendMessageRequestProcessorExecutor =
+            ThreadPoolUtil.getSendMessageProcessorExecutorService();
+        registerRequestProcessor(RequestEnum.SEND_MESSAGE.getCode(), SendMessageRequestProcessor.getInstance(),
+            sendMessageRequestProcessorExecutor);
+    }
+
+    /**
+     * 注册ConsumeMessage请求处理器
+     */
+    private void registerPullMessageRequestProcessor() {
+        final ExecutorService pullMessageRequestProcessorExecutor =
+            ThreadPoolUtil.getPullMessageProcessorExecutorService();
+        registerRequestProcessor(RequestEnum.PULL_MESSAGE.getCode(), PullMessageRequestProcessor.getInstance(),
+            pullMessageRequestProcessorExecutor);
     }
 
     /**
@@ -119,14 +130,6 @@ public final class Broker extends NettyRemotingServer {
         final ExecutorService brokerAdminExecutorService = ThreadPoolUtil.getBrokerAdminExecutorService();
         registerRequestProcessor(RequestEnum.DELETE_TOPIC.getCode(), DeleteTopicRequestProcessor.getInstance(),
             brokerAdminExecutorService);
-    }
-
-    /**
-     * 注册ConsumeMessage请求处理器
-     */
-    private void registerConsumeMessageRequestProcessor() {
-        final ExecutorService consumeMessageRequestProcessorExecutor =
-            ThreadPoolUtil.getConsumeMessageProcessorExecutorService();
     }
 
     /**

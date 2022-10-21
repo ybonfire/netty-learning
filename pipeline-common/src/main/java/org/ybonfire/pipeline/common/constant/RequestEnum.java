@@ -4,7 +4,7 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponseBody;
 import org.ybonfire.pipeline.common.protocol.request.broker.CreateTopicRequest;
 import org.ybonfire.pipeline.common.protocol.request.broker.DeleteTopicRequest;
-import org.ybonfire.pipeline.common.protocol.request.broker.MessageProduceRequest;
+import org.ybonfire.pipeline.common.protocol.request.broker.SendMessageRequest;
 import org.ybonfire.pipeline.common.protocol.request.broker.UpdateTopicRequest;
 import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
 import org.ybonfire.pipeline.common.protocol.request.nameserver.JoinClusterRequest;
@@ -23,10 +23,13 @@ import java.util.Optional;
  * @date 2022-05-18 16:49
  */
 public enum RequestEnum {
+    /** -------------------- Message相关请求 -------------------- **/
     /**
-     * 消息投递请求
+     * 消息发送请求
      */
-    PRODUCE_MESSAGE(100, MessageProduceRequest.class, DefaultResponse.class),
+    SEND_MESSAGE(100, SendMessageRequest.class, DefaultResponse.class), PULL_MESSAGE(101, null, null),
+
+    /** -------------------- Route相关请求 -------------------- **/
     /**
      * 心跳注册请求
      */
@@ -51,6 +54,8 @@ public enum RequestEnum {
      * 路由复制请求
      */
     ROUTE_REPLICA(205, null, DefaultResponse.class),
+
+    /** -------------------- Broker Admin相关请求 -------------------- **/
     /**
      * Topic创建请求
      */

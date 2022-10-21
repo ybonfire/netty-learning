@@ -18,29 +18,29 @@ import java.util.concurrent.TimeUnit;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ThreadPoolUtil {
-    // Produce Message Processor Thread Pool
-    private static final int PRODUCE_MESSAGE_PROCESSOR_THREAD_NUMS_MIN =
+    // Send Message Processor Thread Pool
+    private static final int SEND_MESSAGE_PROCESSOR_THREAD_NUMS_MIN =
         Math.max(8, Runtime.getRuntime().availableProcessors());
-    private static final int PRODUCE_MESSAGE_PROCESSOR_THREAD_NUMS_MAX =
+    private static final int SEND_MESSAGE_PROCESSOR_THREAD_NUMS_MAX =
         Math.max(8, Runtime.getRuntime().availableProcessors());
-    private static final int PRODUCE_MESSAGE_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final ThreadFactory PRODUCE_MESSAGE_PROCESSOR_THREAD_FACTORY =
-        new ThreadWorkerFactory("produce_message_processor_", true);
-    private static final ExecutorService PRODUCE_MESSAGE_PROCESSOR_EXECUTOR_SERVICE =
-        buildThreadPool(PRODUCE_MESSAGE_PROCESSOR_THREAD_NUMS_MIN, PRODUCE_MESSAGE_PROCESSOR_THREAD_NUMS_MAX,
-            PRODUCE_MESSAGE_TASK_QUEUE_CAPACITY, PRODUCE_MESSAGE_PROCESSOR_THREAD_FACTORY);
+    private static final int SEND_MESSAGE_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final ThreadFactory SEND_MESSAGE_PROCESSOR_THREAD_FACTORY =
+        new ThreadWorkerFactory("send_message_processor_", true);
+    private static final ExecutorService SEND_MESSAGE_PROCESSOR_EXECUTOR_SERVICE =
+        buildThreadPool(SEND_MESSAGE_PROCESSOR_THREAD_NUMS_MIN, SEND_MESSAGE_PROCESSOR_THREAD_NUMS_MAX,
+            SEND_MESSAGE_TASK_QUEUE_CAPACITY, SEND_MESSAGE_PROCESSOR_THREAD_FACTORY);
 
-    // Consume Message Processor Thread Pool
-    private static final int CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MIN =
+    // Pull Message Processor Thread Pool
+    private static final int PULL_MESSAGE_PROCESSOR_THREAD_NUMS_MIN =
         Math.max(8, Runtime.getRuntime().availableProcessors());
-    private static final int CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MAX =
+    private static final int PULL_MESSAGE_PROCESSOR_THREAD_NUMS_MAX =
         Math.max(8, Runtime.getRuntime().availableProcessors());
-    private static final int CONSUME_MESSAGE_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final int PULL_MESSAGE_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
     private static final ThreadFactory CONSUME_MESSAGE_PROCESSOR_THREAD_FACTORY =
-        new ThreadWorkerFactory("consume_message_processor_", true);
-    private static final ExecutorService CONSUME_MESSAGE_PROCESSOR_EXECUTOR_SERVICE =
-        buildThreadPool(CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MIN, CONSUME_MESSAGE_PROCESSOR_THREAD_NUMS_MAX,
-            CONSUME_MESSAGE_TASK_QUEUE_CAPACITY, CONSUME_MESSAGE_PROCESSOR_THREAD_FACTORY);
+        new ThreadWorkerFactory("pull_message_processor_", true);
+    private static final ExecutorService PULL_MESSAGE_PROCESSOR_EXECUTOR_SERVICE =
+        buildThreadPool(PULL_MESSAGE_PROCESSOR_THREAD_NUMS_MIN, PULL_MESSAGE_PROCESSOR_THREAD_NUMS_MAX,
+            PULL_MESSAGE_TASK_QUEUE_CAPACITY, CONSUME_MESSAGE_PROCESSOR_THREAD_FACTORY);
 
     // Broker Heartbeat Task Thread Pool
     private static final int BROKER_HEARTBEAT_TASK_THREAD_NUMS_MIN =
@@ -66,12 +66,12 @@ public final class ThreadPoolUtil {
         buildThreadPool(BROKER_ADMIN_TASK_THREAD_NUMS_MIN, BROKER_ADMIN_TASK_THREAD_NUMS_MAX,
             BROKER_ADMIN_TASK_QUEUE_CAPACITY, BROKER_ADMIN_TASK_THREAD_FACTORY);
 
-    public static ExecutorService getProduceMessageProcessorExecutorService() {
-        return PRODUCE_MESSAGE_PROCESSOR_EXECUTOR_SERVICE;
+    public static ExecutorService getSendMessageProcessorExecutorService() {
+        return SEND_MESSAGE_PROCESSOR_EXECUTOR_SERVICE;
     }
 
-    public static ExecutorService getConsumeMessageProcessorExecutorService() {
-        return CONSUME_MESSAGE_PROCESSOR_EXECUTOR_SERVICE;
+    public static ExecutorService getPullMessageProcessorExecutorService() {
+        return PULL_MESSAGE_PROCESSOR_EXECUTOR_SERVICE;
     }
 
     public static ExecutorService getBrokerHeartbeatTaskExecutorService() {

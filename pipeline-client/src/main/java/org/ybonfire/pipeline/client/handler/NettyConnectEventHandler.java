@@ -78,7 +78,7 @@ public final class NettyConnectEventHandler extends ChannelDuplexHandler {
     @Override
     public void close(final ChannelHandlerContext ctx, final ChannelPromise promise) throws Exception {
         // 断开连接
-        super.disconnect(ctx, promise);
+        super.close(ctx, promise);
 
         final String remote = RemotingUtil.parseChannelAddress(ctx.channel());
         LOGGER.info("NETTY CLIENT PIPELINE: DISCONNECT " + remote);

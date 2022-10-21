@@ -37,11 +37,4 @@ public class BrokerHeartbeatTest extends NettyRemotingClient {
             "0:0:0:0:0:0:0:0:4690", 10 * 1000L);
         Thread.sleep(1000L);
     }
-
-    @Override
-    protected void registerResponseProcessors() {
-        // RouteUploadRequestProcessor
-        registerResponseProcessor(RequestEnum.BROKER_HEARTBEAT.getCode(),
-            response -> System.out.println(response.getBody()), EXECUTOR);
-    }
 }

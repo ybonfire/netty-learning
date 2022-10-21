@@ -7,22 +7,34 @@ import lombok.NoArgsConstructor;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 
 /**
- * 更新主题请求
+ * 消息拉取请求体
  *
  * @author yuanbo
- * @date 2022-10-14 17:35
+ * @date 2022-10-20 14:05
  */
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class UpdateTopicRequest implements IRemotingRequestBody {
+public class PullMessageRequest implements IRemotingRequestBody {
     /**
      * topic名称
      */
     private String topic;
     /**
-     * partition数量
+     * partitionId
      */
-    private Integer partitionNums;
+    private Integer partitionId;
+    /**
+     * 开始拉取偏移量
+     */
+    private Integer pullStartOffset;
+    /**
+     * 最大拉取条数
+     */
+    private Integer messageNums;
+    /**
+     * 消费者组
+     */
+    private String group;
 }

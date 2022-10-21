@@ -17,8 +17,17 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class MessageProduceRequest implements IRemotingRequestBody {
+public class SendMessageRequest implements IRemotingRequestBody {
+    /**
+     * topic名称
+     */
     private String topic;
+    /**
+     * partitionId
+     */
     private Integer partitionId;
+    /**
+     * 消息
+     */
     private Message message;
 }

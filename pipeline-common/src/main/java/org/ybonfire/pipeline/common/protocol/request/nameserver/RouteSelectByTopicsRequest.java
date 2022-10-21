@@ -19,6 +19,12 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class RouteSelectByTopicsRequest implements IRemotingRequestBody {
+    /**
+     * topic名称
+     */
     private List<String> topics;
+    /**
+     * topic自动创建标记
+     */
     private Boolean autoCreateWhenTopicNotFound;
 }

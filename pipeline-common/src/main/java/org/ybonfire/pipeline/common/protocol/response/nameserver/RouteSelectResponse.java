@@ -20,5 +20,8 @@ import java.util.Map;
 @NoArgsConstructor
 @Data
 public class RouteSelectResponse implements IRemotingResponseBody {
+    /**
+     * 路由查询结果
+     */
     private Map<String, TopicConfigRemotingEntity> result;
 }

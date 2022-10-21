@@ -2,7 +2,7 @@ package org.ybonfire.pipeline.producer.converter;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.ybonfire.pipeline.common.converter.IConverter;
-import org.ybonfire.pipeline.common.protocol.response.broker.MessageProduceResponse;
+import org.ybonfire.pipeline.common.protocol.response.broker.SendMessageResponse;
 import org.ybonfire.pipeline.producer.model.ProduceResult;
 
 /**
@@ -11,7 +11,7 @@ import org.ybonfire.pipeline.producer.model.ProduceResult;
  * @author Bo.Yuan5
  * @date 2022-06-30 16:32
  */
-public final class ProduceResultConverter implements IConverter<MessageProduceResponse, ProduceResult> {
+public final class ProduceResultConverter implements IConverter<SendMessageResponse, ProduceResult> {
     private static final ProduceResultConverter INSTANCE = new ProduceResultConverter();
 
     public static ProduceResultConverter getINSTANCE() {
@@ -27,7 +27,7 @@ public final class ProduceResultConverter implements IConverter<MessageProduceRe
      * @date: 2022/06/30 16:37:05
      */
     @Override
-    public ProduceResult convert(final MessageProduceResponse src) {
+    public ProduceResult convert(final SendMessageResponse src) {
         if (src == null) {
             return null;
         }

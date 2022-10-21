@@ -1,12 +1,11 @@
 package org.ybonfire.pipeline.producer.model;
 
-import java.util.Optional;
-
 import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.model.PartitionInfo;
 import org.ybonfire.pipeline.producer.callback.IMessageProduceCallback;
 
-import lombok.Getter;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Message包装类
@@ -14,14 +13,13 @@ import lombok.Getter;
  * @author Bo.Yuan5
  * @date 2022-06-30 10:25
  */
-@Getter
 public class MessageWrapper {
     private final Message message;
     private final ProduceTypeEnum produceType;
     private final PartitionInfo partition;
     private final Optional<IMessageProduceCallback> callbackOptional;
     private final long timeoutMillis;
-    private volatile ProduceResult result;
+    private final AtomicReference<ProduceResult> result = new AtomicReference<>();
 
     private MessageWrapper(final Message message, final ProduceTypeEnum produceType, final PartitionInfo partition,
         final IMessageProduceCallback callback, final long timeoutMillis) {
@@ -33,7 +31,31 @@ public class MessageWrapper {
     }
 
     public void setResult(final ProduceResult result) {
-        this.result = result;
+        this.result.compareAndSet(null, result);
+    }
+
+    public ProduceResult getResult() {
+        return this.result.get();
+    }
+
+    public Message getMessage() {
+        return message;
+    }
+
+    public ProduceTypeEnum getProduceType() {
+        return produceType;
+    }
+
+    public PartitionInfo getPartition() {
+        return partition;
+    }
+
+    public Optional<IMessageProduceCallback> getCallbackOptional() {
+        return callbackOptional;
+    }
+
+    public long getTimeoutMillis() {
+        return timeoutMillis;
     }
 
     public static MessageWrapper wrap(final Message message, final ProduceTypeEnum produceType,

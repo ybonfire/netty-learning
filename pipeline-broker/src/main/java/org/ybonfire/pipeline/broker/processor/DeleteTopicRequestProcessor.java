@@ -18,7 +18,7 @@ import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 /**
- * DeleteTopicRequest请求处理器
+ * DeleteTopicRequestProcessor
  *
  * @author yuanbo
  * @date 2022-10-14 16:55

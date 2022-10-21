@@ -16,10 +16,10 @@ public enum RoleEnum {
      */
     FOLLOWER(0, "Follower");
 
-    private int code;
-    private String description;
+    private final int code;
+    private final String description;
 
-    RoleEnum(int code, String description) {
+    RoleEnum(final int code, final String description) {
         this.code = code;
         this.description = description;
     }
