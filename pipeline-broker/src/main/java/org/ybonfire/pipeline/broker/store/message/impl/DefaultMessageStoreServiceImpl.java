@@ -1,10 +1,14 @@
 package org.ybonfire.pipeline.broker.store.message.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.ybonfire.pipeline.broker.callback.ITopicConfigUpdateEventCallback;
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.exception.FileLoadException;
 import org.ybonfire.pipeline.broker.exception.MessageFileCreateException;
+import org.ybonfire.pipeline.broker.model.message.SelectMessageResult;
+import org.ybonfire.pipeline.broker.model.message.SelectMessageResultTypeEnum;
+import org.ybonfire.pipeline.broker.model.store.Index;
 import org.ybonfire.pipeline.broker.model.store.MessageFlushPolicyEnum;
 import org.ybonfire.pipeline.broker.model.store.MessageFlushResultEnum;
 import org.ybonfire.pipeline.broker.model.store.MessageLogFlushJob;
@@ -12,6 +16,7 @@ import org.ybonfire.pipeline.broker.model.topic.PartitionConfig;
 import org.ybonfire.pipeline.broker.model.topic.TopicConfig;
 import org.ybonfire.pipeline.broker.model.topic.TopicConfigUpdateEvent;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
+import org.ybonfire.pipeline.broker.store.index.IndexLog;
 import org.ybonfire.pipeline.broker.store.index.impl.DefaultIndexStoreServiceImpl;
 import org.ybonfire.pipeline.broker.store.message.IMessageStoreService;
 import org.ybonfire.pipeline.broker.store.message.MessageLog;
@@ -24,6 +29,8 @@ import org.ybonfire.pipeline.common.thread.service.AbstractThreadService;
 import org.ybonfire.pipeline.server.exception.MessageFlushTimeoutException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -130,6 +137,83 @@ public class DefaultMessageStoreServiceImpl implements IMessageStoreService {
 
             // 提交刷盘任务
             submitMessageFlushJob(messageLog);
+        }
+    }
+
+    /**
+     * @description: 查询消息
+     * @param:
+     * @return:
+     * @date: 2022/10/20 23:36:26
+     */
+    @Override
+    public SelectMessageResult select(final String topic, final int partitionId, final int startLogicOffset) {
+        final Optional<IndexLog> indexLogOptional =
+            DefaultIndexStoreServiceImpl.getInstance().tryToFindIndexLogByTopicPartition(topic, partitionId);
+        final Optional<MessageLog> messageLogOptional =
+            DefaultMessageStoreServiceImpl.getInstance().tryToFindMessageLogByTopicPartition(topic, partitionId);
+        if (indexLogOptional.isPresent() && messageLogOptional.isPresent()) {
+            final IndexLog indexLog = indexLogOptional.get();
+            final MessageLog messageLog = messageLogOptional.get();
+            final List<Index> indices = indexLog.select(startLogicOffset);
+            final List<Message> messages = new ArrayList<>(indices.size());
+            for (final Index index : indices) {
+                final Optional<Message> messageOptional = messageLog.select(index);
+                if (messageOptional.isPresent()) {
+                    final Message message = messageOptional.get();
+                    messages.add(message);
+                }
+            }
+
+            final SelectMessageResultTypeEnum type = CollectionUtils.isEmpty(messages)
+                ? SelectMessageResultTypeEnum.NOT_FOUND : SelectMessageResultTypeEnum.FOUND;
+
+            return SelectMessageResult.builder().topic(topic).partitionId(partitionId)
+                .startLogicOffset(startLogicOffset).messages(messages).type(type).build();
+        } else {
+            // 未查询到指定Topic、PartitionId的文件
+            return SelectMessageResult.builder().topic(topic).partitionId(partitionId)
+                .startLogicOffset(startLogicOffset).messages(Collections.emptyList())
+                .type(SelectMessageResultTypeEnum.BAD_ROUTE).build();
+        }
+    }
+
+    /**
+     * @description: 查询消息
+     * @param:
+     * @return:
+     * @date: 2022/10/20 23:36:35
+     */
+    @Override
+    public SelectMessageResult select(final String topic, final int partitionId, final int startLogicOffset,
+        final int selectCount) {
+        final Optional<IndexLog> indexLogOptional =
+            DefaultIndexStoreServiceImpl.getInstance().tryToFindIndexLogByTopicPartition(topic, partitionId);
+        final Optional<MessageLog> messageLogOptional =
+            DefaultMessageStoreServiceImpl.getInstance().tryToFindMessageLogByTopicPartition(topic, partitionId);
+        if (indexLogOptional.isPresent() && messageLogOptional.isPresent()) {
+            final IndexLog indexLog = indexLogOptional.get();
+            final MessageLog messageLog = messageLogOptional.get();
+            final List<Index> indices = indexLog.select(startLogicOffset, selectCount);
+            final List<Message> messages = new ArrayList<>(indices.size());
+            for (final Index index : indices) {
+                final Optional<Message> messageOptional = messageLog.select(index);
+                if (messageOptional.isPresent()) {
+                    final Message message = messageOptional.get();
+                    messages.add(message);
+                }
+            }
+
+            final SelectMessageResultTypeEnum type = CollectionUtils.isEmpty(messages)
+                ? SelectMessageResultTypeEnum.NOT_FOUND : SelectMessageResultTypeEnum.FOUND;
+
+            return SelectMessageResult.builder().topic(topic).partitionId(partitionId)
+                .startLogicOffset(startLogicOffset).messages(messages).type(type).build();
+        } else {
+            // 未查询到指定Topic、PartitionId的文件
+            return SelectMessageResult.builder().topic(topic).partitionId(partitionId)
+                .startLogicOffset(startLogicOffset).messages(Collections.emptyList())
+                .type(SelectMessageResultTypeEnum.BAD_ROUTE).build();
         }
     }
 

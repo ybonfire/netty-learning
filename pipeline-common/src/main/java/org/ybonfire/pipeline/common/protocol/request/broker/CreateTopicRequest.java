@@ -17,6 +17,12 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 @NoArgsConstructor
 @Data
 public class CreateTopicRequest implements IRemotingRequestBody {
+    /**
+     * topic名称
+     */
     private String topic;
+    /**
+     * partition数量
+     */
     private Integer partitionNums;
 }

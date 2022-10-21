@@ -1,7 +1,6 @@
 package org.ybonfire.pipeline.nameserver.client.impl;
 
 import org.ybonfire.pipeline.client.NettyRemotingClient;
-import org.ybonfire.pipeline.client.exception.InvokeInterruptedException;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.request.nameserver.BrokerHeartbeatRequest;
 import org.ybonfire.pipeline.nameserver.client.INameServerClient;
@@ -24,22 +23,6 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
      */
     @Override
     public void publish(final IRemotingRequest<BrokerHeartbeatRequest> request, final String address) {
-        try {
-            requestOneway(request, address);
-        } catch (final InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new InvokeInterruptedException(e);
-        }
-    }
-
-    /**
-     * @description: 注册远程调响应处理器
-     * @param:
-     * @return:
-     * @date: 2022/08/13 11:11:51
-     */
-    @Override
-    protected void registerResponseProcessors() {
-
+        requestOneway(request, address);
     }
 }

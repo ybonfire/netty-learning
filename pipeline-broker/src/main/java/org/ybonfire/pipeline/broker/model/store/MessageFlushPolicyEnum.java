@@ -16,8 +16,8 @@ public enum MessageFlushPolicyEnum {
      */
     SYNC(1, "同步");
 
-    private int code;
-    private String description;
+    private final int code;
+    private final String description;
 
     MessageFlushPolicyEnum(final int code, final String description) {
         this.code = code;

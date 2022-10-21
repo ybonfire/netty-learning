@@ -1,7 +1,7 @@
 package org.ybonfire.pipeline.client.model;
 
 import org.ybonfire.pipeline.client.connection.Connection;
-import org.ybonfire.pipeline.client.exception.InvokeExecuteException;
+import org.ybonfire.pipeline.client.exception.RemotingInvokeExecuteException;
 import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 远程调用数据
@@ -21,25 +21,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @date 2022-05-19 12:13
  */
 public class RemoteRequestFuture {
-    private final String address;
-    private final Connection connection;
     private final IRemotingRequest request;
     private final IRequestCallback callback;
-    private final long startTimestamp = System.currentTimeMillis();
     private final long timeoutMillis;
+    private final Connection connection;
+    private final long startTimestamp = System.currentTimeMillis();
     private final CompletableFuture<RemotingResponse> responseFuture = new CompletableFuture<>();
-    private final AtomicBoolean isCompleted = new AtomicBoolean(false);
-    private volatile boolean isRequestSuccess = false;
-    private volatile Throwable cause;
-    private volatile RemotingRequestFutureStateEnum state = RemotingRequestFutureStateEnum.FLIGHT;
+    private volatile RemotingInvokeExecuteException cause;
+    private AtomicReference<RemotingRequestFutureStateEnum> state =
+        new AtomicReference<>(RemotingRequestFutureStateEnum.LAUNCH);
 
-    public RemoteRequestFuture(final String address, final Connection connection, final IRemotingRequest request,
-        IRequestCallback callback, final long timeoutMillis) {
-        this.address = address;
-        this.connection = connection;
+    public RemoteRequestFuture(final IRemotingRequest request, IRequestCallback callback, final long timeoutMillis,
+        final Connection connection) {
         this.request = request;
         this.callback = callback;
         this.timeoutMillis = timeoutMillis;
+        this.connection = connection;
     }
 
     /**
@@ -52,22 +49,31 @@ public class RemoteRequestFuture {
         try {
             return this.responseFuture.get(timeoutMillis, TimeUnit.MILLISECONDS);
         } catch (ExecutionException e) {
-            throw new InvokeExecuteException(e);
+            throw new RemotingInvokeExecuteException(e);
         } catch (TimeoutException e) {
             throw new ReadTimeoutException(e);
         }
     }
 
     /**
-     * @description: 异步请求成功
+     * @description: 请求发送
+     * @param:
+     * @return:
+     * @date: 2022/10/20 17:49:15
+     */
+    public void launch() {
+        state.compareAndSet(RemotingRequestFutureStateEnum.LAUNCH, RemotingRequestFutureStateEnum.INFLIGHT);
+    }
+
+    /**
+     * @description: 请求成功
      * @param:
      * @return:
      * @date: 2022/06/02 09:56:54
      */
     public void complete(final RemotingResponse response) {
-        if (isCompleted.compareAndSet(false, true)) {
+        if (state.compareAndSet(RemotingRequestFutureStateEnum.INFLIGHT, RemotingRequestFutureStateEnum.RESPOND)) {
             this.responseFuture.complete(response);
-            this.state = RemotingRequestFutureStateEnum.RESPOND;
             if (this.callback != null) {
                 this.callback.onSuccess(response);
             }
@@ -75,23 +81,18 @@ public class RemoteRequestFuture {
     }
 
     /**
-     * @description: 异步请求超时
+     * @description: 请求异常
      * @param:
      * @return:
      * @date: 2022/10/12 11:09:26
      */
-    public void exception(final Throwable ex) {
-        if (isCompleted.compareAndSet(false, true)) {
-            this.cause = ex;
-            this.state = RemotingRequestFutureStateEnum.FAILED;
+    public void complete(final Throwable ex) {
+        if (state.compareAndSet(RemotingRequestFutureStateEnum.LAUNCH, RemotingRequestFutureStateEnum.FAILED)) {
+            this.cause = new RemotingInvokeExecuteException(ex);
             if (this.callback != null) {
                 this.callback.onException(this.cause);
             }
         }
-    }
-
-    public String getAddress() {
-        return address;
     }
 
     public Connection getConnection() {
@@ -102,20 +103,8 @@ public class RemoteRequestFuture {
         return request;
     }
 
-    public boolean isRequestSuccess() {
-        return isRequestSuccess;
-    }
-
-    public void setRequestSuccess(boolean requestSuccess) {
-        isRequestSuccess = requestSuccess;
-    }
-
-    public Throwable getCause() {
+    public RemotingInvokeExecuteException getCause() {
         return cause;
-    }
-
-    public void setCause(final Throwable cause) {
-        this.cause = cause;
     }
 
     public long getTimeoutMillis() {
@@ -127,6 +116,16 @@ public class RemoteRequestFuture {
     }
 
     /**
+     * @description: 判断请求是否发送成功
+     * @param:
+     * @return:
+     * @date: 2022/10/20 18:28:29
+     */
+    public boolean isInflight() {
+        return this.state.get() == RemotingRequestFutureStateEnum.INFLIGHT;
+    }
+
+    /**
      * @description: 判断请求是否过期
      * @param:
      * @return:
@@ -134,13 +133,5 @@ public class RemoteRequestFuture {
      */
     public boolean isExpired() {
         return System.currentTimeMillis() > startTimestamp + timeoutMillis;
-    }
-
-    public void setState(RemotingRequestFutureStateEnum state) {
-        this.state = state;
-    }
-
-    public RemotingRequestFutureStateEnum getState() {
-        return state;
     }
 }

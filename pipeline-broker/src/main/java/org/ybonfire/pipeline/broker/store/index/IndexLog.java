@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
@@ -117,6 +118,41 @@ public final class IndexLog {
     }
 
     /**
+     * @description: 根据逻辑Offset查询指定条数的索引信息
+     * @param:
+     * @return:
+     * @date: 2022/10/21 11:27:41
+     */
+    public List<Index> select(final int startLogicOffset, final int selectCount) {
+        lock.lock();
+        try {
+            final int position = startLogicOffset * INDEX_LOG_SIZE;
+            final int size = selectCount * INDEX_LOG_SIZE;
+            final Optional<SelectMappedFileDataResult> resultOptional = get(position, size);
+            return toIndices(resultOptional);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * @description: 根据逻辑Offset查询后续全部索引信息
+     * @param:
+     * @return:
+     * @date: 2022/10/21 11:27:41
+     */
+    public List<Index> select(final int startLogicOffset) {
+        lock.lock();
+        try {
+            final int position = startLogicOffset * INDEX_LOG_SIZE;
+            final Optional<SelectMappedFileDataResult> resultOptional = get(position);
+            return toIndices(resultOptional);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
      * 获取写入偏移量
      *
      * @return int
@@ -158,6 +194,30 @@ public final class IndexLog {
 
     public int getPartitionId() {
         return partitionId;
+    }
+
+    /**
+     * @description: 将查询的结果转换为索引数据
+     * @param:
+     * @return:
+     * @date: 2022/10/21 14:39:23
+     */
+    private List<Index> toIndices(Optional<SelectMappedFileDataResult> resultOptional) {
+        if (resultOptional.isPresent()) {
+            final SelectMappedFileDataResult result = resultOptional.get();
+            final ByteBuffer readBuffer = result.getData();
+            final int capacity = (readBuffer.limit() - readBuffer.position()) / INDEX_LOG_SIZE + 1;
+            final List<Index> indices = new ArrayList<>(capacity);
+            while (readBuffer.hasRemaining()) {
+                final Index index = Index.builder().startOffset(readBuffer.getInt()).size(readBuffer.getInt())
+                    .timestamp(readBuffer.getLong()).build();
+                indices.add(index);
+            }
+
+            return indices;
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     /**

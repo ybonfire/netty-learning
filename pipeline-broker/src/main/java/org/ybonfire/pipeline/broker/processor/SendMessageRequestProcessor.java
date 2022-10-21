@@ -16,7 +16,7 @@ import org.ybonfire.pipeline.common.logger.IInternalLogger;
 import org.ybonfire.pipeline.common.logger.impl.SimpleInternalLogger;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.RemotingResponse;
-import org.ybonfire.pipeline.common.protocol.request.broker.MessageProduceRequest;
+import org.ybonfire.pipeline.common.protocol.request.broker.SendMessageRequest;
 import org.ybonfire.pipeline.common.protocol.response.DefaultResponse;
 import org.ybonfire.pipeline.server.exception.BadRequestException;
 import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
@@ -26,16 +26,16 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * MessageProduceRequest请求处理器
+ * SendMessageRequestProcessor
  *
  * @author Bo.Yuan5
  * @date 2022-09-02 15:37
  */
-public final class ProduceMessageRequestProcessor extends AbstractRemotingRequestProcessor<MessageProduceRequest> {
+public final class SendMessageRequestProcessor extends AbstractRemotingRequestProcessor<SendMessageRequest> {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
-    private static final ProduceMessageRequestProcessor INSTANCE = new ProduceMessageRequestProcessor();
+    private static final SendMessageRequestProcessor INSTANCE = new SendMessageRequestProcessor();
 
-    private ProduceMessageRequestProcessor() {}
+    private SendMessageRequestProcessor() {}
 
     /**
      * @description: 参数校验
@@ -44,7 +44,7 @@ public final class ProduceMessageRequestProcessor extends AbstractRemotingReques
      * @date: 2022/08/05 18:15:35
      */
     @Override
-    protected void check(final IRemotingRequest<MessageProduceRequest> request) {
+    protected void check(final IRemotingRequest<SendMessageRequest> request) {
         // 校验请求类型
         if (!isProduceMessageRequest(request)) {
             throw new RequestTypeNotSupportException();
@@ -68,8 +68,8 @@ public final class ProduceMessageRequestProcessor extends AbstractRemotingReques
      * @date: 2022/08/05 18:15:41
      */
     @Override
-    protected RemotingResponse fire(final IRemotingRequest<MessageProduceRequest> request) {
-        final MessageProduceRequest body = request.getBody();
+    protected RemotingResponse fire(final IRemotingRequest<SendMessageRequest> request) {
+        final SendMessageRequest body = request.getBody();
         DefaultMessageStoreServiceImpl.getInstance().store(body.getTopic(), body.getPartitionId(), body.getMessage());
         return RemotingResponse.create(request.getId(), request.getCode(), ResponseEnum.SUCCESS.getCode(),
             new DefaultResponse(ResponseEnum.SUCCESS.name()));
@@ -82,7 +82,7 @@ public final class ProduceMessageRequestProcessor extends AbstractRemotingReques
      * @date: 2022/08/05 18:15:49
      */
     @Override
-    protected void onComplete(final IRemotingRequest<MessageProduceRequest> request) {
+    protected void onComplete(final IRemotingRequest<SendMessageRequest> request) {
 
     }
 
@@ -92,9 +92,9 @@ public final class ProduceMessageRequestProcessor extends AbstractRemotingReques
      * @param request 请求
      * @return boolean
      */
-    private boolean isProduceMessageRequest(final IRemotingRequest<MessageProduceRequest> request) {
+    private boolean isProduceMessageRequest(final IRemotingRequest<SendMessageRequest> request) {
         final Integer code = request.getCode();
-        return code != null && RequestEnum.code(code) == RequestEnum.PRODUCE_MESSAGE;
+        return code != null && RequestEnum.code(code) == RequestEnum.SEND_MESSAGE;
     }
 
     /**
@@ -113,7 +113,7 @@ public final class ProduceMessageRequestProcessor extends AbstractRemotingReques
      * @return:
      * @date: 2022/09/14 15:22:31
      */
-    private boolean isRequestValid(final MessageProduceRequest request) {
+    private boolean isRequestValid(final SendMessageRequest request) {
         // check request
         if (request == null) {
             LOGGER.error("produce message request is null");
@@ -169,9 +169,9 @@ public final class ProduceMessageRequestProcessor extends AbstractRemotingReques
     /**
      * 获取ProduceMessageRequestProcessor实例
      *
-     * @return {@link ProduceMessageRequestProcessor}
+     * @return {@link SendMessageRequestProcessor}
      */
-    public static ProduceMessageRequestProcessor getInstance() {
+    public static SendMessageRequestProcessor getInstance() {
         return INSTANCE;
     }
 }

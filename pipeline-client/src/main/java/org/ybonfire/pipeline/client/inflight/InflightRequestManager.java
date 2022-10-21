@@ -109,7 +109,7 @@ public class InflightRequestManager implements ILifeCycle {
             final RemoteRequestFuture future = entry.getValue();
             if (future.isExpired()) {
                 iterator.remove();
-                future.exception(new ReadTimeoutException());
+                future.complete(new ReadTimeoutException());
             }
         }
     }

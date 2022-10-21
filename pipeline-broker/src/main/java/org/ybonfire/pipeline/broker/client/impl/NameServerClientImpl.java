@@ -29,12 +29,6 @@ public class NameServerClientImpl extends NettyRemotingClient implements INameSe
     public NameServerClientImpl() {}
 
     /**
-     * 注册ResponseProcessors
-     */
-    @Override
-    protected void registerResponseProcessors() {}
-
-    /**
      * 上报心跳
      *
      * @param heartbeatData 心跳数据

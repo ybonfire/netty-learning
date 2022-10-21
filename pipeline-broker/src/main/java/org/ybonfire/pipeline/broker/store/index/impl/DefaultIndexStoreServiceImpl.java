@@ -99,7 +99,7 @@ public final class DefaultIndexStoreServiceImpl implements IIndexStoreService {
 
             // 添加IndexConstructWorker
             final IndexConstructWorker worker = new IndexConstructWorker(topic, partitionId);
-            tryToAddWorker(new IndexConstructWorker(topic, partitionId));
+            tryToAddWorker(worker);
         } else {
             LOGGER.error(
                 "注册失败. 未查询到指定Topic、Partition对应的消息文件. topic:[" + topic + "]" + "| partition:[" + partitionId + "]");
@@ -374,7 +374,7 @@ public final class DefaultIndexStoreServiceImpl implements IIndexStoreService {
             }
 
             // 查询数据
-            final Optional<SelectMappedFileDataResult> optional = messageLog.get(lastFlushPosition);
+            final Optional<SelectMappedFileDataResult> optional = messageLog.get(lastIndexPosition.get());
             if (optional.isPresent()) {
                 final SelectMappedFileDataResult result = optional.get();
 

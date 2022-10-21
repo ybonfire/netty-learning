@@ -116,7 +116,7 @@ public final class MappedFile {
         final int flushPosition = getLastFlushPosition();
         final int dataSize = Math.max(flushPosition - position, 0);
 
-        final ByteBuffer data = mappedByteBuffer.slice();
+        final ByteBuffer data = mappedByteBuffer.asReadOnlyBuffer();
         data.position(position);
         data.limit(position + dataSize);
 
@@ -138,7 +138,7 @@ public final class MappedFile {
         final int flushPosition = getLastFlushPosition();
         final int dataSize = Math.max(Math.min(size, flushPosition - position), 0);
 
-        final ByteBuffer data = mappedByteBuffer.slice();
+        final ByteBuffer data = mappedByteBuffer.asReadOnlyBuffer();
         data.position(position);
         data.limit(position + dataSize);
 

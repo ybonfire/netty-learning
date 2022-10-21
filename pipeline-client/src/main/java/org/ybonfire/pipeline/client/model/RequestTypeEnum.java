@@ -20,11 +20,11 @@ public enum RequestTypeEnum {
      */
     ONEWAY(0, "单向请求");
 
-    RequestTypeEnum(int code, String description) {
+    private int code;
+    private String description;
+
+    RequestTypeEnum(final int code, final String description) {
         this.code = code;
         this.description = description;
     }
-
-    private int code;
-    private String description;
 }

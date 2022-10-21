@@ -17,6 +17,12 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 @NoArgsConstructor
 @Data
 public class JoinClusterRequest implements IRemotingRequestBody {
+    /**
+     * nodeId
+     */
     private String nodeId;
+    /**
+     * 服务地址
+     */
     private String address;
 }

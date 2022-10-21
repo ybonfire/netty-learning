@@ -1,12 +1,9 @@
 package org.ybonfire.pipeline.client;
 
-import org.ybonfire.pipeline.client.processor.IRemotingResponseProcessor;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
 import org.ybonfire.pipeline.common.lifecycle.ILifeCycle;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
-
-import java.util.concurrent.ExecutorService;
 
 /**
  * 客户端接口
@@ -14,7 +11,7 @@ import java.util.concurrent.ExecutorService;
  * @author Bo.Yuan5
  * @date 2022-05-18 10:14
  */
-public interface IRemotingClient<Processor extends IRemotingResponseProcessor> extends ILifeCycle {
+public interface IRemotingClient extends ILifeCycle {
 
     /**
      * @description: 同步调用
@@ -41,12 +38,4 @@ public interface IRemotingClient<Processor extends IRemotingResponseProcessor> e
      * @date: 2022/05/18 18:21:02
      */
     void requestOneway(final IRemotingRequest request, final String address) throws InterruptedException;
-
-    /**
-     * @description: 注册响应处理器
-     * @param:
-     * @return:
-     * @date: 2022/05/18 10:26:30
-     */
-    void registerResponseProcessor(final int responseCode, final Processor processor, final ExecutorService executor);
 }

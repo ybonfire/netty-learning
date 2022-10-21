@@ -17,6 +17,12 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequestBody;
 @NoArgsConstructor
 @Data
 public class RouteSelectByTopicRequest implements IRemotingRequestBody {
+    /**
+     * topic名称
+     */
     private String topic;
+    /**
+     * topic自动创建标记
+     */
     private Boolean autoCreateWhenTopicNotFound;
 }

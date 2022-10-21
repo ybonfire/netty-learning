@@ -7,8 +7,8 @@ import org.ybonfire.pipeline.common.model.Message;
 import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.protocol.RemotingRequest;
-import org.ybonfire.pipeline.common.protocol.request.broker.MessageProduceRequest;
-import org.ybonfire.pipeline.common.protocol.response.broker.MessageProduceResponse;
+import org.ybonfire.pipeline.common.protocol.request.broker.SendMessageRequest;
+import org.ybonfire.pipeline.common.protocol.response.broker.SendMessageResponse;
 import org.ybonfire.pipeline.producer.client.IBrokerClient;
 import org.ybonfire.pipeline.producer.converter.ProduceResultConverter;
 import org.ybonfire.pipeline.producer.model.MessageWrapper;
@@ -27,15 +27,6 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
     public BrokerClientImpl() {}
 
     /**
-     * @description: 注册Broker响应处理器
-     * @param:
-     * @return:
-     * @date: 2022/07/14 14:02:24
-     */
-    @Override
-    protected void registerResponseProcessors() {}
-
-    /**
      * @description: 投递消息
      * @param:
      * @return:
@@ -45,7 +36,7 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
     public ProduceResult produce(final MessageWrapper message, final String address, final long timeoutMillis) {
         final IRemotingResponse response = super.request(buildProduceMessageRequest(message), address, timeoutMillis);
         if (response.getStatus() == ResponseEnum.SUCCESS.getCode()) {
-            final MessageProduceResponse data = (MessageProduceResponse)response.getBody();
+            final SendMessageResponse data = (SendMessageResponse)response.getBody();
             return ProduceResultConverter.getINSTANCE().convert(data);
         } else {
             return ProduceResult.builder().topic(message.getMessage().getTopic())
@@ -60,13 +51,13 @@ public final class BrokerClientImpl extends NettyRemotingClient implements IBrok
      * @return:
      * @date: 2022/06/30 10:45:21
      */
-    private IRemotingRequest<MessageProduceRequest> buildProduceMessageRequest(final MessageWrapper messageWrapper) {
+    private IRemotingRequest<SendMessageRequest> buildProduceMessageRequest(final MessageWrapper messageWrapper) {
         final String topic = messageWrapper.getMessage().getTopic();
         final int partitionId = messageWrapper.getPartition().getPartitionId();
         final Message message = messageWrapper.getMessage();
-        final MessageProduceRequest request =
-            MessageProduceRequest.builder().topic(topic).partitionId(partitionId).message(message).build();
+        final SendMessageRequest request =
+            SendMessageRequest.builder().topic(topic).partitionId(partitionId).message(message).build();
 
-        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.PRODUCE_MESSAGE.getCode(), request);
+        return RemotingRequest.create(UUID.randomUUID().toString(), RequestEnum.SEND_MESSAGE.getCode(), request);
     }
 }

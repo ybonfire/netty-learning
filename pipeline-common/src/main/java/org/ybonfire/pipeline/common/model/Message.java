@@ -1,10 +1,10 @@
 package org.ybonfire.pipeline.common.model;
 
-import java.io.Serializable;
-import java.util.UUID;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * 消息体
@@ -31,9 +31,15 @@ public class Message implements Serializable {
     }
 
     public static final class Builder {
+        private String id;
         private String topic;
         private String key;
         private byte[] payload;
+
+        public Builder id(final String id) {
+            this.id = id;
+            return this;
+        }
 
         public Builder topic(final String topic) {
             this.topic = topic;

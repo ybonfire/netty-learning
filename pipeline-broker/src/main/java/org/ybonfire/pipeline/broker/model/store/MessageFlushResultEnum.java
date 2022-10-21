@@ -16,8 +16,8 @@ public enum MessageFlushResultEnum {
      */
     FAILED(-1, "输盘失败");
 
-    private int code;
-    private String description;
+    private final int code;
+    private final String description;
 
     MessageFlushResultEnum(final int code, final String description) {
         this.code = code;

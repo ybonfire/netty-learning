@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import org.ybonfire.pipeline.broker.constant.BrokerConstant;
 import org.ybonfire.pipeline.broker.exception.FileLoadException;
 import org.ybonfire.pipeline.broker.exception.MessageFileIllegalStateException;
+import org.ybonfire.pipeline.broker.model.store.Index;
 import org.ybonfire.pipeline.broker.model.store.SelectMappedFileDataResult;
 import org.ybonfire.pipeline.broker.store.file.MappedFile;
 import org.ybonfire.pipeline.broker.store.index.IndexLog;
@@ -130,6 +131,26 @@ public final class MessageLog {
     }
 
     /**
+     * @description: 根据索引信息查询消息
+     * @param:
+     * @return:
+     * @date: 2022/10/21 11:39:42
+     */
+    public Optional<Message> select(final Index index) {
+        acquireOK();
+
+        lock.lock();
+        try {
+            final int position = index.getStartOffset();
+            final int size = index.getSize();
+            final Optional<SelectMappedFileDataResult> resultOptional = file.get(position, size);
+            return resultOptional.map(SelectMappedFileDataResult::getData).map(this::convert);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
      * 摧毁消息文件
      */
     public void destroy() {
@@ -236,6 +257,26 @@ public final class MessageLog {
         buffer.putLong(timestamp); // timestamp
 
         return buffer.array();
+    }
+
+    /**
+     * 将二进制数据转换为消息
+     *
+     * @param buffer 二进制数据
+     * @return {@link Message}
+     */
+    private Message convert(final ByteBuffer buffer) {
+        final int totalLength = buffer.getInt();
+        final int idLength = buffer.getInt();
+        final byte[] idBytes = new byte[idLength];
+        buffer.get(idBytes);
+        final String id = new String(idBytes, CommonConstant.CHARSET_UTF8);
+        final int payloadLength = buffer.get();
+        final byte[] payloadBytes = new byte[payloadLength];
+        buffer.get(payloadBytes);
+        final long timestamp = buffer.getLong();
+
+        return Message.builder().id(id).topic(topic).payload(payloadBytes).build();
     }
 
     /**

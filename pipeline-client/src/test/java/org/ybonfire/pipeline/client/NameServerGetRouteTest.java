@@ -32,14 +32,4 @@ public class NameServerGetRouteTest extends NettyRemotingClient {
         client.request(request, "0:0:0:0:0:0:0:0:14690", 10 * 1000L);
         Thread.sleep(1000L);
     }
-
-    @Override
-    protected void registerResponseProcessors() {
-        // RouteSelectAllRequestProcessor
-        registerResponseProcessor(RequestEnum.SELECT_ALL_ROUTE.getCode(),
-            response -> System.out.println(response.getBody()), EXECUTOR);
-        // RouteSelectRequestProcessor
-        registerResponseProcessor(RequestEnum.SELECT_ROUTE.getCode(),
-            response -> System.out.println(response.getBody()), EXECUTOR);
-    }
 }

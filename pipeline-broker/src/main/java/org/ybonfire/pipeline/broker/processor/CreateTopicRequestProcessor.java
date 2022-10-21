@@ -20,7 +20,7 @@ import org.ybonfire.pipeline.server.exception.RequestTypeNotSupportException;
 import org.ybonfire.pipeline.server.processor.AbstractRemotingRequestProcessor;
 
 /**
- * CreateTopicRequestProcessor请求处理器
+ * CreateTopicRequestProcessor
  *
  * @author yuanbo
  * @date 2022-09-21 14:50
@@ -123,7 +123,7 @@ public final class CreateTopicRequestProcessor extends AbstractRemotingRequestPr
 
         // check partition
         if (request.getPartitionNums() == null || request.getPartitionNums() < 1) {
-            LOGGER.error("create topic request[partitionNums] is valid");
+            LOGGER.error("create topic request[partitionNums] is invalid");
             return false;
         }
 

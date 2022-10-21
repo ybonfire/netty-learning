@@ -4,15 +4,12 @@ import org.ybonfire.pipeline.client.config.NettyClientConfig;
 import org.ybonfire.pipeline.client.connection.Connection;
 import org.ybonfire.pipeline.client.connection.ConnectionFactory;
 import org.ybonfire.pipeline.client.connection.ConnectionManager;
-import org.ybonfire.pipeline.client.dispatcher.impl.NettyRemotingResponseDispatcher;
-import org.ybonfire.pipeline.client.exception.InvokeExecuteException;
-import org.ybonfire.pipeline.client.exception.InvokeInterruptedException;
 import org.ybonfire.pipeline.client.exception.ReadTimeoutException;
+import org.ybonfire.pipeline.client.exception.RemotingInvokeInterruptedException;
 import org.ybonfire.pipeline.client.exception.UnSupportedRequestTypeException;
 import org.ybonfire.pipeline.client.inflight.InflightRequestManager;
 import org.ybonfire.pipeline.client.model.RemoteRequestFuture;
 import org.ybonfire.pipeline.client.model.RequestTypeEnum;
-import org.ybonfire.pipeline.client.processor.IRemotingResponseProcessor;
 import org.ybonfire.pipeline.client.thread.ClientChannelEventHandleThreadService;
 import org.ybonfire.pipeline.common.callback.IRequestCallback;
 import org.ybonfire.pipeline.common.exception.LifeCycleException;
@@ -22,7 +19,6 @@ import org.ybonfire.pipeline.common.protocol.IRemotingRequest;
 import org.ybonfire.pipeline.common.protocol.IRemotingResponse;
 import org.ybonfire.pipeline.common.util.AssertUtils;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -31,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Bo.Yuan5
  * @date 2022-05-18 15:28
  */
-public abstract class NettyRemotingClient implements IRemotingClient<IRemotingResponseProcessor> {
+public abstract class NettyRemotingClient implements IRemotingClient {
     private static final IInternalLogger LOGGER = new SimpleInternalLogger();
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final ClientChannelEventHandleThreadService channelEventHandleThreadService =
@@ -102,12 +98,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
     @Override
     public IRemotingResponse request(final IRemotingRequest request, final String address, final long timeoutMillis) {
         acquireOK();
-        try {
-            return doRequest(request, null, address, timeoutMillis, RequestTypeEnum.SYNC);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            throw new InvokeInterruptedException(ex);
-        }
+        return doRequest(request, null, address, timeoutMillis, RequestTypeEnum.SYNC);
     }
 
     /**
@@ -118,7 +109,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      */
     @Override
     public void requestAsync(final IRemotingRequest request, final String address, final IRequestCallback callback,
-        final long timeoutMillis) throws InterruptedException {
+        final long timeoutMillis) {
         acquireOK();
         doRequest(request, callback, address, timeoutMillis, RequestTypeEnum.ASYNC);
     }
@@ -130,31 +121,15 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @date: 2022/05/19 10:07:18
      */
     @Override
-    public void requestOneway(final IRemotingRequest request, final String address) throws InterruptedException {
+    public void requestOneway(final IRemotingRequest request, final String address) {
         acquireOK();
-        doRequest(request, null, address, -1L, RequestTypeEnum.ONEWAY);
-    }
 
-    /**
-     * @description: 注册响应处理器
-     * @param:
-     * @return:
-     * @date: 2022/05/24 00:22:15
-     */
-    @Override
-    public void registerResponseProcessor(final int responseCode, final IRemotingResponseProcessor processor,
-        final ExecutorService executor) {
-        NettyRemotingResponseDispatcher.getInstance().registerRemotingRequestProcessor(responseCode, processor,
-            executor);
+        try {
+            doRequest(request, null, address, -1L, RequestTypeEnum.ONEWAY);
+        } catch (Exception ex) {
+            // ignored
+        }
     }
-
-    /**
-     * @description: 注册远程调用响应处理器
-     * @param:
-     * @return:
-     * @date: 2022/07/01 17:41:06
-     */
-    protected abstract void registerResponseProcessors();
 
     /**
      * @description: 构造RemoteRequestFuture
@@ -162,9 +137,9 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @return:
      * @date: 2022/05/19 13:26:46
      */
-    private RemoteRequestFuture buildRemoteRequestFuture(final String address, final Connection connection,
-        final IRemotingRequest request, final IRequestCallback callback, final long timeoutMillis) {
-        return new RemoteRequestFuture(address, connection, request, callback, timeoutMillis);
+    private RemoteRequestFuture buildRemoteRequestFuture(final IRemotingRequest request,
+        final IRequestCallback callback, final long timeoutMillis, final Connection connection) {
+        return new RemoteRequestFuture(request, callback, timeoutMillis, connection);
     }
 
     /**
@@ -186,7 +161,7 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @date: 2022/05/19 14:10:22
      */
     private IRemotingResponse doRequest(final IRemotingRequest request, final IRequestCallback callback,
-        final String address, final long timeoutMillis, final RequestTypeEnum type) throws InterruptedException {
+        final String address, final long timeoutMillis, final RequestTypeEnum type) {
         final long startTimestamp = System.currentTimeMillis();
 
         // 参数校验
@@ -202,14 +177,13 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
 
         // 缓存在途请求
         final RemoteRequestFuture future =
-            buildRemoteRequestFuture(address, connection, request, callback, remainingTimeoutMillis);
+            buildRemoteRequestFuture(request, callback, remainingTimeoutMillis, connection);
         InflightRequestManager.getInstance().add(future);
 
         // 发送请求
         switch (type) {
             case SYNC:
-                final IRemotingResponse response = doRequestSync(future, remainingTimeoutMillis);
-                return response;
+                return doRequestSync(future, remainingTimeoutMillis);
             case ASYNC:
                 doRequestAsync(future);
                 return null;
@@ -227,32 +201,36 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
      * @return:
      * @date: 2022/05/19 15:03:49
      */
-    private IRemotingResponse doRequestSync(final RemoteRequestFuture future, final long timeoutMillis)
-        throws InterruptedException {
+    private IRemotingResponse doRequestSync(final RemoteRequestFuture future, final long timeoutMillis) {
         try {
             // 发送请求
             future.getConnection().write(future.getRequest()).addListener(f -> {
                 if (f.isSuccess()) {
-                    future.setRequestSuccess(true);
+                    future.launch();
                 } else {
                     LOGGER.error(String.format("Failed to send request. id:[%s]", future.getRequest().getId()));
-                    future.setRequestSuccess(false);
-                    future.setCause(f.cause());
+                    future.complete(f.cause());
                 }
             });
 
             // 请求失败
-            if (!future.isRequestSuccess()) {
-                throw new InvokeExecuteException(future.getCause());
+            if (!future.isInflight()) {
+                throw future.getCause();
             }
 
             // 请求成功, 等待响应
-            final IRemotingResponse response = future.get(timeoutMillis);
-            if (response == null) {
-                throw new ReadTimeoutException();
-            }
+            try {
+                final IRemotingResponse response = future.get(timeoutMillis);
+                if (response == null) {
+                    throw new ReadTimeoutException();
+                }
 
-            return response;
+                return response;
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                LOGGER.warn("doRequestSync interrupted.");
+                throw new RemotingInvokeInterruptedException(ex);
+            }
         } finally {
             // 移除在途请求
             InflightRequestManager.getInstance().remove(future.getRequest().getId());
@@ -270,21 +248,20 @@ public abstract class NettyRemotingClient implements IRemotingClient<IRemotingRe
             // 发送请求
             future.getConnection().write(future.getRequest()).addListener(f -> {
                 if (f.isSuccess()) {
-                    future.setRequestSuccess(true);
+                    future.launch();
                 } else {
                     LOGGER.error(String.format("Failed to send request. id:[%s]", future.getRequest().getId()));
-                    future.setRequestSuccess(false);
-                    future.setCause(f.cause());
+                    future.complete(f.cause());
                 }
             });
 
             // 请求失败
-            if (!future.isRequestSuccess()) {
-                throw new InvokeExecuteException(future.getCause());
+            if (!future.isInflight()) {
+                throw future.getCause();
             }
         } finally {
             // 移除在途请求
-            if (!future.isRequestSuccess()) {
+            if (!future.isInflight()) {
                 InflightRequestManager.getInstance().remove(future.getRequest().getId());
             }
         }
